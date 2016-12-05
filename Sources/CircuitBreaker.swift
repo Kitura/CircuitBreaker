@@ -1,4 +1,5 @@
 import Foundation
+import EmitterKit
 
 public enum State {
     case OPEN
@@ -11,10 +12,13 @@ class CircuitBreaker {
     var state: State
     var failures: Int
     var resetTimer = Timer()
+    var event: Event<Void>!
+    var breaker: Stats!
     
     var timeout: Double
     var resetTimeout: Double
     var maxFailures: Double
+    var pendingHalfOpen: Bool
     
     convenience init () {
         let opts: [String: Double] = [
@@ -32,38 +36,42 @@ class CircuitBreaker {
 
         self.state = State.CLOSED
         self.failures = 0
+        self.pendingHalfOpen = false
+        self.event = Event<Void>()
+        self.breaker = Stats(event: event)
     }
     
-    // Invoke
     /*
-    public func invoke () {
-     
+    // Invoke
+    public func invoke () -> () {
+        event.emit(breaker.trackRequest())
+        
+        if self.state == State.OPEN || (self.state == State.HALFOPEN && self.pendingHalfOpen == true) {
+            return self.fastFail()
+        } else if self.state == State.HALFOPEN && self.pendingHalfOpen != true {
+            self.pendingHalfOpen = false
+            return self.callFunction()
+        } else {
+            return self.callFunction()
+        }
     }
-    */
     
     // fastFail
-    /*
     public func fastFail () {
-     
+        
     }
-    */
     
     // callFunction
-    /*
     public func callFunction () {
      
     }
-    */
     
     // handleTimeout
-    /*
     public func handleTimeout () {
      
     }
-    */
     
     // callbackHandler
-    /*
     public func callbackHandler () {
      
     }
@@ -87,10 +95,14 @@ class CircuitBreaker {
         if ((Double(self.failures) == self.maxFailures) || (self.getState() == State.HALFOPEN)) {
             self.forceOpen()
         }
+        
+        self.event.emit(self.breaker.trackFailedResponse())
     }
     
     public func handleSuccess () {
         self.forceClosed()
+        
+        self.event.emit(self.breaker.trackSuccessfulResponse())
     }
     
     public func forceOpen () {
