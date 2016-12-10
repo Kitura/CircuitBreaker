@@ -1,55 +1,58 @@
 import Foundation
 import EmitterKit
+import PromiseKit
 
-public enum State {
-    case OPEN
-    case HALFOPEN
-    case CLOSED
-}
-
-class CircuitBreaker {
+public class CircuitBreaker {
     
-    var state: State
-    var failures: Int
-    var resetTimer = Timer()
-    var event: Event<Void>!
-    var breaker: Stats!
-    
-    var timeout: Double
-    var resetTimeout: Double
-    var maxFailures: Double
-    var pendingHalfOpen: Bool
-    
-    convenience init () {
-        let opts: [String: Double] = [
-            "timeout": 10.0, // 10 sec
-            "resetTimeout": 60.0, // 1 min
-            "maxFailures": 5.0
-        ]
-        self.init(opts: opts)
+    public enum State {
+        case OPEN
+        case HALFOPEN
+        case CLOSED
     }
     
-    init (opts: [String: Double]) {
-        self.timeout = opts["timeout"] ?? 10.0
-        self.resetTimeout = opts["resetTimeout"] ?? 60.0
-        self.maxFailures = opts["maxFailures"] ?? 5.0
-
+    private(set) var state: State
+    private(set) var failures: Int
+    var event: Event<Void>!
+    var breaker: Stats!
+    var function: AnyFunction<Any, Any, Any>
+    
+    let timeout: Double
+    let resetTimeout: Double
+    let maxFailures: Int
+    var pendingHalfOpen: Bool
+    
+    var timer: DispatchSourceTimer?
+    
+    typealias AnyFunction<A, B, C> = (A, B) -> C
+    
+    func runFunc<A, B, C>(f: AnyFunction<A, B, C>, args: [Any]) -> C {
+        let result = f(args[0] as! A, args[1] as! B)
+        return result
+    }
+    
+    init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, selector: @escaping AnyFunction<Any, Any, Any>) {
+        self.timeout = timeout
+        self.resetTimeout = resetTimeout
+        self.maxFailures = maxFailures
+    
         self.state = State.CLOSED
         self.failures = 0
         self.pendingHalfOpen = false
         self.event = Event<Void>()
         self.breaker = Stats(event: event)
+        
+        self.function = selector
     }
     
-    /*
-    // Invoke
-    public func invoke () -> () {
-        event.emit(breaker.trackRequest())
+    
+    // Run
+    func run () {
+        self.event.emit(breaker.trackRequest())
         
         if self.state == State.OPEN || (self.state == State.HALFOPEN && self.pendingHalfOpen == true) {
             return self.fastFail()
-        } else if self.state == State.HALFOPEN && self.pendingHalfOpen != true {
-            self.pendingHalfOpen = false
+        } else if self.state == State.HALFOPEN && self.pendingHalfOpen == false {
+            self.pendingHalfOpen = true
             return self.callFunction()
         } else {
             return self.callFunction()
@@ -57,88 +60,120 @@ class CircuitBreaker {
     }
     
     // fastFail
-    public func fastFail () {
-        
+    func fastFail () {
+        return self.event.emit(self.breaker.trackRejected())
+    
     }
     
     // callFunction
-    public func callFunction () {
-     
+    func callFunction () {
+        
+        // Call the function using timeout/error
+        // If the function fails, handle failure
+        // If the function is successful, handle success
+        // Then this ends
+        
+        let startTime:Date = Date()
+        
+        self.event.emit(self.breaker.trackLatency(latency: Int(Date().timeIntervalSince(startTime))))
+        
+        //if(err) {
+        //    self.handleFailures()
+        //} else {
+        //    self.handleSuccess();
+        //}
     }
     
     // handleTimeout
-    public func handleTimeout () {
-     
+    func handleTimeout (deferred: Promise<Any>, startTime: Date) {
+        self.handleFailures()
+        
+        self.event.emit(self.breaker.trackTimeouts())
     }
     
-    // callbackHandler
-    public func callbackHandler () {
-     
-    }
-    */
-    
-    public func getState () -> State {
-        return self.state
-    }
-    
-    public func setNumFailures (count: Int) {
-        self.failures = count
+    // Test helper functions
+    var breakerState: State {
+        
+        get {
+            return self.state
+        }
+        
+        set {
+            self.state = newValue
+        }
     }
     
-    public func getNumFailures () -> Int {
-        return self.failures
+    var numFailures: Int {
+        
+        get {
+            return self.failures
+        }
+        
+        set {
+            self.failures = newValue
+        }
+        
     }
     
-    public func handleFailures () {
+    func handleFailures () {
         self.failures += 1
         
-        if ((Double(self.failures) == self.maxFailures) || (self.getState() == State.HALFOPEN)) {
+        if self.failures == self.maxFailures || self.state == State.HALFOPEN {
             self.forceOpen()
         }
         
         self.event.emit(self.breaker.trackFailedResponse())
     }
     
-    public func handleSuccess () {
+    func handleSuccess () {
         self.forceClosed()
         
         self.event.emit(self.breaker.trackSuccessfulResponse())
     }
     
-    public func forceOpen () {
+    func forceOpen () {
         self.state = State.OPEN
         
-        // TODO: Figure out timeout for sure
-        //self.setTimeout(delay: self.resetTimeout)
+        // TODO: Test timer is working here
+        //self.startTimer(delay: .seconds(Int(self.resetTimeout)))
     }
     
-    public func forceClosed () {
+    func forceClosed () {
         self.state = State.CLOSED
         self.failures = 0
+        self.pendingHalfOpen = false
     }
     
-    public func forceHalfOpen () {
+    func forceHalfOpen () {
         self.state = State.HALFOPEN
     }
     
-    @objc func updateState () {
-        self.state = State.HALFOPEN
+    // Helper method used for testing only
+    func updateState () {
+        self.startTimer(delay: .seconds(Int(self.resetTimeout)))
     }
     
-    func setTimeout(delay:TimeInterval) {
-        let timer = Timer(timeInterval: delay, target: self, selector: #selector(updateState), userInfo: nil, repeats: false)
-        RunLoop.current.add(timer, forMode: RunLoopMode.commonModes)
-        RunLoop.main.run(until: Date(timeIntervalSinceNow: delay))
+    private func startTimer(delay: DispatchTimeInterval) {
+        let queue = DispatchQueue(label: "Circuit Breaker", attributes: .concurrent)
+        
+        // Cancel previous timer if any
+        timer?.cancel()
+        
+        timer = DispatchSource.makeTimerSource(queue: queue)
+        
+        timer?.scheduleOneshot(deadline: .now(), leeway: delay)
+        
+        timer?.setEventHandler { [weak self] in
+            self?.forceHalfOpen()
+        }
+        
+        timer?.resume()
     }
     
-    /*func setTimeout(delay:TimeInterval, block: @escaping ()->Void) -> Timer {
-        print("In setTimeout")
-        return Timer.scheduledTimer(timeInterval: delay, target: BlockOperation(block: block), selector: #selector(Operation.main), userInfo: nil, repeats: false)
+    private func stopTimer() {
+        timer?.cancel()
+        timer = nil
     }
-    
-    func setInterval(interval:TimeInterval, block:@escaping ()->Void) -> Timer {
-        return Timer.scheduledTimer(timeInterval: interval, target: BlockOperation(block: block), selector: #selector(Operation.main), userInfo: nil, repeats: true)
-    }*/
     
 }
 

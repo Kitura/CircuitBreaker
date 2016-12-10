@@ -34,7 +34,8 @@ class StatsTests: XCTestCase {
             ("testConcurrentRequestsRejectedEvent", testConcurrentRequestsRejectedEvent),
             ("testResetTimeoutEvent", testResetTimeoutEvent),
             ("testResetTotalRequestsEvent", testResetTotalRequestsEvent),
-            ("testResetAllAttributesEvent", testResetAllAttributesEvent)
+            ("testResetAllAttributesEvent", testResetAllAttributesEvent),
+            ("testSnapshot", testSnapshot)
         ]
     }
     
@@ -525,6 +526,32 @@ class StatsTests: XCTestCase {
         }
         
         event.emit(breaker.trackRequest())
+        
+        expectation1.fulfill()
+        print("Done")
+        
+        waitForExpectations(timeout: 10, handler: { _ in  })
+        
+    }
+    
+    // Print out current snapshot of CircuitBreaker Stats
+    func testSnapshot() {
+        
+        let expectation1 = expectation(description: "Print out current snapshot of CircuitBreaker Stats")
+        
+        event.emit(breaker.trackRequest())
+        event.emit(breaker.trackFailedResponse())
+        event.emit(breaker.trackLatency(latency: 30))
+        
+        event.emit(breaker.trackRequest())
+        event.emit(breaker.trackSuccessfulResponse())
+        event.emit(breaker.trackLatency(latency: 4))
+        
+        event.emit(breaker.trackRequest())
+        event.emit(breaker.trackTimeouts())
+        event.emit(breaker.trackLatency(latency: 100))
+        
+        breaker.snapshot()
         
         expectation1.fulfill()
         print("Done")

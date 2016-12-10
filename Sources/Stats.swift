@@ -1,7 +1,9 @@
 import Foundation
 import EmitterKit
 
-class Stats {
+// TODO: Update this class to not use EmitterKit
+
+public class Stats {
     
     var timeouts:Int = 0
     var successfulResponses:Int = 0
@@ -18,7 +20,7 @@ class Stats {
     }
     
     init (event: Event<Void>) {
-        // TODO: Implement and how events will be handled
+        // TODO: Implement how events will be handled
         self.breaker = event
         
         // Set defaults
@@ -55,7 +57,7 @@ class Stats {
         
     }
     
-    public func initCounters () -> Void {
+    func initCounters () -> Void {
         self.timeouts = 0
         self.successfulResponses = 0
         self.failedResponses = 0
@@ -65,36 +67,36 @@ class Stats {
         
     }
     
-    public func totalLatency () -> Int {
+    func totalLatency () -> Int {
         return self.latencies.reduce(0, +)
     }
     
-    public func trackTimeouts () -> Void {
+    func trackTimeouts () -> Void {
         self.timeouts += 1
     }
     
-    public func trackSuccessfulResponse () -> Void {
+    func trackSuccessfulResponse () -> Void {
         self.successfulResponses += 1
     }
     
-    public func trackFailedResponse () {
+    func trackFailedResponse () {
         self.failedResponses += 1
     }
     
-    public func trackRejected () -> Void {
+    func trackRejected () -> Void {
         self.rejectedRequests += 1
     }
     
-    public func trackRequest () -> Void {
+    func trackRequest () -> Void {
         self.totalRequests += 1
     }
     
     // TODO: What type is latency ???
-    public func trackLatency (latency:Int) -> Void {
+    func trackLatency (latency:Int) -> Void {
         self.latencies.append(latency)
     }
     
-    public func averageResponseTime () -> Int {
+    func averageResponseTime () -> Int {
         if(self.latencies.count == 0) {
             return 0;
         }
@@ -102,14 +104,27 @@ class Stats {
         return self.totalLatency() / self.latencies.count
     }
     
-    public func concurrentRequests () -> Int {
+    func concurrentRequests () -> Int {
         let totalResponses = self.successfulResponses + self.failedResponses + self.rejectedRequests
     
         return self.totalRequests - totalResponses
     }
     
-    public func reset () -> Void {
+    func reset () -> Void {
         self.initCounters();
+    }
+    
+    // Log current snapshot of CircuitBreaker
+    func snapshot () {
+        print("Total Requests: \(self.totalRequests)")
+        print("Concurrent Requests: \(concurrentRequests())")
+        print("Rejected Requests: \(self.rejectedRequests)")
+        print("Successful Responses: \(self.successfulResponses)")
+        print("Average Response Time: \(averageResponseTime())")
+        print("Failed Responses: \(self.failedResponses)")
+        print("Total Timeouts: \(self.timeouts)")
+        print("Total Latency: \(self.totalLatency())")
+
     }
     
 }
