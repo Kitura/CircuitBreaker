@@ -14,7 +14,7 @@ public class CircuitBreaker {
     private(set) var failures: Int
     var event: Event<Void>!
     var breaker: Stats!
-    var function: AnyFunction<Any, Any, Any>
+    var function: () -> Void
     
     let timeout: Double
     let resetTimeout: Double
@@ -23,14 +23,7 @@ public class CircuitBreaker {
     
     var timer: DispatchSourceTimer?
     
-    typealias AnyFunction<A, B, C> = (A, B) -> C
-    
-    func runFunc<A, B, C>(f: AnyFunction<A, B, C>, args: [Any]) -> C {
-        let result = f(args[0] as! A, args[1] as! B)
-        return result
-    }
-    
-    init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, selector: @escaping AnyFunction<Any, Any, Any>) {
+    init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, selector: @escaping () -> Void) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -76,7 +69,10 @@ public class CircuitBreaker {
         let startTime:Date = Date()
         
         self.event.emit(self.breaker.trackLatency(latency: Int(Date().timeIntervalSince(startTime))))
-        
+
+        // TODO: Wrap this function call with a promise on a timer associated with the CircuitBreaker
+        self.function()
+
         //if(err) {
         //    self.handleFailures()
         //} else {

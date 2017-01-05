@@ -27,10 +27,7 @@ class CircuitBreakerTests: XCTestCase {
         return a + b
     }
     
-    func test(a: Any, b: Any) -> Any {
-        let c: Any = 3
-        return c
-    }
+    func test() -> Void {}
 
     // Create CircuitBreaker, state should be Closed and no failures
     func testDefaultConstructor() {
@@ -294,11 +291,14 @@ class CircuitBreakerTests: XCTestCase {
     func testFunctionCall() {
         let expectation1 = expectation(description: "Execute method successfully")
 
-        let breaker = CircuitBreaker(selector: test)
+        var result = 0
+
+        let breaker = CircuitBreaker() {
+            result = self.sum(a: 1, b: 2)
+        }
+        breaker.run()
         
-        let result = breaker.runFunc(f: sum, args: [1, 2])
-        
-        // Check that state is closed
+        // TODO: Check that state is closed
         XCTAssertEqual(result, 3)
         
         expectation1.fulfill()
