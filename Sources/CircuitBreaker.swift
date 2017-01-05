@@ -1,5 +1,4 @@
 import Foundation
-import EmitterKit
 import PromiseKit
 
 public class CircuitBreaker {
@@ -12,8 +11,7 @@ public class CircuitBreaker {
     
     private(set) var state: State
     private(set) var failures: Int
-    var event: Event<Void>!
-    var breaker: Stats!
+    var breakerStats: Stats!
     var function: () -> Void
     
     let timeout: Double
@@ -31,8 +29,7 @@ public class CircuitBreaker {
         self.state = State.CLOSED
         self.failures = 0
         self.pendingHalfOpen = false
-        self.event = Event<Void>()
-        self.breaker = Stats(event: event)
+        self.breakerStats = Stats()
         
         self.function = selector
     }
@@ -40,7 +37,7 @@ public class CircuitBreaker {
     
     // Run
     func run () {
-        self.event.emit(breaker.trackRequest())
+        breakerStats.trackRequest()
         
         if self.state == State.OPEN || (self.state == State.HALFOPEN && self.pendingHalfOpen == true) {
             return self.fastFail()
@@ -54,7 +51,7 @@ public class CircuitBreaker {
     
     // fastFail
     func fastFail () {
-        return self.event.emit(self.breaker.trackRejected())
+        return breakerStats.trackRejected()
     
     }
     
@@ -68,11 +65,10 @@ public class CircuitBreaker {
         
         let startTime:Date = Date()
         
-        self.event.emit(self.breaker.trackLatency(latency: Int(Date().timeIntervalSince(startTime))))
+        self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
         // TODO: Wrap this function call with a promise on a timer associated with the CircuitBreaker
         self.function()
-
         //if(err) {
         //    self.handleFailures()
         //} else {
@@ -84,7 +80,7 @@ public class CircuitBreaker {
     func handleTimeout (deferred: Promise<Any>, startTime: Date) {
         self.handleFailures()
         
-        self.event.emit(self.breaker.trackTimeouts())
+        breakerStats.trackTimeouts()
     }
     
     // Test helper functions
@@ -118,13 +114,13 @@ public class CircuitBreaker {
             self.forceOpen()
         }
         
-        self.event.emit(self.breaker.trackFailedResponse())
+        breakerStats.trackFailedResponse()
     }
     
     func handleSuccess () {
         self.forceClosed()
         
-        self.event.emit(self.breaker.trackSuccessfulResponse())
+        breakerStats.trackSuccessfulResponse()
     }
     
     func forceOpen () {

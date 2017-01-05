@@ -2,6 +2,8 @@
 .DS_Store
 
 # Swift
+.DS_Store
+*.xcodeproj
 Packages
 
 # Xcode

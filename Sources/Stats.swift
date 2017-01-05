@@ -1,5 +1,4 @@
 import Foundation
-import EmitterKit
 
 // TODO: Update this class to not use EmitterKit
 
@@ -11,18 +10,8 @@ public class Stats {
     var totalRequests:Int = 0
     var rejectedRequests:Int = 0
     var latencies:Array<Int> = []
-    var breaker:Event = Event<Void>()
-    var listeners = [Listener]()
     
-    convenience init () {
-        let breakerEvents = Event<Void>()
-        self.init(event: breakerEvents)
-    }
-    
-    init (event: Event<Void>) {
-        // TODO: Implement how events will be handled
-        self.breaker = event
-        
+    init () {
         // Set defaults
         self.timeouts = 0
         self.successfulResponses = 0
@@ -30,30 +19,6 @@ public class Stats {
         self.totalRequests = 0
         self.rejectedRequests = 0
         self.latencies = []
-        
-        self.listeners += event.on(self.totalRequests as AnyObject) {_ in
-            self.trackRequest()
-        }
-        
-        self.listeners += event.on(self.timeouts as AnyObject) {_ in
-            self.trackTimeouts()
-        }
-        
-        self.listeners += event.on(self.successfulResponses as AnyObject) {_ in
-            self.trackSuccessfulResponse()
-        }
-        
-        self.listeners += event.on(self.failedResponses as AnyObject) {_ in
-            self.trackFailedResponse()
-        }
-        
-        self.listeners += event.on(self.rejectedRequests as AnyObject) {_ in
-            self.trackRejected()
-        }
-        
-        self.listeners += event.on(self.totalLatency() as AnyObject) {_ in
-            self.trackLatency(latency: 0)
-        }
         
     }
     
