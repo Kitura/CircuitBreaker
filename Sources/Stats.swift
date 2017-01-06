@@ -80,7 +80,11 @@ public class Stats {
     }
     
     // Log current snapshot of CircuitBreaker
+    // TODO: What format should this be in?
     func snapshot () {
+        print("\n")
+        print("**************************************")
+        print(Date())
         print("Total Requests: \(self.totalRequests)")
         print("Concurrent Requests: \(concurrentRequests())")
         print("Rejected Requests: \(self.rejectedRequests)")
@@ -89,6 +93,8 @@ public class Stats {
         print("Failed Responses: \(self.failedResponses)")
         print("Total Timeouts: \(self.timeouts)")
         print("Total Latency: \(self.totalLatency())")
+        print("**************************************")
+        print("\n")
 
     }
     

@@ -104,7 +104,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Should enter open state")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(resetTimeout: 10.0,selector: test)
         
         // Force open
         breaker.forceOpen()
@@ -127,7 +127,9 @@ class CircuitBreakerTests: XCTestCase {
         
         // Force open
         breaker.forceOpen()
-        breaker.updateState()
+        
+        // Check that the state is Open
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.OPEN)
         
         var time:Date = Date()
         
@@ -297,6 +299,31 @@ class CircuitBreakerTests: XCTestCase {
             result = self.sum(a: 1, b: 2)
         }
         breaker.run()
+        
+        // TODO: Check that state is closed
+        XCTAssertEqual(result, 3)
+        
+        expectation1.fulfill()
+        print("Done")
+        
+        waitForExpectations(timeout: 10, handler: { _ in  })
+        
+    }
+    
+    // Print Stats snapshot
+    func testStatsSnapshot() {
+        let expectation1 = expectation(description: "Print current stats snapshot")
+        
+        var result = 0
+        
+        let breaker = CircuitBreaker() {
+            result = self.sum(a: 1, b: 2)
+        }
+        
+        // TODO: Do something more meaningful here
+        breaker.run()
+        
+        breaker.snapshot()
         
         // TODO: Check that state is closed
         XCTAssertEqual(result, 3)

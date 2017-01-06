@@ -20,6 +20,8 @@ public class CircuitBreaker {
     var pendingHalfOpen: Bool
     
     var timer: DispatchSourceTimer?
+    let dispatchSemaphoreState = DispatchSemaphore(value: 0)
+    let dispatchSemaphoreFailure = DispatchSemaphore(value: 0)
     
     init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, selector: @escaping () -> Void) {
         self.timeout = timeout
@@ -83,7 +85,13 @@ public class CircuitBreaker {
         breakerStats.trackTimeouts()
     }
     
-    // Test helper functions
+    // Print Current Stats Snapshot
+    func snapshot () {
+        return breakerStats.snapshot()
+    }
+    
+    // Get/Set functions
+    // TODO: Have this code reviewed
     var breakerState: State {
         
         get {
@@ -91,7 +99,11 @@ public class CircuitBreaker {
         }
         
         set {
+            if case DispatchTimeoutResult.timedOut = dispatchSemaphoreState.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(1)) {
+                print("In wait.")
+            }
             self.state = newValue
+            dispatchSemaphoreState.signal()
         }
     }
     
@@ -102,13 +114,17 @@ public class CircuitBreaker {
         }
         
         set {
+            if case DispatchTimeoutResult.timedOut = dispatchSemaphoreFailure.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(1)) {
+                print("In wait.")
+            }
             self.failures = newValue
+            dispatchSemaphoreFailure.signal()
         }
         
     }
     
     func handleFailures () {
-        self.failures += 1
+        self.numFailures += 1
         
         if self.failures == self.maxFailures || self.state == State.HALFOPEN {
             self.forceOpen()
@@ -124,25 +140,20 @@ public class CircuitBreaker {
     }
     
     func forceOpen () {
-        self.state = State.OPEN
+        self.breakerState = State.OPEN
         
         // TODO: Test timer is working here
-        //self.startTimer(delay: .seconds(Int(self.resetTimeout)))
+        self.startTimer(delay: .seconds(Int(self.resetTimeout)))
     }
     
     func forceClosed () {
-        self.state = State.CLOSED
-        self.failures = 0
+        self.breakerState = State.CLOSED
+        self.numFailures = 0
         self.pendingHalfOpen = false
     }
     
     func forceHalfOpen () {
-        self.state = State.HALFOPEN
-    }
-    
-    // Helper method used for testing only
-    func updateState () {
-        self.startTimer(delay: .seconds(Int(self.resetTimeout)))
+        self.breakerState = State.HALFOPEN
     }
     
     private func startTimer(delay: DispatchTimeInterval) {
