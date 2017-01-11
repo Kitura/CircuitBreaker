@@ -1,0 +1,8 @@
+# docker-compose up
+app:
+  image: ibmcom/swift-ubuntu:latest
+  ports:
+    - "8090:8090"
+  volumes:
+    - .:/root/CircuitBreaker
+  command: bash -c "cd /root/CircuitBreaker && rm -rf Packages && swift build --clean && swift build && swift test"
