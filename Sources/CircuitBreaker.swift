@@ -1,13 +1,11 @@
 import Foundation
-// TODO: Remove PromiseKit reference
-import PromiseKit
 
 public class CircuitBreaker {
     
     public enum State {
-        case OPEN
-        case HALFOPEN
-        case CLOSED
+        case open
+        case halfopen
+        case closed
     }
     
     private(set) var state: State
@@ -22,17 +20,18 @@ public class CircuitBreaker {
     var pendingHalfOpen: Bool
     
     var resetTimer: DispatchSourceTimer?
-    let dispatchSemaphoreState = DispatchSemaphore(value: 0)
-    let dispatchSemaphoreFailure = DispatchSemaphore(value: 0)
+    let dispatchSemaphoreState = DispatchSemaphore(value: 1)
+    let dispatchSemaphoreFailure = DispatchSemaphore(value: 1)
     
-    let timeoutQueue = DispatchQueue(label: "Circuit Breaker Timeout", attributes: .concurrent)
+    // TODO: Look at using the built in queue (DispatchQueue.main doesn't work)
+    let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
     
     init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, callback: @escaping () -> Void, selector: @escaping () -> Void) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
     
-        self.state = State.CLOSED
+        self.state = State.closed
         self.failures = 0
         self.pendingHalfOpen = false
         self.breakerStats = Stats()
@@ -41,18 +40,17 @@ public class CircuitBreaker {
         self.function = selector
     }
     
-    
     // Run
     func run () {
         breakerStats.trackRequest()
         
-        if self.state == State.OPEN || (self.state == State.HALFOPEN && self.pendingHalfOpen == true) {
+        if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
             return self.fastFail()
-        } else if self.state == State.HALFOPEN && self.pendingHalfOpen == false {
+        } else if state == State.halfopen && pendingHalfOpen == false {
             self.pendingHalfOpen = true
-            return self.callFunction()
+            return callFunction()
         } else {
-            return self.callFunction()
+            return callFunction()
         }
     }
     
@@ -71,48 +69,34 @@ public class CircuitBreaker {
             if completed == false {
                 completed = true
                 if error == false {
-                    self.handleSuccess()
+                    handleSuccess()
                 } else {
-                    self.handleFailures()
+                    handleFailures()
                 }
                 
-                return self.callback()
+                return callback()
             }
         }
         
-        // Call the function using timeout/error
-        // If the function fails, handle failure
-        // If the function is successful, handle success
-        // Then this ends
-        
         let startTime:Date = Date()
         
-        self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+        breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         
-        // TODO: Wrap this function call with a promise or a timer associated with the CircuitBreaker
-        self.setTimeout(delay: self.timeout) {
-            print("Exiting...")
+        setTimeout(delay: self.timeout) {
             complete(error: true)
             return
         }
         
-        print("Running function")
-        self.handleFunction {
-            self.function()
-            complete(error: false)
-            return
-        }
+        function()
+        complete(error: false)
+        return
     }
     
     func setTimeout(delay: Double, closure: @escaping () -> ()) {
-        timeoutQueue.asyncAfter(deadline: .now() + delay) {
+        queue.asyncAfter(deadline: .now() + delay) {
             self.breakerStats.trackTimeouts()
             closure()
         }
-    }
-    
-    func handleFunction(closure: @escaping () -> ()) {
-        closure()
     }
     
     // Print Current Stats Snapshot
@@ -121,18 +105,18 @@ public class CircuitBreaker {
     }
     
     // Get/Set functions
-    // TODO: Have this code reviewed
     var breakerState: State {
         
         get {
-            return self.state
+            dispatchSemaphoreState.wait()
+            let currentState = state
+            dispatchSemaphoreState.signal()
+            return currentState
         }
         
         set {
-            if case DispatchTimeoutResult.timedOut = dispatchSemaphoreState.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(1)) {
-                print("In wait.")
-            }
-            self.state = newValue
+            dispatchSemaphoreState.wait()
+            state = newValue
             dispatchSemaphoreState.signal()
         }
     }
@@ -140,57 +124,53 @@ public class CircuitBreaker {
     var numFailures: Int {
         
         get {
-            return self.failures
+            dispatchSemaphoreFailure.wait()
+            let currentFailures = failures
+            dispatchSemaphoreFailure.signal()
+            return currentFailures
         }
         
         set {
-            if case DispatchTimeoutResult.timedOut = dispatchSemaphoreFailure.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(1)) {
-                print("In wait.")
-            }
-            self.failures = newValue
+            dispatchSemaphoreFailure.wait()
+            failures = newValue
             dispatchSemaphoreFailure.signal()
         }
         
     }
     
     func handleFailures () {
-        print("Incrementing failures..")
-        self.numFailures += 1
+        numFailures += 1
         
-        if self.failures == self.maxFailures || self.state == State.HALFOPEN {
-            self.forceOpen()
+        if failures == maxFailures || state == State.halfopen {
+            forceOpen()
         }
         
         breakerStats.trackFailedResponse()
     }
     
     func handleSuccess () {
-        print("Incrementing success..")
-        self.forceClosed()
+        forceClosed()
         
         breakerStats.trackSuccessfulResponse()
     }
     
     func forceOpen () {
-        self.breakerState = State.OPEN
-        
-        // TODO: Test timer is working here
-        self.startResetTimer(delay: .seconds(Int(self.resetTimeout)))
+        breakerState = State.open
+
+        startResetTimer(delay: .seconds(Int(self.resetTimeout)))
     }
     
     func forceClosed () {
-        self.breakerState = State.CLOSED
-        self.numFailures = 0
-        self.pendingHalfOpen = false
+        breakerState = State.closed
+        numFailures = 0
+        pendingHalfOpen = false
     }
     
     func forceHalfOpen () {
-        self.breakerState = State.HALFOPEN
+       breakerState = State.halfopen
     }
     
     private func startResetTimer(delay: DispatchTimeInterval) {
-        let queue = DispatchQueue(label: "Circuit Breaker Reset Timer", attributes: .concurrent)
-        
         // Cancel previous timer if any
         resetTimer?.cancel()
         

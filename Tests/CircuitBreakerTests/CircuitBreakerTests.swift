@@ -54,7 +54,7 @@ class CircuitBreakerTests: XCTestCase {
         let breaker = CircuitBreaker(callback: callback, selector: test)
         
         // Check that the state is Closed
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         
         // Check that the number of failures is zero
         XCTAssertEqual(breaker.numFailures, 0)
@@ -74,7 +74,7 @@ class CircuitBreakerTests: XCTestCase {
         let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, maxFailures: 3, callback: callback, selector: test)
         
         // Check that the state is Closed
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         
         // Check that the number of failures is zero
         XCTAssertEqual(breaker.failures, 0)
@@ -99,7 +99,7 @@ class CircuitBreakerTests: XCTestCase {
         let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, callback: callback, selector: test)
         
         // Check that the state is Closed
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         
         // Check that the number of failures is zero
         XCTAssertEqual(breaker.numFailures, 0)
@@ -127,7 +127,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.forceOpen()
         
         // Check that the state is Open
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.OPEN)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
         
         expectation1.fulfill()
         print("Done")
@@ -146,7 +146,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.forceOpen()
         
         // Check that the state is Open
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.OPEN)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
         
         var time:Date = Date()
         
@@ -158,7 +158,7 @@ class CircuitBreakerTests: XCTestCase {
         }
         
         // Wait for set timeout
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.HALFOPEN)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.halfopen)
         
         expectation1.fulfill()
         print("Done")
@@ -232,7 +232,7 @@ class CircuitBreakerTests: XCTestCase {
         
         // Check that failures is now 5 and state is OPEN
         XCTAssertEqual(breaker.numFailures, 5)
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.OPEN)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
         
         expectation1.fulfill()
         print("Done")
@@ -253,7 +253,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.handleFailures()
         
         // Check that state is now open
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.OPEN)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
         
         expectation1.fulfill()
         print("Done")
@@ -276,7 +276,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.handleSuccess()
         
         // Check that state is closed and the failures is 0
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         XCTAssertEqual(breaker.numFailures, 0)
         
         expectation1.fulfill()
@@ -297,7 +297,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.handleSuccess()
         
         // Check that state is closed
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         
         expectation1.fulfill()
         print("Done")
@@ -318,7 +318,7 @@ class CircuitBreakerTests: XCTestCase {
         
         breaker.run()
         
-        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
         XCTAssertEqual(result, 3)
         
         expectation1.fulfill()

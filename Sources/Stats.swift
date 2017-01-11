@@ -1,7 +1,5 @@
 import Foundation
 
-// TODO: Update this class to not use EmitterKit
-
 public class Stats {
     
     var timeouts:Int = 0
@@ -33,50 +31,50 @@ public class Stats {
     }
     
     func totalLatency () -> Int {
-        return self.latencies.reduce(0, +)
+        return latencies.reduce(0, +)
     }
     
     func trackTimeouts () -> Void {
-        self.timeouts += 1
+        timeouts += 1
     }
     
     func trackSuccessfulResponse () -> Void {
-        self.successfulResponses += 1
+        successfulResponses += 1
     }
     
     func trackFailedResponse () {
-        self.failedResponses += 1
+        failedResponses += 1
     }
     
     func trackRejected () -> Void {
-        self.rejectedRequests += 1
+        rejectedRequests += 1
     }
     
     func trackRequest () -> Void {
-        self.totalRequests += 1
+        totalRequests += 1
     }
     
     // TODO: What type is latency ???
     func trackLatency (latency:Int) -> Void {
-        self.latencies.append(latency)
+        latencies.append(latency)
     }
     
     func averageResponseTime () -> Int {
-        if(self.latencies.count == 0) {
+        if(latencies.count == 0) {
             return 0;
         }
     
-        return self.totalLatency() / self.latencies.count
+        return totalLatency() / latencies.count
     }
     
     func concurrentRequests () -> Int {
-        let totalResponses = self.successfulResponses + self.failedResponses + self.rejectedRequests
+        let totalResponses = successfulResponses + failedResponses + rejectedRequests
     
-        return self.totalRequests - totalResponses
+        return totalRequests - totalResponses
     }
     
     func reset () -> Void {
-        self.initCounters();
+        initCounters();
     }
     
     // Log current snapshot of CircuitBreaker
@@ -85,14 +83,14 @@ public class Stats {
         print("\n")
         print("**************************************")
         print(Date())
-        print("Total Requests: \(self.totalRequests)")
+        print("Total Requests: \(totalRequests)")
         print("Concurrent Requests: \(concurrentRequests())")
-        print("Rejected Requests: \(self.rejectedRequests)")
-        print("Successful Responses: \(self.successfulResponses)")
+        print("Rejected Requests: \(rejectedRequests)")
+        print("Successful Responses: \(successfulResponses)")
         print("Average Response Time: \(averageResponseTime())")
-        print("Failed Responses: \(self.failedResponses)")
-        print("Total Timeouts: \(self.timeouts)")
-        print("Total Latency: \(self.totalLatency())")
+        print("Failed Responses: \(failedResponses)")
+        print("Total Timeouts: \(timeouts)")
+        print("Total Latency: \(totalLatency())")
         print("**************************************")
         print("\n")
 
