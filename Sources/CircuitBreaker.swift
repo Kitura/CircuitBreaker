@@ -1,4 +1,5 @@
 import Foundation
+import LoggerAPI
 
 public class CircuitBreaker {
     
@@ -56,6 +57,7 @@ public class CircuitBreaker {
     
     // fastFail
     func fastFail () {
+        Log.verbose("Breaker open.")
         return breakerStats.trackRejected()
     
     }
@@ -142,6 +144,7 @@ public class CircuitBreaker {
         numFailures += 1
         
         if ((failures == maxFailures) || (state == State.halfopen)) {
+            Log.error("Reached max failures, or failed in halfopen state.")
             forceOpen()
         }
         
