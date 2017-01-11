@@ -10,7 +10,7 @@ public class CircuitBreaker {
     
     private(set) var state: State
     private(set) var failures: Int
-    var breakerStats: Stats!
+    var breakerStats: Stats
     var function: () -> Void
     var callback: () -> Void
     

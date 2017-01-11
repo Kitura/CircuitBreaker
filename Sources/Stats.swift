@@ -61,7 +61,7 @@ public class Stats {
     
     func averageResponseTime () -> Int {
         if(latencies.count == 0) {
-            return 0;
+            return 0
         }
     
         return totalLatency() / latencies.count
@@ -74,7 +74,7 @@ public class Stats {
     }
     
     func reset () -> Void {
-        initCounters();
+        initCounters()
     }
     
     // Log current snapshot of CircuitBreaker
