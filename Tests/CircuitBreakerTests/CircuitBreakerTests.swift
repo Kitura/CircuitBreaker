@@ -18,13 +18,30 @@ class CircuitBreakerTests: XCTestCase {
             ("testHalfOpenFailure", testHalfOpenFailure),
             ("testSuccess", testSuccess),
             ("testHalfOpenSuccess", testHalfOpenSuccess),
-            ("testFunctionCall", testFunctionCall)
+            ("testFunctionCall", testFunctionCall),
+            ("testTimeout", testTimeout)
         ]
     }
     
     func sum(a: Int, b: Int) -> Int {
-        print(a + b)
         return a + b
+    }
+    
+    func callback () {
+        print("Hello there.")
+    }
+    
+    func time(a: Int) -> Int {
+        var time:Date = Date()
+        
+        let elapsedTime = time.addingTimeInterval(0.2 * 60.0)
+        
+        // Wait 11 seconds
+        while time < elapsedTime {
+            time = Date()
+        }
+        
+        return a
     }
     
     func test() -> Void {}
@@ -34,7 +51,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Create CircuitBreaker, state should be Closed and no failures")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
@@ -54,7 +71,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Create CircuitBreaker with user options set")
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, maxFailures: 3, selector: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, maxFailures: 3, callback: callback, selector: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
@@ -79,7 +96,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Create CircuitBreaker with some user options set")
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, selector: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5.0, callback: callback, selector: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
@@ -104,7 +121,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Should enter open state")
         
-        let breaker = CircuitBreaker(resetTimeout: 10.0,selector: test)
+        let breaker = CircuitBreaker(resetTimeout: 10.0, callback: callback, selector: test)
         
         // Force open
         breaker.forceOpen()
@@ -123,7 +140,7 @@ class CircuitBreakerTests: XCTestCase {
     func testHalfOpenResetTimeout() {
         let expectation1 = expectation(description: "Should enter half open state after reset timeout")
         
-        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: 10.0, maxFailures: 10, selector: test)
+        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: 10.0, maxFailures: 10, callback: callback, selector: test)
         
         // Force open
         breaker.forceOpen()
@@ -154,7 +171,7 @@ class CircuitBreakerTests: XCTestCase {
     func testResetFailures() {
         let expectation1 = expectation(description: "Should reset failures to 0")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         // Set failures
         breaker.numFailures = 10
@@ -179,7 +196,7 @@ class CircuitBreakerTests: XCTestCase {
     func testIncrementFailures() {
         let expectation1 = expectation(description: "Should incrememnt failures by 1")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         // Check that failures is 0
         XCTAssertEqual(breaker.numFailures, 0)
@@ -201,7 +218,7 @@ class CircuitBreakerTests: XCTestCase {
     func testMaxFailures() {
         let expectation1 = expectation(description: "Should enter open state once maxFailures is reached")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         // Check that failures is 0
         XCTAssertEqual(breaker.numFailures, 0)
@@ -228,7 +245,7 @@ class CircuitBreakerTests: XCTestCase {
     func testHalfOpenFailure() {
         let expectation1 = expectation(description: "Should enter open state after failure while in halfopen state")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         breaker.forceHalfOpen()
         
@@ -249,7 +266,7 @@ class CircuitBreakerTests: XCTestCase {
     func testSuccess() {
         let expectation1 = expectation(description: "Should reset failures and state after a success")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         breaker.numFailures = 10
         
@@ -273,7 +290,7 @@ class CircuitBreakerTests: XCTestCase {
     func testHalfOpenSuccess() {
         let expectation1 = expectation(description: "Should enter closed state from halfopen state after a success")
         
-        let breaker = CircuitBreaker(selector: test)
+        let breaker = CircuitBreaker(callback: callback, selector: test)
         
         breaker.forceHalfOpen()
         
@@ -295,12 +312,13 @@ class CircuitBreakerTests: XCTestCase {
 
         var result = 0
 
-        let breaker = CircuitBreaker() {
+        let breaker = CircuitBreaker(callback: callback) {
             result = self.sum(a: 1, b: 2)
         }
+        
         breaker.run()
         
-        // TODO: Check that state is closed
+        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.CLOSED)
         XCTAssertEqual(result, 3)
         
         expectation1.fulfill()
@@ -316,7 +334,7 @@ class CircuitBreakerTests: XCTestCase {
         
         var result = 0
         
-        let breaker = CircuitBreaker() {
+        let breaker = CircuitBreaker(callback: callback) {
             result = self.sum(a: 1, b: 2)
         }
         
@@ -327,6 +345,28 @@ class CircuitBreakerTests: XCTestCase {
         
         // TODO: Check that state is closed
         XCTAssertEqual(result, 3)
+        
+        expectation1.fulfill()
+        print("Done")
+        
+        waitForExpectations(timeout: 10, handler: { _ in  })
+        
+    }
+    
+    // Test timeout
+    func testTimeout() {
+        let expectation1 = expectation(description: "Test timeout")
+        
+        var result = 0
+        
+        let breaker = CircuitBreaker(timeout: 5.0, callback: callback) {
+            result = self.time(a: 1)
+        }
+        
+        breaker.run()
+        
+        // TODO: Still gets the result, is this okay???
+        XCTAssertEqual(result, 1)
         
         expectation1.fulfill()
         print("Done")
