@@ -15,7 +15,7 @@ public class CircuitBreaker {
     var callback: () -> Void
     
     let timeout: Double
-    let resetTimeout: Double
+    let resetTimeout: Int
     let maxFailures: Int
     var pendingHalfOpen: Bool
     
@@ -26,7 +26,7 @@ public class CircuitBreaker {
     // TODO: Look at using the built in queue (DispatchQueue.main doesn't work)
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
     
-    init (timeout: Double = 10, resetTimeout: Double = 60, maxFailures: Int = 5, callback: @escaping () -> Void, selector: @escaping () -> Void) {
+    init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping () -> Void, selector: @escaping () -> Void) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -141,7 +141,7 @@ public class CircuitBreaker {
     func handleFailures () {
         numFailures += 1
         
-        if failures == maxFailures || state == State.halfopen {
+        if ((failures == maxFailures) || (state == State.halfopen)) {
             forceOpen()
         }
         
@@ -156,8 +156,8 @@ public class CircuitBreaker {
     
     func forceOpen () {
         breakerState = State.open
-
-        startResetTimer(delay: .seconds(Int(self.resetTimeout)))
+        
+        startResetTimer(delay: .seconds(resetTimeout))
     }
     
     func forceClosed () {
