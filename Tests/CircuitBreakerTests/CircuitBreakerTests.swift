@@ -304,14 +304,15 @@ class CircuitBreakerTests: XCTestCase {
     func testTimeoutReset() {
         
         var result = 0
+        let resetTimeout = 10
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 10, maxFailures: 1, callback: callback) {
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: resetTimeout, maxFailures: 1, callback: callback) {
             result = self.time(a: 1, seconds: 11)
         }
         
         breaker.run()
         
-        sleep(11)
+        sleep(UInt32(resetTimeout + 2))
         
         print(result)
         
