@@ -47,31 +47,23 @@ public class CircuitBreaker {
         breakerStats.trackRequest()
         
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
-            return self.fastFail()
+            return fastFail()
         } else if state == State.halfopen && pendingHalfOpen == false {
-            self.pendingHalfOpen = true
+            pendingHalfOpen = true
             return callFunction()
         } else {
             return callFunction()
         }
     }
     
-    // fastFail
-    func fastFail () {
-        Log.verbose("Breaker open.")
-        return breakerStats.trackRejected()
-    
-    }
-    
-    // callFunction
-    func callFunction () {
+    private func callFunction () {
         
         var completed = false
         
         func complete (error: Bool) -> () {
-            if completed == false {
+            if !completed {
                 completed = true
-                if error == false {
+                if !error {
                     handleSuccess()
                 } else {
                     handleFailures()
@@ -95,7 +87,7 @@ public class CircuitBreaker {
         return
     }
     
-    func setTimeout(delay: Double, closure: @escaping () -> ()) {
+    private func setTimeout(delay: Double, closure: @escaping () -> ()) {
         queue.asyncAfter(deadline: .now() + delay) {
             self.breakerStats.trackTimeouts()
             closure()
@@ -141,7 +133,7 @@ public class CircuitBreaker {
         
     }
     
-    func handleFailures () {
+    private func handleFailures () {
         numFailures += 1
         
         if ((failures == maxFailures) || (state == State.halfopen)) {
@@ -152,10 +144,16 @@ public class CircuitBreaker {
         breakerStats.trackFailedResponse()
     }
     
-    func handleSuccess () {
+    private func handleSuccess () {
         forceClosed()
         
         breakerStats.trackSuccessfulResponse()
+    }
+    
+    private func fastFail () {
+        Log.verbose("Breaker open.")
+        return breakerStats.trackRejected()
+        
     }
     
     func forceOpen () {
@@ -188,11 +186,6 @@ public class CircuitBreaker {
         
         resetTimer?.resume()
     }
-    
-//    private func stopResetTimer() {
-//        resetTimer?.cancel()
-//        resetTimer = nil
-//    }
     
 }
 
