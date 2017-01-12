@@ -1,5 +1,6 @@
 import Foundation
 import LoggerAPI
+import Dispatch
 
 public class CircuitBreaker {
     
