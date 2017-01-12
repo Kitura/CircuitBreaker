@@ -68,7 +68,6 @@ public class CircuitBreaker {
                 } else {
                     handleFailures()
                 }
-                
                 return callback()
             }
         }
@@ -77,7 +76,7 @@ public class CircuitBreaker {
         
         breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         
-        setTimeout(delay: self.timeout) {
+        setTimeout () {
             complete(error: true)
             return
         }
@@ -87,8 +86,8 @@ public class CircuitBreaker {
         return
     }
     
-    private func setTimeout(delay: Double, closure: @escaping () -> ()) {
-        queue.asyncAfter(deadline: .now() + delay) {
+    private func setTimeout(closure: @escaping () -> ()) {
+        queue.asyncAfter(deadline: .now() + self.timeout) {
             self.breakerStats.trackTimeouts()
             closure()
         }
