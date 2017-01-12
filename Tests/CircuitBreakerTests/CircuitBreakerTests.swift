@@ -131,6 +131,9 @@ class CircuitBreakerTests: XCTestCase {
         breaker.forceOpen()
         breaker.run()
         
+        // Sometimes the Travis timing throws this off
+        sleep(3)
+        
         // Check rejected request count
         XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
         
