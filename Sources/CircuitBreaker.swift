@@ -188,10 +188,10 @@ public class CircuitBreaker {
         resetTimer?.resume()
     }
     
-    private func stopResetTimer() {
-        resetTimer?.cancel()
-        resetTimer = nil
-    }
+//    private func stopResetTimer() {
+//        resetTimer?.cancel()
+//        resetTimer = nil
+//    }
     
 }
 
