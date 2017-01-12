@@ -3,4 +3,5 @@ import XCTest
 
 XCTMain([
     testCase(CircuitBreakerTests.allTests),
-    ])
+    testCase(StatsTests.allTests)
+])
