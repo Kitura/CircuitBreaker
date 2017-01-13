@@ -1,4 +1,4 @@
-[![Build Status - Master](https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master)](https://travis-ci.org/IBM-Swift/CircuitBreaker)
+![Build Status](https://travis-ci.com/IBM-Swift/CircuitBreaker.svg?token=zkW1banusRzgHu6HwJiN&branch=master)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
