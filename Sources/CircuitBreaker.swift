@@ -14,7 +14,7 @@ public class CircuitBreaker {
     private(set) var failures: Int
     var breakerStats: Stats
     var function: () -> Void
-    var callback: () -> Void
+    var callback: (_ error: Bool) -> Void
 
     let timeout: Double
     let resetTimeout: Int
@@ -28,7 +28,7 @@ public class CircuitBreaker {
     // TODO: Look at using the built in queue (DispatchQueue.main doesn't work)
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping () -> Void, selector: @escaping () -> Void) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, selector: @escaping () -> Void) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -68,7 +68,7 @@ public class CircuitBreaker {
                 } else {
                     handleFailures()
                 }
-                return callback()
+                return callback(error)
             }
         }
 
