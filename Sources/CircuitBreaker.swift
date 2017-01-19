@@ -151,7 +151,8 @@ public class CircuitBreaker {
 
     private func fastFail () {
         Log.verbose("Breaker open.")
-        return breakerStats.trackRejected()
+        breakerStats.trackRejected()
+        callback(true)
 
     }
 
