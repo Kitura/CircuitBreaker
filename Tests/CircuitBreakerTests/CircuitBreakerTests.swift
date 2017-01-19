@@ -28,8 +28,13 @@ class CircuitBreakerTests: XCTestCase {
         return a + b
     }
     
-    func callback () {
-        print("Hello there.")
+    func callback (error: Bool) {
+        if !error {
+            print("Success.")
+            return
+        }
+        
+        print("Timeout.")
     }
     
     func time(a: Int, seconds: Int) -> Int {

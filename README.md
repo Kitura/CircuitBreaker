@@ -25,39 +25,100 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
      ])
  ```
- 
+
  Basic CircuitBreaker example:
- 
+
  ```swift
  ...
- 
- var result = 0
- 
- // Function to circuit break
- func sum(a: Int, b: Int) -> Int {
-     return a + b
- }
- 
- // Callback to signal completion
- func callback () -> Void {
-     print("Done.")
- }
- 
- // Create CircuitBreaker for sum() function
- let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: 10, maxFailures: 2, callback: callback) {
-     result = sum(a: 10, b: 3)
- }
- 
- // Run your function in the CircuitBreaker
- breaker.run()
- 
+
+// Define a callback function with the signature (err: Bool) -> Void
+func testCallback (err: Bool) {
+    // The callback will return true if the request does not return before the specified timeout
+    // or if the CircuitBreaker is currently in Open state and set to fail fast
+    if !err {
+        print("Successful request.")
+        return
+    }
+
+    print("Something went wrong, request timed out!")
+}
+
+// Test REST endpoint to circuit break
+func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
+    // Create Request
+    var req = URLRequest(url: URL(string: "http://testAPIRoute/\(input)")!)
+    req.httpMethod = "GET"
+    req.allHTTPHeaderFields = ["Content-Type": "application/json"]
+
+    let session = URLSession.shared
+
+    // Perform Request
+    session.dataTask(with: req) {result, res, err in
+        guard let result = result else {
+            let json = JSON("Error: No results.")
+            completion(json, true)
+            return
+        }
+
+        // Convert results to a JSON object
+        let json = JSON(data: result)
+
+        completion(json, false)
+        }.resume()
+}
+
+// Create a CircuitBreaker instant for each endpoint to circuit break
+// Must specify the callback function, and the endpoint to circuit break
+// Optional configurations include: timeout, resetTimeout, and maxFailures
+let breaker = CircuitBreaker(callback: testCallback) {
+    testEndpoint(input: "testInput") { data, error in
+        print("Results: \(data)")
+        print("Error: \(error)")
+    }
+}
+
+// Invoke the call to the endpoint by calling the CircuitBreaker run() function
+breaker.run()
+
 ...
 ```
 ## API
-*Coming soon...*
+### CircuitBreaker
+```swift
+CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, selector: @escaping () -> Void))
+```
+ * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
+ * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
+ * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
+ * `callback` Function user specifies to signal completion. Required format: `(error: Bool) -> Void`
+ * `selector` Endpoint to circuit break.
 
-## CircuitBreaker Stats
-*Coming soon...*
+### CircuitBreaker Stats
+```swift
+...
+// Create CircuitBreaker
+let breaker = CircuitBreaker(callback: testCallback) { data, error in
+    print("Results: \(data)")
+    print("Error: \(error)")
+}
+
+// Invoke breaker call
+breaker.run()
+
+// Log Stats snapshot
+breaker.snapshot()
+...
+```
+
+#### Tracked Stats:
+ * Total Requests
+ * Concurrent Requests
+ * Rejected Requests
+ * Successful Responses
+ * Average Response Time
+ * Failed Responses
+ * Total Timeouts
+ * Total Latency
 
 ## License
 This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE).
