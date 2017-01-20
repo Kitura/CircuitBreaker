@@ -14,13 +14,11 @@ class CircuitBreakerTests: XCTestCase {
             ("testHalfOpenResetTimeout", testHalfOpenResetTimeout),
             ("testResetFailures", testResetFailures),
             ("testFastFail", testFastFail),
-//            ("testIncrementFailures", testIncrementFailures),
-//            ("testMaxFailures", testMaxFailures),
-//            ("testHalfOpenFailure", testHalfOpenFailure),
-//            ("testSuccess", testSuccess),
             ("testHalfOpenSuccess", testHalfOpenSuccess),
             ("testFunctionCall", testFunctionCall),
-            ("testTimeout", testTimeout)
+            ("testStatsSnapshot", testStatsSnapshot),
+            ("testTimeout", testTimeout),
+            ("testTimeoutReset", testTimeoutReset)
         ]
     }
     
@@ -48,7 +46,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker, state should be Closed and no failures
     func testDefaultConstructor() {
         
-        let breaker = CircuitBreaker(callback: callback, selector: test)
+        let breaker = CircuitBreaker(callback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
@@ -61,7 +59,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker with user options set
     func testConstructor() {
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, maxFailures: 3, callback: callback, selector: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, maxFailures: 3, callback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
@@ -79,7 +77,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker with user options set
     func testPartialConstructor() {
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, callback: callback, selector: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, callback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
@@ -97,7 +95,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should enter open state
     func testForceOpen() {
         
-        let breaker = CircuitBreaker(callback: callback, selector: test)
+        let breaker = CircuitBreaker(callback: callback, command: test)
         
         // Force open
         breaker.forceOpen()
@@ -112,7 +110,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let resetTimeout = 10
         
-        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: resetTimeout, maxFailures: 10, callback: callback, selector: test)
+        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: resetTimeout, maxFailures: 10, callback: callback, command: test)
         
         // Force open
         breaker.forceOpen()
@@ -131,7 +129,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should enter open state
     func testFastFail() {
         
-        let breaker = CircuitBreaker(callback: callback, selector: test)
+        let breaker = CircuitBreaker(callback: callback, command: test)
         
         breaker.forceOpen()
         breaker.run()
@@ -147,7 +145,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should reset failures to 0
     func testResetFailures() {
         
-        let breaker = CircuitBreaker(callback: callback, selector: test)
+        let breaker = CircuitBreaker(callback: callback, command: test)
         
         // Set failures
         breaker.numFailures = 10
@@ -163,78 +161,10 @@ class CircuitBreakerTests: XCTestCase {
         
     }
     
-    // Should increment failures by 1
-//    func testIncrementFailures() {
-//        
-//        let breaker = CircuitBreaker(callback: callback, selector: test)
-//        
-//        // Check that failures is 0
-//        XCTAssertEqual(breaker.numFailures, 0)
-//        
-//        // Increment failures by 1
-//        breaker.handleFailures()
-//        
-//        // Check that failures is now 1
-//        XCTAssertEqual(breaker.numFailures, 1)
-//        
-//    }
-    
-    // Should enter open state once maxFailures is reached
-//    func testMaxFailures() {
-//        
-//        let breaker = CircuitBreaker(callback: callback, selector: test)
-//        
-//        // Check that failures is 0
-//        XCTAssertEqual(breaker.numFailures, 0)
-//        
-//        // Increment failures 5 times
-//        breaker.handleFailures()
-//        breaker.handleFailures()
-//        breaker.handleFailures()
-//        breaker.handleFailures()
-//        breaker.handleFailures()
-//        
-//        // Check that failures is now 5 and state is OPEN
-//        XCTAssertEqual(breaker.numFailures, 5)
-//        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
-//        
-//    }
-    
-    // Should enter closed state after success
-//    func testHalfOpenFailure() {
-//        
-//        let breaker = CircuitBreaker(callback: callback, selector: test)
-//        
-//        breaker.forceHalfOpen()
-//        breaker.run()
-//        
-//        // Check that state is now closed
-//        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.open)
-//        
-//    }
-    
-    // Should reset failures and state after a success
-//    func testSuccess() {
-//        
-//        let breaker = CircuitBreaker(callback: callback, selector: test)
-//        
-//        breaker.numFailures = 10
-//        
-//        // Check that failures equals 10
-//        XCTAssertEqual(breaker.numFailures, 10)
-//        
-//        breaker.handleSuccess()
-//        
-//        // Check that state is closed and the failures is 0
-//        XCTAssertEqual(breaker.breakerState, CircuitBreaker.State.closed)
-//        XCTAssertEqual(breaker.numFailures, 0)
-//        
-//    }
-    
     // Should enter closed state from halfopen state after a success
     func testHalfOpenSuccess() {
     
-        let breaker = CircuitBreaker(callback: callback, selector: test)
+        let breaker = CircuitBreaker(callback: callback, command: test)
     
         breaker.forceHalfOpen()
         breaker.run()

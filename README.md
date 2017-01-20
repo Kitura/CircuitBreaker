@@ -85,13 +85,13 @@ breaker.run()
 ## API
 ### CircuitBreaker
 ```swift
-CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, selector: @escaping () -> Void))
+CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, command: @escaping () -> Void))
 ```
  * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
  * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
  * `callback` Function user specifies to signal completion. Required format: `(error: Bool) -> Void`
- * `selector` Endpoint to circuit break.
+ * `command` Endpoint to circuit break.
 
 ### CircuitBreaker Stats
 ```swift
