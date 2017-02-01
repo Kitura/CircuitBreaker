@@ -10,12 +10,17 @@ public class CircuitBreaker {
         case closed
     }
     
-    public typealias AnyFunction<A, B> = (A) -> B
+    public enum TaskState {
+        case inProgress
+        case complete
+    }
+    
+    public typealias AnyFunction<A, B, C> = (A) -> (B, C)
     
     private(set) var state: State
     private(set) var failures: Int
     var breakerStats: Stats
-    var command: String
+    var commandTag: String
     var callback: (_ error: Bool) -> Void
 
     let timeout: Double
@@ -31,7 +36,7 @@ public class CircuitBreaker {
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
     // command (Take a function, parameters, error completion)
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, command: String) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, commandTag: String) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -42,16 +47,16 @@ public class CircuitBreaker {
         self.breakerStats = Stats()
 
         self.callback = callback
-        self.command = command
+        self.commandTag = commandTag
     }
 
     // Run
-    public func run<A, B>(f: AnyFunction<A, B>,args: Any) -> B {
+    public func run<A, B, C>(f: AnyFunction<A, B, C>,args: Any) -> (B, C) {
         breakerStats.trackRequest()
 
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
             fastFail()
-            return () as! B
+            return ("" as! B, true as! C)
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
             return callFunction(f: f, args: args)
@@ -60,7 +65,7 @@ public class CircuitBreaker {
         }
     }
 
-    private func callFunction<A, B>(f: AnyFunction<A, B>, args: Any) -> B{
+    private func callFunction<A, B, C>(f: AnyFunction<A, B, C>, args: Any) -> (B, C) {
 
         var completed = false
 
@@ -85,10 +90,15 @@ public class CircuitBreaker {
             return
         }
 
-        let result = f(args as! A)
-            
+        let (data, err) = f(args as! A)
+        
+        if err as! Bool {
+            complete(error: true)
+        }
+        
         complete(error: false)
-        return result
+        return (data, err)
+        
     }
 
     private func setTimeout(closure: @escaping () -> ()) {
