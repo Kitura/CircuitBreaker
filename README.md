@@ -70,40 +70,32 @@ func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
 // Create a CircuitBreaker instant for each endpoint to circuit break
 // Must specify the callback function, and the endpoint to circuit break
 // Optional configurations include: timeout, resetTimeout, and maxFailures
-let breaker = CircuitBreaker(callback: testCallback) {
-    testEndpoint(input: "testInput") { data, error in
-        print("Results: \(data)")
-        print("Error: \(error)")
-    }
-}
+let breaker = CircuitBreaker(callback: testCallback, commandTag: "testEndpoint")
 
 // Invoke the call to the endpoint by calling the CircuitBreaker run() function
-breaker.run()
+let (data, error) = breaker.run(f: testEndpoint, args: (input: "testInput"))
 
 ...
 ```
 ## API
 ### CircuitBreaker
 ```swift
-CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, selector: @escaping () -> Void))
+CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, commandTag: String)
 ```
  * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
  * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
  * `callback` Function user specifies to signal completion. Required format: `(error: Bool) -> Void`
- * `selector` Endpoint to circuit break.
+ * `commandTag` Endpoint name to circuit break.
 
 ### CircuitBreaker Stats
 ```swift
 ...
 // Create CircuitBreaker
-let breaker = CircuitBreaker(callback: testCallback) { data, error in
-    print("Results: \(data)")
-    print("Error: \(error)")
-}
+let breaker = CircuitBreaker(callback: testCallback, commandTag: "testEndpoint")
 
 // Invoke breaker call
-breaker.run()
+let (data, error) = breaker.run(f: testEndpoint, args: (input: "test"))
 
 // Log Stats snapshot
 breaker.snapshot()
