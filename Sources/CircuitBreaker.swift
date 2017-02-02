@@ -10,11 +10,6 @@ public class CircuitBreaker {
         case closed
     }
     
-    public enum TaskState {
-        case inProgress
-        case complete
-    }
-    
     public typealias AnyFunction<A, B, C> = (A) -> (B, C)
     
     private(set) var state: State
@@ -34,7 +29,7 @@ public class CircuitBreaker {
 
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
-
+    
     // command (Take a function, parameters, error completion)
     public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, commandTag: String) {
         self.timeout = timeout
@@ -51,7 +46,7 @@ public class CircuitBreaker {
     }
 
     // Run
-    public func run<A, B, C>(f: AnyFunction<A, B, C>,args: Any) -> (B, C) {
+    public func run<A, B, C>(f: AnyFunction<A, B, C>, args: Any) -> (B, C) {
         breakerStats.trackRequest()
 
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
@@ -84,7 +79,7 @@ public class CircuitBreaker {
         let startTime:Date = Date()
 
         breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
-
+        
         setTimeout () {
             complete(error: true)
             return
@@ -97,6 +92,7 @@ public class CircuitBreaker {
         }
         
         complete(error: false)
+        
         return (data, err)
         
     }
