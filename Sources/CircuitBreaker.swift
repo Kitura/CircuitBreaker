@@ -2,20 +2,20 @@ import Foundation
 import LoggerAPI
 import Dispatch
 
-public class CircuitBreaker {
+public enum State {
+    case open
+    case halfopen
+    case closed
+}
 
-    public enum State {
-        case open
-        case halfopen
-        case closed
-    }
+public class CircuitBreaker<A, B> {
     
-    public typealias AnyFunction<A, B, C> = (A) -> (B, C)
+    public typealias AnyFunction<A, B> = (A) -> (B)
     
-    private(set) var state: State
+    var state: State
     private(set) var failures: Int
     var breakerStats: Stats
-    var commandTag: String
+    var command: AnyFunction<A, B>
     var callback: (_ error: Bool) -> Void
 
     let timeout: Double
@@ -31,7 +31,7 @@ public class CircuitBreaker {
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
     
     // command (Take a function, parameters, error completion)
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, commandTag: String) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, callback: @escaping (_ error: Bool) -> Void, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -42,25 +42,24 @@ public class CircuitBreaker {
         self.breakerStats = Stats()
 
         self.callback = callback
-        self.commandTag = commandTag
+        self.command = command
     }
 
     // Run
-    public func run<A, B, C>(f: AnyFunction<A, B, C>, args: Any) -> (B, C) {
+    public func run(args: A) {
         breakerStats.trackRequest()
 
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
-            fastFail()
-            return ("" as! B, true as! C)
+            return fastFail()
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
-            return callFunction(f: f, args: args)
+            return callFunction(args: args)
         } else {
-            return callFunction(f: f, args: args)
+            return callFunction(args: args)
         }
     }
 
-    private func callFunction<A, B, C>(f: AnyFunction<A, B, C>, args: Any) -> (B, C) {
+    private func callFunction(args: A) {
 
         var completed = false
 
@@ -85,15 +84,9 @@ public class CircuitBreaker {
             return
         }
 
-        let (data, err) = f(args as! A)
-        
-        if err as! Bool {
-            complete(error: true)
-        }
+        command(args)
         
         complete(error: false)
-        
-        return (data, err)
         
     }
 
