@@ -18,28 +18,25 @@ class CircuitBreakerTests: XCTestCase {
             ("testFunctionCall", testFunctionCall),
             ("testStatsSnapshot", testStatsSnapshot),
             ("testTimeout", testTimeout),
-            ("testTimeoutReset", testTimeoutReset)
+            ("testTimeoutReset", testTimeoutReset),
+            ("testInvocationWrapper", testInvocationWrapper)
         ]
     }
     
-    var result = 0
-    
     func sum(a: Int, b: Int) -> Int {
-        result = a + b
-        return result
+        return a + b
     }
     
     var timedOut = false
     
-    func callback (error: Bool) {
-        if !error {
-            print("Success.")
-            timedOut = false
-            return
+    func callback (error: BreakerError) -> Void {
+        switch error {
+        case BreakerError.timeout:
+            timedOut = true
+            print("Timeout")
+        case BreakerError.fastFail:
+            print("Circuit open")
         }
-        
-        timedOut = true
-        print("Timeout.")
     }
     
     func time(a: Int, seconds: Int) -> Int {
@@ -53,7 +50,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker, state should be Closed and no failures
     func testDefaultConstructor() {
         
-        let breaker = CircuitBreaker(callback: callback, command: test)
+        let breaker = CircuitBreaker(fallback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -66,7 +63,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker with user options set
     func testConstructor() {
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, maxFailures: 3, callback: callback, command: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, maxFailures: 3, fallback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -84,7 +81,7 @@ class CircuitBreakerTests: XCTestCase {
     // Create CircuitBreaker with user options set
     func testPartialConstructor() {
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, callback: callback, command: test)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: 5, fallback: callback, command: test)
         
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -102,7 +99,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should enter open state
     func testForceOpen() {
         
-        let breaker = CircuitBreaker(callback: callback, command: test)
+        let breaker = CircuitBreaker(fallback: callback, command: test)
         
         // Force open
         breaker.forceOpen()
@@ -117,7 +114,7 @@ class CircuitBreakerTests: XCTestCase {
         
         let resetTimeout = 10
         
-        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: resetTimeout, maxFailures: 10, callback: callback, command: test)
+        let breaker = CircuitBreaker(timeout: 10.0, resetTimeout: resetTimeout, maxFailures: 10, fallback: callback, command: test)
         
         // Force open
         breaker.forceOpen()
@@ -136,7 +133,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should enter open state
     func testFastFail() {
         
-        let breaker = CircuitBreaker(callback: callback, command: test)
+        let breaker = CircuitBreaker(fallback: callback, command: test)
         
         breaker.forceOpen()
         breaker.run(args: ())
@@ -152,7 +149,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should reset failures to 0
     func testResetFailures() {
         
-        let breaker = CircuitBreaker(callback: callback, command: test)
+        let breaker = CircuitBreaker(fallback: callback, command: test)
         
         // Set failures
         breaker.numFailures = 10
@@ -171,7 +168,7 @@ class CircuitBreakerTests: XCTestCase {
     // Should enter closed state from halfopen state after a success
     func testHalfOpenSuccess() {
     
-        let breaker = CircuitBreaker(callback: callback, command: test)
+        let breaker = CircuitBreaker(fallback: callback, command: test)
     
         breaker.forceHalfOpen()
         breaker.run(args: ())
@@ -183,23 +180,20 @@ class CircuitBreakerTests: XCTestCase {
     
     // Execute method successfully
     func testFunctionCall() {
-        result = 0
         
-        let breaker = CircuitBreaker(callback: callback, command: sum)
+        let breaker = CircuitBreaker(fallback: callback, command: sum)
         
         breaker.run(args: (a: 1, b: 3))
         
         // Wait for set timeout
         XCTAssertEqual(breaker.breakerState, State.closed)
-        XCTAssertEqual(result, 4)
         
     }
     
     // Print Stats snapshot
     func testStatsSnapshot() {
-        result = 0
         
-        let breaker = CircuitBreaker(callback: callback, command: sum)
+        let breaker = CircuitBreaker(fallback: callback, command: sum)
         
         // TODO: Do something more meaningful here
         breaker.run(args: (a: 1, b: 2))
@@ -214,7 +208,7 @@ class CircuitBreakerTests: XCTestCase {
     // Test timeout
     func testTimeout() {
         
-        let breaker = CircuitBreaker(timeout: 5.0, callback: callback, command: time)
+        let breaker = CircuitBreaker(timeout: 5.0, fallback: callback, command: time)
         
         breaker.run(args: (a: 1, seconds: 11))
         
@@ -227,7 +221,7 @@ class CircuitBreakerTests: XCTestCase {
     func testTimeoutReset() {
         let resetTimeout = 10
         
-        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: resetTimeout, maxFailures: 1, callback: callback, command: time)
+        let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: resetTimeout, maxFailures: 1, fallback: callback, command: time)
         
         breaker.run(args: (a: 1, seconds: 11))
         
@@ -237,6 +231,32 @@ class CircuitBreakerTests: XCTestCase {
         XCTAssertEqual(breaker.breakerState, State.halfopen)
         XCTAssertEqual(timedOut, true)
         
+    }
+    
+    // Test Invocation Wrapper
+    func testInvocationWrapper() {
+        func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
+            let result = sum(a: invocation.args.0, b: invocation.args.1)
+            if result != 7 {
+                invocation.notifyFailure()
+                return 0
+            } else {
+                invocation.notifySuccess()
+                return result
+            }
+        }
+        
+        let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
+        
+        breaker.run(args: (a: 3, b: 4))
+        
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        
+        for _ in 1...6 {
+            breaker.run(args: (a: 2, b: 2))
+        }
+        
+        XCTAssertEqual(breaker.breakerState, State.open)
     }
 
 }
