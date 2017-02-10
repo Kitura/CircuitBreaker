@@ -1,4 +1,4 @@
-![Build Status](https://travis-ci.com/IBM-Swift/CircuitBreaker.svg?token=zkW1banusRzgHu6HwJiN&branch=master)
+![Build Status](https://travis-ci.com/IBM-Swift/CircuitBreaker.svg?token=zkW1banusRzgHu6HwJiN&branch=develop)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
@@ -27,9 +27,9 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
  ```
 
  ### Basic CircuitBreaker usage:
- 
+
   * The CircuitBreaker state is based on timeouts only
-  
+
 ```swift
 ...
 
@@ -99,7 +99,7 @@ breaker.run(args: (input : "testInput2", { data, err in
 ### Advanced CircuitBreaker usage:
 
   * The CircuitBreaker state is based on timeouts and user defined failures
-  
+
 ```swift
 ...
 
