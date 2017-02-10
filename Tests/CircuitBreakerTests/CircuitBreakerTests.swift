@@ -18,13 +18,24 @@ class CircuitBreakerTests: XCTestCase {
             ("testFunctionCall", testFunctionCall),
             ("testStatsSnapshot", testStatsSnapshot),
             ("testTimeout", testTimeout),
-            ("testTimeoutReset", testTimeoutReset)//,
-            //("testInvocationWrapper", testInvocationWrapper)
+            ("testTimeoutReset", testTimeoutReset),
+            ("testInvocationWrapper", testInvocationWrapper)
         ]
     }
 
     func sum(a: Int, b: Int) -> Int {
         return a + b
+    }
+    
+    func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
+        let result = sum(a: invocation.args.0, b: invocation.args.1)
+        if result != 7 {
+            invocation.notifyFailure()
+            return 0
+        } else {
+            invocation.notifySuccess()
+            return result
+        }
     }
 
     var timedOut = false
@@ -234,29 +245,19 @@ class CircuitBreakerTests: XCTestCase {
     }
 
     // Test Invocation Wrapper
-    // func testInvocationWrapper() {
-    //     func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
-    //         let result = sum(a: invocation.args.0, b: invocation.args.1)
-    //         if result != 7 {
-    //             invocation.notifyFailure()
-    //             return 0
-    //         } else {
-    //             invocation.notifySuccess()
-    //             return result
-    //         }
-    //     }
-    //
-    //     let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
-    //
-    //     breaker.run(args: (a: 3, b: 4))
-    //
-    //     XCTAssertEqual(breaker.breakerState, State.closed)
-    //
-    //     for _ in 1...6 {
-    //         breaker.run(args: (a: 2, b: 2))
-    //     }
-    //
-    //     XCTAssertEqual(breaker.breakerState, State.open)
-    // }
+     func testInvocationWrapper() {
+    
+         let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
+    
+         breaker.run(args: (a: 3, b: 4))
+    
+         XCTAssertEqual(breaker.breakerState, State.closed)
+    
+         for _ in 1...6 {
+             breaker.run(args: (a: 2, b: 2))
+         }
+    
+         XCTAssertEqual(breaker.breakerState, State.open)
+     }
 
 }
