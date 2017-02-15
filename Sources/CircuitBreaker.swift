@@ -33,7 +33,7 @@ public class CircuitBreaker<A, B> {
     var resetTimer: DispatchSourceTimer?
     let dispatchSemaphoreState = DispatchSemaphore(value: 1)
     let dispatchSemaphoreFailure = DispatchSemaphore(value: 1)
-    let dispatchSemaphoreCanceled = DispatchSemaphore(value: 1)
+    let dispatchSemaphoreCompleted = DispatchSemaphore(value: 1)
 
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
@@ -88,8 +88,10 @@ public class CircuitBreaker<A, B> {
 
         func complete (error: Bool) -> () {
            weak var _self = self
+            dispatchSemaphoreCompleted.wait()
             if !completed {
                 completed = true
+                dispatchSemaphoreCompleted.signal()
                 if !error {
                     _self?.handleSuccess()
                 } else {
@@ -97,6 +99,8 @@ public class CircuitBreaker<A, B> {
                     _self?.fallback(BreakerError.timeout)
                 }
                 return
+            } else {
+                dispatchSemaphoreCompleted.signal()
             }
         }
 
@@ -244,7 +248,7 @@ public class CircuitBreaker<A, B> {
 // Invocation entity
 public class Invocation<A, B> {
 
-    let args: A
+    public let args: A
     private(set) var timedOut: Bool = false
     private(set) var completed: Bool = false
     weak private var breaker: CircuitBreaker<A, B>?

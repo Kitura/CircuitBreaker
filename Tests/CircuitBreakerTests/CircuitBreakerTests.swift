@@ -1,5 +1,7 @@
 import XCTest
 import Foundation
+import HeliumLogger
+import LoggerAPI
 
 @testable import CircuitBreaker
 
@@ -21,6 +23,12 @@ class CircuitBreakerTests: XCTestCase {
             ("testTimeoutReset", testTimeoutReset),
             ("testInvocationWrapper", testInvocationWrapper)
         ]
+    }
+    
+    override func setUp() {
+        super.setUp()
+        
+        HeliumLogger.use(LoggerMessageType.debug)
     }
 
     func sum(a: Int, b: Int) -> Int {
@@ -44,9 +52,9 @@ class CircuitBreakerTests: XCTestCase {
         switch error {
         case BreakerError.timeout:
             timedOut = true
-            print("Timeout")
+            Log.debug("Timeout")
         case BreakerError.fastFail:
-            print("Circuit open")
+            Log.debug("Circuit open")
         }
     }
 
