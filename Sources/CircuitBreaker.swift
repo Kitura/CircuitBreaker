@@ -87,13 +87,14 @@ public class CircuitBreaker<A, B> {
         var completed = false
 
         func complete (error: Bool) -> () {
+           weak var _self = self
             if !completed {
                 completed = true
                 if !error {
-                    handleSuccess()
+                    _self?.handleSuccess()
                 } else {
-                    handleFailures()
-                    fallback(BreakerError.timeout)
+                    _self?.handleFailures()
+                    _self?.fallback(BreakerError.timeout)
                 }
                 return
             }
@@ -114,10 +115,10 @@ public class CircuitBreaker<A, B> {
         } else if let commandWrapper = self.commandWrapper {
             let invocation = Invocation(breaker: self, args: args)
 
-            setTimeout () {
-                if !invocation.completed {
+            setTimeout () { [weak invocation] in
+                if invocation?.completed ?? false {
                     complete(error: true)
-                    invocation.setTimedOut()
+                    invocation?.setTimedOut()
                 }
 
                 return
@@ -129,8 +130,8 @@ public class CircuitBreaker<A, B> {
     }
 
     private func setTimeout(closure: @escaping () -> ()) {
-        queue.asyncAfter(deadline: .now() + self.timeout) {
-            self.breakerStats.trackTimeouts()
+        queue.asyncAfter(deadline: .now() + self.timeout) { [weak self] in
+            self?.breakerStats.trackTimeouts()
             closure()
         }
     }
