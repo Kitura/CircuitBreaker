@@ -23,7 +23,8 @@ class CircuitBreakerTests: XCTestCase {
             ("testTimeout", testTimeout),
             ("testTimeoutReset", testTimeoutReset),
             ("testInvocationWrapper", testInvocationWrapper),
-            ("testWrapperAsync", testWrapperAsync)
+            ("testWrapperAsync", testWrapperAsync),
+            ("testBulkhead", testBulkhead)
         ]
     }
 
@@ -283,12 +284,42 @@ class CircuitBreakerTests: XCTestCase {
 
     // Test Invocation Wrapper with Async call
     func testWrapperAsync() {
-        // Need to use expectations since this test is async (the assertions against the CircuitBreaker should happen once the asyn function has completed.)
+        // Need to use expectations since this test is async (the assertions against the CircuitBreaker should happen once the async function has completed.)
+        let expectation1 = expectation(description: "Add two numbers")
+        
         let breaker = CircuitBreaker(fallback: callback, commandWrapper: asyncWrapper)
+        
         breaker.run(args: (a: 3, b: 4))
         XCTAssertEqual(breaker.breakerState, State.closed)
+        
         breaker.run(args: (a: 2, b: 2))
         XCTAssertEqual(breaker.breakerState, State.closed)
+        
+        expectation1.fulfill()
+        
+        waitForExpectations(timeout: 10, handler: { _ in  })
     }
+    
+    // Test bulkhead basic
+    func testBulkhead() {
+        
+        let breaker = CircuitBreaker(bulkhead: 2, fallback: callback, command: sum)
+
+        breaker.run(args: (a: 2, b: 3))
+        
+        XCTAssertEqual(breaker.breakerState, State.closed)
+    }
+    
+//    TODO: Figure out how to to set a full queue
+//    func testBulkheadFullQueue() {
+//        
+//        let breaker = CircuitBreaker(bulkhead: 2, fallback: callback, command: time)
+//        
+//        breaker.run(args: (a: 4, seconds: 5))
+//        breaker.run(args: (a: 5, seconds: 6))
+//        breaker.run(args: (a: 3, seconds: 4))
+//        
+//        XCTAssertEqual(breaker.breakerState, State.closed)
+//    }
 
 }

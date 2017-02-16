@@ -1,4 +1,5 @@
 import Foundation
+import LoggerAPI
 
 public class Stats {
     
@@ -80,19 +81,14 @@ public class Stats {
     // Log current snapshot of CircuitBreaker
     // TODO: What format should this be in?
     func snapshot () {
-        print("\n")
-        print("**************************************")
-        print(Date())
-        print("Total Requests: \(totalRequests)")
-        print("Concurrent Requests: \(concurrentRequests())")
-        print("Rejected Requests: \(rejectedRequests)")
-        print("Successful Responses: \(successfulResponses)")
-        print("Average Response Time: \(averageResponseTime())")
-        print("Failed Responses: \(failedResponses)")
-        print("Total Timeouts: \(timeouts)")
-        print("Total Latency: \(totalLatency())")
-        print("**************************************")
-        print("\n")
+        Log.verbose("Total Requests: \(totalRequests)")
+        Log.verbose("Concurrent Requests: \(concurrentRequests())")
+        Log.verbose("Rejected Requests: \(rejectedRequests)")
+        Log.verbose("Successful Responses: \(successfulResponses)")
+        Log.verbose("Average Response Time: \(averageResponseTime())")
+        Log.verbose("Failed Responses: \(failedResponses)")
+        Log.verbose("Total Timeouts: \(timeouts)")
+        Log.verbose("Total Latency: \(totalLatency())")
 
     }
     

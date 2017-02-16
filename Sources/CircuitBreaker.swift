@@ -29,6 +29,7 @@ public class CircuitBreaker<A, B> {
     let resetTimeout: Int
     let maxFailures: Int
     var pendingHalfOpen: Bool
+    var bulkhead: Bulkhead?
 
     var resetTimer: DispatchSourceTimer?
     let dispatchSemaphoreState = DispatchSemaphore(value: 1)
@@ -37,8 +38,14 @@ public class CircuitBreaker<A, B> {
 
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
+    
+    // Bulkhead
+    // User will have the option to use bulkheading or not (Can this be an optional parameter within each constructor?)
+    // User passes the 'limit' or number of concurrent tasks allowed to run at once
+    // Not sure what happens to tasks that are rejected...
+    // I think this should wrap the callFunction() not just the individual command
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, fallback: @escaping (BreakerError) -> Void, command: @escaping AnyFunction<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping (BreakerError) -> Void, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -51,9 +58,13 @@ public class CircuitBreaker<A, B> {
         self.fallback = fallback
         self.command = command
         self.commandWrapper = nil
+        
+        if bulkhead > 0 {
+            self.bulkhead = Bulkhead.init(limit: bulkhead)
+        }
     }
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, fallback: @escaping (BreakerError) -> Void, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping (BreakerError) -> Void, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -66,6 +77,10 @@ public class CircuitBreaker<A, B> {
         self.fallback = fallback
         self.command = nil
         self.commandWrapper = commandWrapper
+        
+        if bulkhead > 0 {
+            self.bulkhead = Bulkhead.init(limit: bulkhead)
+        }
     }
 
     // Run
@@ -76,13 +91,28 @@ public class CircuitBreaker<A, B> {
             return fastFail()
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
+            
+            if (self.bulkhead != nil) {
+                self.bulkhead?.enqueue(task: {
+                    self.callFunction(args: args)
+                })
+                return
+            }
+            
             return callFunction(args: args)
         } else {
+            if (self.bulkhead != nil) {
+                self.bulkhead?.enqueue(task: {
+                    self.callFunction(args: args)
+                })
+                return
+            }
+            
             return callFunction(args: args)
         }
     }
 
-    private func callFunction(args: A) {
+    private func callFunction(args: A) -> Void{
 
         var completed = false
 
@@ -277,4 +307,27 @@ public class Invocation<A, B> {
         }
     }
 
+}
+
+class Bulkhead {
+    
+    private let serialQueue: DispatchQueue
+    private let concurrentQueue: DispatchQueue
+    private let semaphore: DispatchSemaphore
+    
+    init(limit: Int) {
+        serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
+        concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
+        semaphore = DispatchSemaphore(value: limit)
+    }
+    
+    func enqueue(task: @escaping () -> Void ) {
+        serialQueue.async {
+            self.semaphore.wait()
+            self.concurrentQueue.async {
+                task()
+                self.semaphore.signal()
+            }
+        }
+    }
 }
