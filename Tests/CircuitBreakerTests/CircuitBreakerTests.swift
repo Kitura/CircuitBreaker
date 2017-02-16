@@ -2,6 +2,7 @@ import XCTest
 import Foundation
 import HeliumLogger
 import LoggerAPI
+import Dispatch
 
 @testable import CircuitBreaker
 
