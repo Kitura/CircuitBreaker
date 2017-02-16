@@ -2,6 +2,7 @@ import XCTest
 import Foundation
 import HeliumLogger
 import LoggerAPI
+import Dispatch
 
 @testable import CircuitBreaker
 
@@ -25,17 +26,17 @@ class CircuitBreakerTests: XCTestCase {
             ("testWrapperAsync", testWrapperAsync)
         ]
     }
-    
+
     override func setUp() {
         super.setUp()
-        
+
         HeliumLogger.use(LoggerMessageType.debug)
     }
 
     func sum(a: Int, b: Int) -> Int {
         return a + b
     }
-    
+
     func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
         let result = sum(a: invocation.args.0, b: invocation.args.1)
         if result != 7 {
@@ -46,23 +47,15 @@ class CircuitBreakerTests: XCTestCase {
             return result
         }
     }
-    
-    func sumAsync(a: Int, b: Int, completion: @escaping (Int) -> ()) {
-        let queue = DispatchQueue(label: "test", attributes: .concurrent)
+
+    func asyncWrapper(invocation: Invocation<(Int, Int), Void>) {
+        //sumAsync(a: invocation.args.0, b: invocation.args.1, completion: invocation.args.2)
+        let queue = DispatchQueue(label: "asyncWrapperTestQueue", attributes: .concurrent)
         queue.async(execute: {
-            completion(a + b)
-        })
-    }
-    
-    func asyncWrapper(invocation: Invocation<(Int, Int, (Int) -> Void), Void>) {
-        sumAsync(a: invocation.args.0, b: invocation.args.1, completion: { sum in
-            if sum != 7 {
-                print("Failure...")
-                invocation.notifyFailure()
-            } else {
-                print("Success...")
-                invocation.notifySuccess()
-            }
+            let sum = invocation.args.0 + invocation.args.1
+            Log.verbose("sum: \(sum)")
+            invocation.notifySuccess()
+            //invocation.notifyFailure()
         })
     }
 
@@ -274,35 +267,27 @@ class CircuitBreakerTests: XCTestCase {
 
     // Test Invocation Wrapper
     func testInvocationWrapper() {
-    
+
         let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
-    
+
         breaker.run(args: (a: 3, b: 4))
-    
+
         XCTAssertEqual(breaker.breakerState, State.closed)
-    
+
         for _ in 1...6 {
             breaker.run(args: (a: 2, b: 2))
         }
-    
+
         XCTAssertEqual(breaker.breakerState, State.open)
     }
 
     // Test Invocation Wrapper with Async call
     func testWrapperAsync() {
-    
+        // Need to use expectations since this test is async (the assertions against the CircuitBreaker should happen once the asyn function has completed.)
         let breaker = CircuitBreaker(fallback: callback, commandWrapper: asyncWrapper)
-    
-        breaker.run(args: (a: 3, b: 4, completion: { sum in
-            print(sum)
-        }))
-    
+        breaker.run(args: (a: 3, b: 4))
         XCTAssertEqual(breaker.breakerState, State.closed)
-        
-        breaker.run(args: (a: 2, b: 2, completion: { sum in
-            print(sum)
-        }))
-        
+        breaker.run(args: (a: 2, b: 2))
         XCTAssertEqual(breaker.breakerState, State.closed)
     }
 
