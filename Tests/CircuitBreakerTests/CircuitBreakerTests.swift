@@ -21,7 +21,8 @@ class CircuitBreakerTests: XCTestCase {
             ("testStatsSnapshot", testStatsSnapshot),
             ("testTimeout", testTimeout),
             ("testTimeoutReset", testTimeoutReset),
-            ("testInvocationWrapper", testInvocationWrapper)
+            ("testInvocationWrapper", testInvocationWrapper),
+            ("testWrapperAsync", testWrapperAsync)
         ]
     }
     
@@ -44,6 +45,25 @@ class CircuitBreakerTests: XCTestCase {
             invocation.notifySuccess()
             return result
         }
+    }
+    
+    func sumAsync(a: Int, b: Int, completion: @escaping (Int) -> ()) {
+        let queue = DispatchQueue(label: "test", attributes: .concurrent)
+        queue.async(execute: {
+            completion(a + b)
+        })
+    }
+    
+    func asyncWrapper(invocation: Invocation<(Int, Int, (Int) -> Void), Void>) {
+        sumAsync(a: invocation.args.0, b: invocation.args.1, completion: { sum in
+            if sum != 7 {
+                print("Failure...")
+                invocation.notifyFailure()
+            } else {
+                print("Success...")
+                invocation.notifySuccess()
+            }
+        })
     }
 
     var timedOut = false
@@ -253,19 +273,37 @@ class CircuitBreakerTests: XCTestCase {
     }
 
     // Test Invocation Wrapper
-     func testInvocationWrapper() {
+    func testInvocationWrapper() {
     
-         let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
+        let breaker = CircuitBreaker(fallback: callback, commandWrapper: sumWrapper)
     
-         breaker.run(args: (a: 3, b: 4))
+        breaker.run(args: (a: 3, b: 4))
     
-         XCTAssertEqual(breaker.breakerState, State.closed)
+        XCTAssertEqual(breaker.breakerState, State.closed)
     
-         for _ in 1...6 {
-             breaker.run(args: (a: 2, b: 2))
-         }
+        for _ in 1...6 {
+            breaker.run(args: (a: 2, b: 2))
+        }
     
-         XCTAssertEqual(breaker.breakerState, State.open)
-     }
+        XCTAssertEqual(breaker.breakerState, State.open)
+    }
+
+    // Test Invocation Wrapper with Async call
+    func testWrapperAsync() {
+    
+        let breaker = CircuitBreaker(fallback: callback, commandWrapper: asyncWrapper)
+    
+        breaker.run(args: (a: 3, b: 4, completion: { sum in
+            print(sum)
+        }))
+    
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        
+        breaker.run(args: (a: 2, b: 2, completion: { sum in
+            print(sum)
+        }))
+        
+        XCTAssertEqual(breaker.breakerState, State.closed)
+    }
 
 }
