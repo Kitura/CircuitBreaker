@@ -49,17 +49,6 @@ class CircuitBreakerTests: XCTestCase {
         }
     }
 
-    func asyncWrapper(invocation: Invocation<(Int, Int), Void>) {
-        //sumAsync(a: invocation.args.0, b: invocation.args.1, completion: invocation.args.2)
-        let queue = DispatchQueue(label: "asyncWrapperTestQueue", attributes: .concurrent)
-        queue.async(execute: {
-            let sum = invocation.args.0 + invocation.args.1
-            Log.verbose("sum: \(sum)")
-            invocation.notifySuccess()
-            //invocation.notifyFailure()
-        })
-    }
-
     var timedOut = false
 
     func callback (error: BreakerError) -> Void {
@@ -287,17 +276,25 @@ class CircuitBreakerTests: XCTestCase {
         // Need to use expectations since this test is async (the assertions against the CircuitBreaker should happen once the async function has completed.)
         let expectation1 = expectation(description: "Add two numbers")
         
+        func asyncWrapper(invocation: Invocation<(Int, Int), Void>) {
+            //sumAsync(a: invocation.args.0, b: invocation.args.1, completion: invocation.args.2)
+            let queue = DispatchQueue(label: "asyncWrapperTestQueue", attributes: .concurrent)
+            queue.async(execute: {
+                let sum = invocation.args.0 + invocation.args.1
+                Log.verbose("sum: \(sum)")
+                invocation.notifySuccess()
+                expectation1.fulfill()
+                //invocation.notifyFailure()
+            })
+        }
+        
         let breaker = CircuitBreaker(fallback: callback, commandWrapper: asyncWrapper)
         
         breaker.run(args: (a: 3, b: 4))
-        XCTAssertEqual(breaker.breakerState, State.closed)
         
-        breaker.run(args: (a: 2, b: 2))
-        XCTAssertEqual(breaker.breakerState, State.closed)
-        
-        expectation1.fulfill()
-        
-        waitForExpectations(timeout: 10, handler: { _ in  })
+        waitForExpectations(timeout: 10, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.closed)
+        })
     }
     
     // Test bulkhead basic
