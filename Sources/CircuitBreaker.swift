@@ -38,12 +38,6 @@ public class CircuitBreaker<A, B> {
 
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
-    
-    // Bulkhead
-    // User will have the option to use bulkheading or not (Can this be an optional parameter within each constructor?)
-    // User passes the 'limit' or number of concurrent tasks allowed to run at once
-    // Not sure what happens to tasks that are rejected...
-    // I think this should wrap the callFunction() not just the individual command
 
     public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping (BreakerError) -> Void, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
@@ -88,31 +82,31 @@ public class CircuitBreaker<A, B> {
         breakerStats.trackRequest()
 
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
-            return fastFail()
+           fastFail()
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
             
-            if (self.bulkhead != nil) {
-                self.bulkhead?.enqueue(task: {
+            if let bulkhead = self.bulkhead {
+                bulkhead.enqueue(task: {
                     self.callFunction(args: args)
                 })
-                return
             }
-            
-            return callFunction(args: args)
+            else {
+                callFunction(args: args)
+            }
         } else {
-            if (self.bulkhead != nil) {
-                self.bulkhead?.enqueue(task: {
+            if let bulkhead = self.bulkhead {
+                bulkhead.enqueue(task: {
                     self.callFunction(args: args)
                 })
-                return
             }
-            
-            return callFunction(args: args)
+            else {
+                callFunction(args: args)
+            }
         }
     }
 
-    private func callFunction(args: A) -> Void{
+    private func callFunction(args: A) {
 
         var completed = false
 
