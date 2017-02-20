@@ -313,11 +313,17 @@ class CircuitBreakerTests: XCTestCase {
         
         let expectation1 = expectation(description: "Wait for time and then return")
         
+        var count = 0
+        
         func timeBulhead(a: Int, seconds: Int) -> Int {
             sleep(UInt32(seconds))
             
-            expectation1.fulfill()
+            count += 1
             
+            if count == 3 {
+                expectation1.fulfill()
+            }
+
             return a
         }
         
