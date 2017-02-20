@@ -85,6 +85,7 @@ public class CircuitBreaker<A, B> {
            fastFail()
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
+            let startTime:Date = Date()
             
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
@@ -94,7 +95,11 @@ public class CircuitBreaker<A, B> {
             else {
                 callFunction(args: args)
             }
+            
+            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         } else {
+            let startTime:Date = Date()
+            
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
                     self.callFunction(args: args)
@@ -103,6 +108,8 @@ public class CircuitBreaker<A, B> {
             else {
                 callFunction(args: args)
             }
+            
+            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         }
     }
 
@@ -127,10 +134,6 @@ public class CircuitBreaker<A, B> {
                 dispatchSemaphoreCompleted.signal()
             }
         }
-
-        let startTime:Date = Date()
-
-        breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
         if let command = self.command {
             setTimeout () {

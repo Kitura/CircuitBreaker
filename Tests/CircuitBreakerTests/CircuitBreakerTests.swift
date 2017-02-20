@@ -24,7 +24,8 @@ class CircuitBreakerTests: XCTestCase {
             ("testTimeoutReset", testTimeoutReset),
             ("testInvocationWrapper", testInvocationWrapper),
             ("testWrapperAsync", testWrapperAsync),
-            ("testBulkhead", testBulkhead)
+            ("testBulkhead", testBulkhead),
+            ("testBulkheadFullQueue", testBulkheadFullQueue)
         ]
     }
 
@@ -308,15 +309,27 @@ class CircuitBreakerTests: XCTestCase {
     }
     
 //    TODO: Figure out how to to set a full queue
-//    func testBulkheadFullQueue() {
-//        
-//        let breaker = CircuitBreaker(bulkhead: 2, fallback: callback, command: time)
-//        
-//        breaker.run(args: (a: 4, seconds: 5))
-//        breaker.run(args: (a: 5, seconds: 6))
-//        breaker.run(args: (a: 3, seconds: 4))
-//        
-//        XCTAssertEqual(breaker.breakerState, State.closed)
-//    }
+    func testBulkheadFullQueue() {
+        
+        let expectation1 = expectation(description: "Wait for time and then return")
+        
+        func timeBulhead(a: Int, seconds: Int) -> Int {
+            sleep(UInt32(seconds))
+            
+            expectation1.fulfill()
+            
+            return a
+        }
+        
+        let breaker = CircuitBreaker(bulkhead: 2, fallback: callback, command: timeBulhead)
+        
+        breaker.run(args: (a: 4, seconds: 5))
+        breaker.run(args: (a: 5, seconds: 6))
+        breaker.run(args: (a: 3, seconds: 4))
+        
+        waitForExpectations(timeout: 17, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.closed)
+        })
+    }
 
 }
