@@ -181,7 +181,7 @@ public class CircuitBreaker<A, B> {
     }
 
     // Get/Set functions
-    var breakerState: State {
+    public private(set) var breakerState: State {
 
         get {
             dispatchSemaphoreState.wait()
