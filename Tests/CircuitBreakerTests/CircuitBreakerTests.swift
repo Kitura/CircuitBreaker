@@ -1,3 +1,19 @@
+/**
+ * Copyright IBM Corporation 2017
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+ 
 import XCTest
 import Foundation
 import HeliumLogger
@@ -26,7 +42,8 @@ class CircuitBreakerTests: XCTestCase {
             ("testInvocationWrapper", testInvocationWrapper),
             ("testWrapperAsync", testWrapperAsync),
             ("testBulkhead", testBulkhead),
-            ("testBulkheadFullQueue", testBulkheadFullQueue)
+            ("testBulkheadFullQueue", testBulkheadFullQueue),
+            ("testFallback", testFallback)
         ]
     }
 
@@ -57,8 +74,14 @@ class CircuitBreakerTests: XCTestCase {
     // There is no 1-tuple in Swift...
     // https://medium.com/swift-programming/facets-of-swift-part-2-tuples-4bfe58d21abf#.v4rj4md9c
     func fallbackFunction(error: BreakerError, msg: String) -> Void {
-        timedOut = true
-        Log.verbose("Test case error: \(msg)")
+        if error == BreakerError.timeout {
+            timedOut = true
+            Log.verbose("Timeout: \(msg)")
+        } else if error == BreakerError.fastFail {
+            Log.verbose("Fast fail: \(msg)")
+        } else {
+            Log.verbose("Test case error: \(msg)")
+        }
     }
 
     func time(a: Int, seconds: Int) -> Int {
@@ -327,12 +350,13 @@ class CircuitBreakerTests: XCTestCase {
         })
     }
 
-    // TODO: Once BreakerError is added into fallback, make this test more meaningful
     // Multiple fallback parameters
-    // Need to assert that fallback function is indeed invoked.
     func testFallback() {
+        
+        var fallbackCalled: Bool = false
 
         func complexFallbackFunction (error: BreakerError, params: (msg: String, result: Int, err: Bool)) -> Void {
+            fallbackCalled = true
             Log.verbose("Test case callback: \(params.msg) \(params.result) \(params.err)")
         }
 
@@ -342,6 +366,7 @@ class CircuitBreakerTests: XCTestCase {
 
         // Wait for set timeout
         XCTAssertEqual(breaker.breakerState, State.closed)
+        XCTAssertEqual(fallbackCalled, true)
     }
 
 }
