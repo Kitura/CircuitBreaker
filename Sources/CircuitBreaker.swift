@@ -13,17 +13,19 @@ public enum BreakerError {
     case fastFail
 }
 
-public class CircuitBreaker<A, B> {
+public class CircuitBreaker<A, B, C> {
 
     public typealias AnyFunction<A, B> = (A) -> (B)
-    public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B>) -> B
+    public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
+    
+    public typealias AnyFallback<BreakerError, C> = (BreakerError, C) -> Void
 
     var state: State
     private(set) var failures: Int
     var breakerStats: Stats
     var command: AnyFunction<A, B>?
+    var fallback: AnyFallback<BreakerError, C>
     var commandWrapper: AnyFunctionWrapper<A, B>?
-    var fallback: (BreakerError) -> Void
 
     let timeout: Double
     let resetTimeout: Int
@@ -39,7 +41,7 @@ public class CircuitBreaker<A, B> {
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping (BreakerError) -> Void, command: @escaping AnyFunction<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<BreakerError, C>, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -58,7 +60,7 @@ public class CircuitBreaker<A, B> {
         }
     }
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping (BreakerError) -> Void, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<BreakerError,C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -78,22 +80,22 @@ public class CircuitBreaker<A, B> {
     }
 
     // Run
-    public func run(args: A) {
+    public func run(commandArgs: A, fallbackArgs: C) {
         breakerStats.trackRequest()
 
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
-           fastFail()
+            fastFail(fallbackArgs: fallbackArgs)
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
             let startTime:Date = Date()
             
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
-                    self.callFunction(args: args)
+                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
                 })
             }
             else {
-                callFunction(args: args)
+                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
             }
             
             self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
@@ -102,18 +104,18 @@ public class CircuitBreaker<A, B> {
             
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
-                    self.callFunction(args: args)
+                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
                 })
             }
             else {
-                callFunction(args: args)
+                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
             }
             
             self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         }
     }
 
-    private func callFunction(args: A) {
+    private func callFunction(commandArgs: A, fallbackArgs: C) {
 
         var completed = false
 
@@ -127,7 +129,7 @@ public class CircuitBreaker<A, B> {
                     _self?.handleSuccess()
                 } else {
                     _self?.handleFailures()
-                    _self?.fallback(BreakerError.timeout)
+                    let _ = fallback(BreakerError.timeout, fallbackArgs)
                 }
                 return
             } else {
@@ -141,10 +143,10 @@ public class CircuitBreaker<A, B> {
                 return
             }
 
-            let _ = command(args)
+            let _ = command(commandArgs)
             complete(error: false)
         } else if let commandWrapper = self.commandWrapper {
-            let invocation = Invocation(breaker: self, args: args)
+            let invocation = Invocation(breaker: self, commandArgs: commandArgs)
 
             setTimeout () { [weak invocation] in
                 if invocation?.completed ?? false {
@@ -232,10 +234,11 @@ public class CircuitBreaker<A, B> {
         breakerStats.trackSuccessfulResponse()
     }
 
-    private func fastFail () {
+    private func fastFail (fallbackArgs: C) {
         Log.verbose("Breaker open.")
         breakerStats.trackRejected()
-        fallback(BreakerError.fastFail)
+        
+        let _ = fallback(BreakerError.fastFail, fallbackArgs)
 
     }
 
@@ -273,14 +276,14 @@ public class CircuitBreaker<A, B> {
 }
 
 // Invocation entity
-public class Invocation<A, B> {
+public class Invocation<A, B, C> {
 
-    public let args: A
+    public let commandArgs: A
     private(set) var timedOut: Bool = false
     private(set) var completed: Bool = false
-    weak private var breaker: CircuitBreaker<A, B>?
-    public init(breaker: CircuitBreaker<A, B>, args: A) {
-        self.args = args
+    weak private var breaker: CircuitBreaker<A, B, C>?
+    public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A) {
+        self.commandArgs = commandArgs
         self.breaker = breaker
     }
 
