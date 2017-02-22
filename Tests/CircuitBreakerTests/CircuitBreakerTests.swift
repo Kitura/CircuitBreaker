@@ -54,7 +54,7 @@ class CircuitBreakerTests: XCTestCase {
         }
     }
 
-    func fallbackFunction (msg: String) -> Void {
+    func fallbackFunction(msg: String) -> Void {
         timedOut = true
         Log.verbose("Test case error: \(msg)")
     }
@@ -329,11 +329,11 @@ class CircuitBreakerTests: XCTestCase {
     // Multiple fallback parameters
     func testFallback() {
 
-        func callbackParms (msg: String, result: Int, err: Bool) -> Void {
+        func fallbackWithParms (msg: String, result: Int, err: Bool) -> Void {
             Log.verbose("Test case callback: \(msg) \(result) \(err)")
         }
 
-        let breaker = CircuitBreaker(timeout: 5.0, fallback: callbackParms, command: time)
+        let breaker = CircuitBreaker(timeout: 5.0, fallback: fallbackWithParms, command: time)
 
         breaker.run(commandArgs: (a: 1, seconds: 11), fallbackArgs: (msg: "Error function timed out.", result: 2, err: true))
 
