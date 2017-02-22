@@ -1,3 +1,19 @@
+/**
+ * Copyright IBM Corporation 2017
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 import Foundation
 import LoggerAPI
 import Dispatch
@@ -13,22 +29,25 @@ public enum BreakerError {
     case fastFail
 }
 
-public class CircuitBreaker<A, B> {
+public class CircuitBreaker<A, B, C> {
 
+    // Clousure aliases
     public typealias AnyFunction<A, B> = (A) -> (B)
-    public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B>) -> B
+    public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
+    public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
     var state: State
     private(set) var failures: Int
     var breakerStats: Stats
     var command: AnyFunction<A, B>?
+    var fallback: AnyFallback<C>
     var commandWrapper: AnyFunctionWrapper<A, B>?
-    var fallback: (BreakerError) -> Void
 
     let timeout: Double
     let resetTimeout: Int
     let maxFailures: Int
     var pendingHalfOpen: Bool
+    var bulkhead: Bulkhead?
 
     var resetTimer: DispatchSourceTimer?
     let dispatchSemaphoreState = DispatchSemaphore(value: 1)
@@ -38,7 +57,7 @@ public class CircuitBreaker<A, B> {
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, fallback: @escaping (BreakerError) -> Void, command: @escaping AnyFunction<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -51,9 +70,13 @@ public class CircuitBreaker<A, B> {
         self.fallback = fallback
         self.command = command
         self.commandWrapper = nil
+
+        if bulkhead > 0 {
+            self.bulkhead = Bulkhead.init(limit: bulkhead)
+        }
     }
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, fallback: @escaping (BreakerError) -> Void, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -66,23 +89,49 @@ public class CircuitBreaker<A, B> {
         self.fallback = fallback
         self.command = nil
         self.commandWrapper = commandWrapper
-    }
 
-    // Run
-    public func run(args: A) {
-        breakerStats.trackRequest()
-
-        if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
-            return fastFail()
-        } else if state == State.halfopen && pendingHalfOpen == false {
-            pendingHalfOpen = true
-            return callFunction(args: args)
-        } else {
-            return callFunction(args: args)
+        if bulkhead > 0 {
+            self.bulkhead = Bulkhead.init(limit: bulkhead)
         }
     }
 
-    private func callFunction(args: A) {
+    // Run
+    public func run(commandArgs: A, fallbackArgs: C) {
+        breakerStats.trackRequest()
+
+        if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
+            fastFail(fallbackArgs: fallbackArgs)
+        } else if state == State.halfopen && pendingHalfOpen == false {
+            pendingHalfOpen = true
+            let startTime:Date = Date()
+
+            if let bulkhead = self.bulkhead {
+                bulkhead.enqueue(task: {
+                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                })
+            }
+            else {
+                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+            }
+
+            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+        } else {
+            let startTime:Date = Date()
+
+            if let bulkhead = self.bulkhead {
+                bulkhead.enqueue(task: {
+                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                })
+            }
+            else {
+                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+            }
+
+            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+        }
+    }
+
+    private func callFunction(commandArgs: A, fallbackArgs: C) {
 
         var completed = false
 
@@ -96,7 +145,7 @@ public class CircuitBreaker<A, B> {
                     _self?.handleSuccess()
                 } else {
                     _self?.handleFailures()
-                    _self?.fallback(BreakerError.timeout)
+                    let _ = fallback(.timeout, fallbackArgs)
                 }
                 return
             } else {
@@ -104,20 +153,16 @@ public class CircuitBreaker<A, B> {
             }
         }
 
-        let startTime:Date = Date()
-
-        breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
-
         if let command = self.command {
             setTimeout () {
                 complete(error: true)
                 return
             }
 
-            let _ = command(args)
+            let _ = command(commandArgs)
             complete(error: false)
         } else if let commandWrapper = self.commandWrapper {
-            let invocation = Invocation(breaker: self, args: args)
+            let invocation = Invocation(breaker: self, commandArgs: commandArgs)
 
             setTimeout () { [weak invocation] in
                 if invocation?.completed ?? false {
@@ -130,7 +175,6 @@ public class CircuitBreaker<A, B> {
 
             let _ = commandWrapper(invocation)
         }
-
     }
 
     private func setTimeout(closure: @escaping () -> ()) {
@@ -154,8 +198,7 @@ public class CircuitBreaker<A, B> {
     }
 
     // Get/Set functions
-    var breakerState: State {
-
+    public private(set) var breakerState: State {
         get {
             dispatchSemaphoreState.wait()
             let currentState = state
@@ -168,11 +211,9 @@ public class CircuitBreaker<A, B> {
             state = newValue
             dispatchSemaphoreState.signal()
         }
-
     }
 
     var numFailures: Int {
-
         get {
             dispatchSemaphoreFailure.wait()
             let currentFailures = failures
@@ -185,7 +226,6 @@ public class CircuitBreaker<A, B> {
             failures = newValue
             dispatchSemaphoreFailure.signal()
         }
-
     }
 
     private func handleFailures () {
@@ -205,11 +245,10 @@ public class CircuitBreaker<A, B> {
         breakerStats.trackSuccessfulResponse()
     }
 
-    private func fastFail () {
+    private func fastFail (fallbackArgs: C) {
         Log.verbose("Breaker open.")
         breakerStats.trackRejected()
-        fallback(BreakerError.fastFail)
-
+        let _ = fallback(.fastFail, fallbackArgs)
     }
 
     public func forceOpen () {
@@ -246,14 +285,14 @@ public class CircuitBreaker<A, B> {
 }
 
 // Invocation entity
-public class Invocation<A, B> {
+public class Invocation<A, B, C> {
 
-    public let args: A
+    public let commandArgs: A
     private(set) var timedOut: Bool = false
     private(set) var completed: Bool = false
-    weak private var breaker: CircuitBreaker<A, B>?
-    public init(breaker: CircuitBreaker<A, B>, args: A) {
-        self.args = args
+    weak private var breaker: CircuitBreaker<A, B, C>?
+    public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A) {
+        self.commandArgs = commandArgs
         self.breaker = breaker
     }
 
@@ -276,5 +315,27 @@ public class Invocation<A, B> {
             breaker?.notifyFailure()
         }
     }
+}
 
+class Bulkhead {
+
+    private let serialQueue: DispatchQueue
+    private let concurrentQueue: DispatchQueue
+    private let semaphore: DispatchSemaphore
+
+    init(limit: Int) {
+        serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
+        concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
+        semaphore = DispatchSemaphore(value: limit)
+    }
+
+    func enqueue(task: @escaping () -> Void ) {
+        serialQueue.async { [weak self] in
+            self?.semaphore.wait()
+            self?.concurrentQueue.async {
+                task()
+                self?.semaphore.signal()
+            }
+        }
+    }
 }
