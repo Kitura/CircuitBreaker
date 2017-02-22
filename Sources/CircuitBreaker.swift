@@ -1,3 +1,19 @@
+/**
+ * Copyright IBM Corporation 2017
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 import Foundation
 import LoggerAPI
 import Dispatch
@@ -17,7 +33,7 @@ public class CircuitBreaker<A, B, C> {
 
     public typealias AnyFunction<A, B> = (A) -> (B)
     public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
-    
+
     public typealias AnyFallback<C> = (C) -> Void
 
     var state: State
@@ -54,7 +70,7 @@ public class CircuitBreaker<A, B, C> {
         self.fallback = fallback
         self.command = command
         self.commandWrapper = nil
-        
+
         if bulkhead > 0 {
             self.bulkhead = Bulkhead.init(limit: bulkhead)
         }
@@ -73,7 +89,7 @@ public class CircuitBreaker<A, B, C> {
         self.fallback = fallback
         self.command = nil
         self.commandWrapper = commandWrapper
-        
+
         if bulkhead > 0 {
             self.bulkhead = Bulkhead.init(limit: bulkhead)
         }
@@ -88,7 +104,7 @@ public class CircuitBreaker<A, B, C> {
         } else if state == State.halfopen && pendingHalfOpen == false {
             pendingHalfOpen = true
             let startTime:Date = Date()
-            
+
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
                     self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
@@ -97,11 +113,11 @@ public class CircuitBreaker<A, B, C> {
             else {
                 callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
             }
-            
+
             self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         } else {
             let startTime:Date = Date()
-            
+
             if let bulkhead = self.bulkhead {
                 bulkhead.enqueue(task: {
                     self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
@@ -110,7 +126,7 @@ public class CircuitBreaker<A, B, C> {
             else {
                 callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
             }
-            
+
             self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         }
     }
@@ -237,9 +253,7 @@ public class CircuitBreaker<A, B, C> {
     private func fastFail (fallbackArgs: C) {
         Log.verbose("Breaker open.")
         breakerStats.trackRejected()
-        
         let _ = fallback(fallbackArgs)
-
     }
 
     public func forceOpen () {
@@ -310,23 +324,23 @@ public class Invocation<A, B, C> {
 }
 
 class Bulkhead {
-    
+
     private let serialQueue: DispatchQueue
     private let concurrentQueue: DispatchQueue
     private let semaphore: DispatchSemaphore
-    
+
     init(limit: Int) {
         serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
         concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
         semaphore = DispatchSemaphore(value: limit)
     }
-    
+
     func enqueue(task: @escaping () -> Void ) {
-        serialQueue.async {
-            self.semaphore.wait()
-            self.concurrentQueue.async {
+        serialQueue.async { [weak self] in
+            self?.semaphore.wait()
+            self?.concurrentQueue.async {
                 task()
-                self.semaphore.signal()
+                self?.semaphore.signal()
             }
         }
     }
