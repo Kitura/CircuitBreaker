@@ -54,7 +54,9 @@ class CircuitBreakerTests: XCTestCase {
         }
     }
 
-    func fallbackFunction(msg: String) -> Void {
+    // There is no 1-tuple in Swift...
+    // https://medium.com/swift-programming/facets-of-swift-part-2-tuples-4bfe58d21abf#.v4rj4md9c
+    func fallbackFunction(error: BreakerError, msg: String) -> Void {
         timedOut = true
         Log.verbose("Test case error: \(msg)")
     }
@@ -327,13 +329,14 @@ class CircuitBreakerTests: XCTestCase {
 
     // TODO: Once BreakerError is added into fallback, make this test more meaningful
     // Multiple fallback parameters
+    // Need to assert that fallback function is indeed invoked.
     func testFallback() {
 
-        func fallbackWithParms (msg: String, result: Int, err: Bool) -> Void {
-            Log.verbose("Test case callback: \(msg) \(result) \(err)")
+        func complexFallbackFunction (error: BreakerError, params: (msg: String, result: Int, err: Bool)) -> Void {
+            Log.verbose("Test case callback: \(params.msg) \(params.result) \(params.err)")
         }
 
-        let breaker = CircuitBreaker(timeout: 5.0, fallback: fallbackWithParms, command: time)
+        let breaker = CircuitBreaker(timeout: 5.0, fallback: complexFallbackFunction, command: time)
 
         breaker.run(commandArgs: (a: 1, seconds: 11), fallbackArgs: (msg: "Error function timed out.", result: 2, err: true))
 
