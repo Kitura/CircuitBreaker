@@ -31,10 +31,10 @@ public enum BreakerError {
 
 public class CircuitBreaker<A, B, C> {
 
+    // Clousure aliases
     public typealias AnyFunction<A, B> = (A) -> (B)
     public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
-
-    public typealias AnyFallback<C> = (C) -> Void
+    public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
     var state: State
     private(set) var failures: Int
@@ -145,7 +145,7 @@ public class CircuitBreaker<A, B, C> {
                     _self?.handleSuccess()
                 } else {
                     _self?.handleFailures()
-                    let _ = fallback(fallbackArgs)
+                    let _ = fallback(.timeout, fallbackArgs)
                 }
                 return
             } else {
@@ -175,7 +175,6 @@ public class CircuitBreaker<A, B, C> {
 
             let _ = commandWrapper(invocation)
         }
-
     }
 
     private func setTimeout(closure: @escaping () -> ()) {
@@ -200,7 +199,6 @@ public class CircuitBreaker<A, B, C> {
 
     // Get/Set functions
     public private(set) var breakerState: State {
-
         get {
             dispatchSemaphoreState.wait()
             let currentState = state
@@ -213,11 +211,9 @@ public class CircuitBreaker<A, B, C> {
             state = newValue
             dispatchSemaphoreState.signal()
         }
-
     }
 
     var numFailures: Int {
-
         get {
             dispatchSemaphoreFailure.wait()
             let currentFailures = failures
@@ -230,7 +226,6 @@ public class CircuitBreaker<A, B, C> {
             failures = newValue
             dispatchSemaphoreFailure.signal()
         }
-
     }
 
     private func handleFailures () {
@@ -253,7 +248,7 @@ public class CircuitBreaker<A, B, C> {
     private func fastFail (fallbackArgs: C) {
         Log.verbose("Breaker open.")
         breakerStats.trackRejected()
-        let _ = fallback(fallbackArgs)
+        let _ = fallback(.fastFail, fallbackArgs)
     }
 
     public func forceOpen () {
@@ -320,7 +315,6 @@ public class Invocation<A, B, C> {
             breaker?.notifyFailure()
         }
     }
-
 }
 
 class Bulkhead {
