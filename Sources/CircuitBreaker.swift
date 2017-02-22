@@ -18,13 +18,13 @@ public class CircuitBreaker<A, B, C> {
     public typealias AnyFunction<A, B> = (A) -> (B)
     public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
     
-    public typealias AnyFallback<BreakerError, C> = (BreakerError, C) -> Void
+    public typealias AnyFallback<C> = (C) -> Void
 
     var state: State
     private(set) var failures: Int
     var breakerStats: Stats
     var command: AnyFunction<A, B>?
-    var fallback: AnyFallback<BreakerError, C>
+    var fallback: AnyFallback<C>
     var commandWrapper: AnyFunctionWrapper<A, B>?
 
     let timeout: Double
@@ -41,7 +41,7 @@ public class CircuitBreaker<A, B, C> {
     // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<BreakerError, C>, command: @escaping AnyFunction<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -60,7 +60,7 @@ public class CircuitBreaker<A, B, C> {
         }
     }
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<BreakerError,C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -129,7 +129,7 @@ public class CircuitBreaker<A, B, C> {
                     _self?.handleSuccess()
                 } else {
                     _self?.handleFailures()
-                    let _ = fallback(BreakerError.timeout, fallbackArgs)
+                    let _ = fallback(fallbackArgs)
                 }
                 return
             } else {
@@ -238,7 +238,7 @@ public class CircuitBreaker<A, B, C> {
         Log.verbose("Breaker open.")
         breakerStats.trackRejected()
         
-        let _ = fallback(BreakerError.fastFail, fallbackArgs)
+        let _ = fallback(fallbackArgs)
 
     }
 

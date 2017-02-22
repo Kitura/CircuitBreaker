@@ -52,15 +52,9 @@ class CircuitBreakerTests: XCTestCase {
 
     var timedOut = false
 
-    func callback (error: BreakerError, msg: String) -> Void {
-        if error == BreakerError.timeout {
-            timedOut = true
-            Log.verbose("Timeout: \(msg)")
-        } else if error == BreakerError.fastFail {
-            Log.verbose("Fast fail: \(msg)")
-        } else {
-            Log.verbose("Test case error: \(msg)")
-        }
+    func callback (msg: String) -> Void {
+        timedOut = true
+        Log.verbose("Test case error: \(msg)")
         
     }
 
@@ -339,30 +333,23 @@ class CircuitBreakerTests: XCTestCase {
             XCTAssertEqual(breaker.breakerState, State.closed)
         })
     }
-    
-    // TODO: Get this working
+
+    // TODO: Once BreakerError is added into fallback, make this test more meaningful
     // Multiple fallback parameters
-//    func testFallback() {
-//        
-//        func callbackParms (error: BreakerError, msg: String, result: Int, err: Bool) -> Void {
-//            if error == BreakerError.timeout {
-//                timedOut = true
-//                Log.verbose("Timeout: \(msg)")
-//            } else if error == BreakerError.fastFail {
-//                Log.verbose("Fast fail: \(msg)")
-//            } else {
-//                Log.verbose("Test case error: \(msg)")
-//            }
-//            
-//        }
-//        
-//        let breaker = CircuitBreaker(fallback: callbackParms, command: sum)
-//        
-//        breaker.run(commandArgs: (a: 1, b: 3), fallbackArgs: (msg: "Error getting sum.", result: 2, err: true))
-//        
-//        // Wait for set timeout
-//        XCTAssertEqual(breaker.breakerState, State.closed)
-//        
-//    }
+    func testFallback() {
+        
+        func callbackParms (msg: String, result: Int, err: Bool) -> Void {
+            Log.verbose("Test case callback: \(msg) \(result) \(err)")
+            
+        }
+        
+        let breaker = CircuitBreaker(timeout: 5.0, fallback: callbackParms, command: time)
+        
+        breaker.run(commandArgs: (a: 1, seconds: 11), fallbackArgs: (msg: "Error function timed out.", result: 2, err: true))
+        
+        // Wait for set timeout
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        
+    }
 
 }
