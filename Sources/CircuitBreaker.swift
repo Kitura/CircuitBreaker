@@ -113,7 +113,7 @@ public class CircuitBreaker<A, B, C> {
             else {
                 callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
             }
-
+            pendingHalfOpen = false
             self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
         } else {
             let startTime:Date = Date()

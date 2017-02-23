@@ -43,7 +43,8 @@ class CircuitBreakerTests: XCTestCase {
             ("testWrapperAsync", testWrapperAsync),
             ("testBulkhead", testBulkhead),
             ("testBulkheadFullQueue", testBulkheadFullQueue),
-            ("testFallback", testFallback)
+            ("testFallback", testFallback),
+            ("testStateCycle", testStateCycle)
         ]
     }
 
@@ -367,6 +368,47 @@ class CircuitBreakerTests: XCTestCase {
         // Wait for set timeout
         XCTAssertEqual(breaker.breakerState, State.closed)
         XCTAssertEqual(fallbackCalled, true)
+    }
+    
+    // State cycle issue with halfopen
+    func testStateCycle() {
+        // Simulate an endpoint we can take down or force a timeout, or success
+        func sumHalfOpen(a: Int, b: Int, flag: Bool) -> (Int) {
+            
+            if flag {
+                sleep(5)
+                Log.verbose("Sum: \(a + b)")
+                return a + b
+            } else {
+                Log.verbose("Sum: \(a + b)")
+                return a + b
+            }
+        }
+        
+        let breaker = CircuitBreaker(timeout: 2, resetTimeout: 3, maxFailures: 2, fallback: fallbackFunction, command: sumHalfOpen)
+        
+        // Breaker should start in closed state
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        
+        breaker.run(commandArgs: (a: 1, b: 3, flag: false), fallbackArgs: (msg: "Sum"))
+        
+        for _ in 1...2 {
+            breaker.run(commandArgs: (a: 2, b: 4, flag: true), fallbackArgs: (msg: "Sum"))
+        }
+        
+        // Breaker should be in open state once max failures are reached
+        XCTAssertEqual(breaker.breakerState, State.open)
+        
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum"))
+        sleep(2)
+        
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum"))
+        sleep(2)
+        
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum"))
+        
+        // Successful request flip the breaker state back to close
+        XCTAssertEqual(breaker.breakerState, State.closed)
     }
 
 }
