@@ -99,6 +99,7 @@ public class CircuitBreaker<A, B, C> {
     public func run(commandArgs: A, fallbackArgs: C) {
         breakerStats.trackRequest()
 
+        // TODO: Fix pendingHalfOpen race condition issue
         if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
             fastFail(fallbackArgs: fallbackArgs)
         } else if state == State.halfopen && pendingHalfOpen == false {
