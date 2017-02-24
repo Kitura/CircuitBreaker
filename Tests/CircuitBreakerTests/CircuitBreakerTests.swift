@@ -412,34 +412,44 @@ class CircuitBreakerTests: XCTestCase {
         })
     }
     
-    // TODO: Error, cannot mix invocation wrapper and complex fallback, why?
     // Test Invocation Wrapper with complex fallback
-//    func testInvocationWrapperComplex() {
-//            let expectation1 = expectation(description: "The wrapper notifies the breaker of the failures, ends in open state.")
-//    
-//            func complexFallbackFunction (error: BreakerError, params: (msg: String, end: Bool)) -> Void {
-//                if end {
-//                    expectation1.fulfill()
-//                }
-//                Log.verbose("Test case callback: \(params.msg)")
-//            }
-//    
-//            let breaker = CircuitBreaker(fallback: complexFallbackFunction, commandWrapper: sumWrapper)
-//    
-//            breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure.", end: false))
-//    
-//            XCTAssertEqual(breaker.breakerState, State.closed)
-//    
-//            for _ in 1...5 {
-//                breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: (msg: "Failure.", end: false))
-//            }
-//    
-//            breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: (msg: "Failure.", end: true))
-//    
-//            waitForExpectations(timeout: 10, handler: { _ in
-//                XCTAssertEqual(breaker.breakerState, State.open)
-//        
-//    }
+    func testInvocationWrapperComplex() {
+        
+        let expectation1 = expectation(description: "The wrapper notifies the breaker of the failures, ends in open state.")
+    
+        func complexFallbackFunction (error: BreakerError, params: (msg: String, end: Bool)) -> Void {
+            if params.end {
+                expectation1.fulfill()
+            }
+            Log.verbose("Test case fallback: \(params.msg)")
+        }
+    
+        func sumWrapperComplex(invocation: Invocation<(Int, Int), Int, (String, Bool)>) -> Int {
+            let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
+            if result != 7 {
+                invocation.notifyFailure()
+                return 0
+            } else {
+                invocation.notifySuccess()
+                return result
+            }
+        }
+
+        let breaker = CircuitBreaker(fallback: complexFallbackFunction, commandWrapper: sumWrapperComplex)
+    
+        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure.", end: false))
+    
+        for _ in 1...5 {
+            breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: (msg: "Failure.", end: false))
+        }
+
+        breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: (msg: "Failure.", end: true))
+    
+        waitForExpectations(timeout: 10, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.open)
+        })
+        
+    }
     
     // Test Invocation Wrapper with Async call
     func testWrapperAsync() {
