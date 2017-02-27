@@ -31,7 +31,7 @@ public enum BreakerError {
 
 public class CircuitBreaker<A, B, C> {
 
-    // Clousure aliases
+    // Closure aliases
     public typealias AnyFunction<A, B> = (A) -> (B)
     public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
     public typealias AnyFallback<C> = (BreakerError, C) -> Void
@@ -157,7 +157,6 @@ public class CircuitBreaker<A, B, C> {
         if let command = self.command {
             setTimeout () {
                 complete(error: true)
-                return
             }
 
             let _ = command(commandArgs)
@@ -166,12 +165,10 @@ public class CircuitBreaker<A, B, C> {
             let invocation = Invocation(breaker: self, commandArgs: commandArgs)
 
             setTimeout () { [weak invocation] in
-                if invocation?.completed ?? false {
-                    complete(error: true)
+                if invocation?.completed == false {
                     invocation?.setTimedOut()
+                    complete(error: true)
                 }
-
-                return
             }
 
             let _ = commandWrapper(invocation)
@@ -296,23 +293,25 @@ public class Invocation<A, B, C> {
         self.commandArgs = commandArgs
         self.breaker = breaker
     }
-
+    
     public func setTimedOut() {
         self.timedOut = true
     }
-
+    
     public func setCompleted() {
         self.completed = true
     }
 
     public func notifySuccess() {
         if !self.timedOut {
+            self.setCompleted()
             breaker?.notifySuccess()
         }
     }
 
     public func notifyFailure() {
         if !self.timedOut {
+            self.setCompleted()
             breaker?.notifyFailure()
         }
     }

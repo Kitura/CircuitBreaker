@@ -38,11 +38,15 @@ class CircuitBreakerTests: XCTestCase {
             ("testResetFailures", testResetFailures),
             ("testFastFail", testFastFail),
             ("testHalfOpenSuccess", testHalfOpenSuccess),
+            ("testHalfOpenSuccessWrapper", testHalfOpenSuccessWrapper),
+            ("testHalfOpenSuccessBulkhead", testHalfOpenSuccessBulkhead),
             ("testFunctionCall", testFunctionCall),
             ("testStatsSnapshot", testStatsSnapshot),
             ("testTimeout", testTimeout),
             ("testTimeoutReset", testTimeoutReset),
             ("testInvocationWrapper", testInvocationWrapper),
+            ("testInvocationWrapperTimeout", testInvocationWrapperTimeout),
+            ("testInvocationWrapperComplex", testInvocationWrapperComplex),
             ("testWrapperAsync", testWrapperAsync),
             ("testBulkhead", testBulkhead),
             ("testBulkheadWrapper", testBulkheadWrapper),
@@ -235,10 +239,10 @@ class CircuitBreakerTests: XCTestCase {
                 Log.verbose("Timeout: \(msg)")
             } else if error == BreakerError.fastFail {
                 Log.verbose("Fast fail: \(msg)")
-                expectation1.fulfill()
             } else {
                 Log.verbose("Test case error: \(msg)")
             }
+            expectation1.fulfill()
         }
         
         let breaker = CircuitBreaker(fallback: fallbackFastFail, command: test)
@@ -296,6 +300,64 @@ class CircuitBreakerTests: XCTestCase {
             XCTAssertEqual(breaker.breakerState, State.closed)
         })
     }
+    
+    // Should enter closed state from halfopen state after a success
+    func testHalfOpenSuccessWrapper() {
+        
+        let expectation1 = expectation(description: "Breaker will be closed after successful request in halfopen state.")
+        
+        func sumWrapperCall(invocation: Invocation<(Int, Int), Int, String>) -> Int {
+            let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
+            if result != 7 {
+                invocation.notifyFailure()
+                expectation1.fulfill()
+                return 0
+            } else {
+                invocation.notifySuccess()
+                expectation1.fulfill()
+                return result
+            }
+        }
+        
+        let breaker = CircuitBreaker(fallback: fallbackFunction, commandWrapper: sumWrapperCall)
+        
+        breaker.forceHalfOpen()
+        
+        XCTAssertEqual(breaker.breakerState, State.halfopen)
+        
+        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure."))
+        
+        // Check that state is now closed
+        waitForExpectations(timeout: 10, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.closed)
+        })
+    }
+    
+    // Should enter closed state from halfopen state after a success
+    func testHalfOpenSuccessBulkhead() {
+        
+        let expectation1 = expectation(description: "Breaker will be closed after successful request in halfopen state.")
+        
+        func testHalfOpen(completion: (Bool) -> ()) {
+            return completion(false)
+        }
+        
+        let breaker = CircuitBreaker(bulkhead: 3, fallback: fallbackFunction, command: testHalfOpen)
+        
+        breaker.forceHalfOpen()
+        
+        XCTAssertEqual(breaker.breakerState, State.halfopen)
+        
+        breaker.run(commandArgs: (completion: { err in
+            Log.verbose("Error: \(err)")
+            expectation1.fulfill()
+        }), fallbackArgs: (msg: "Failure."))
+        
+        // Check that state is now closed
+        waitForExpectations(timeout: 10, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.closed)
+        })
+    }
 
     // Execute method successfully
     func testFunctionCall() {
@@ -345,12 +407,12 @@ class CircuitBreakerTests: XCTestCase {
             if error == BreakerError.timeout {
                 timedOut = true
                 Log.verbose("Timeout: \(msg)")
-                expectation1.fulfill()
             } else if error == BreakerError.fastFail {
                 Log.verbose("Fast fail: \(msg)")
             } else {
                 Log.verbose("Test case error: \(msg)")
             }
+            expectation1.fulfill()
         }
         
         let breaker = CircuitBreaker(timeout: 5.0, fallback: fallbackTimeout, command: time)
@@ -409,6 +471,44 @@ class CircuitBreakerTests: XCTestCase {
 
         waitForExpectations(timeout: 10, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.open)
+        })
+    }
+    
+    // Test Invocation Wrapper
+    func testInvocationWrapperTimeout() {
+        
+        let expectation1 = expectation(description: "")
+        
+        func fallbackTimeout(error: BreakerError, msg: String) -> Void {
+            if error == BreakerError.timeout {
+                timedOut = true
+                Log.verbose("Timeout: \(msg)")
+            } else if error == BreakerError.fastFail {
+                Log.verbose("Fast fail: \(msg)")
+            } else {
+                Log.verbose("Test case error: \(msg)")
+            }
+            expectation1.fulfill()
+        }
+        
+        func timeWrapper(invocation: Invocation<(Int, Int), Int, String>) -> Int {
+            let result = time(a: invocation.commandArgs.0, seconds: invocation.commandArgs.1)
+            if result != 3 {
+                invocation.notifyFailure()
+                return 0
+            } else {
+                invocation.notifySuccess()
+                return result
+            }
+        }
+        
+        let breaker = CircuitBreaker(timeout: 2, fallback: fallbackTimeout, commandWrapper: timeWrapper)
+        
+        breaker.run(commandArgs: (a: 3, seconds: 7), fallbackArgs: (msg: "Timeout."))
+        
+        waitForExpectations(timeout: 10, handler: { _ in
+            XCTAssertEqual(breaker.breakerState, State.closed)
+            XCTAssertEqual(self.timedOut, true)
         })
     }
     
@@ -512,6 +612,7 @@ class CircuitBreakerTests: XCTestCase {
             let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
             if result != 7 {
                 invocation.notifyFailure()
+                expectation1.fulfill()
                 return 0
             } else {
                 invocation.notifySuccess()
