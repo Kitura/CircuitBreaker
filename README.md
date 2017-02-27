@@ -26,14 +26,14 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ])
  ```
 
- ### Basic CircuitBreaker usage:
+### Basic CircuitBreaker usage:
 
   * The CircuitBreaker state is based on timeouts only
 
 ```swift
 ...
 
-// Define a fallback function with the signature (<fallbackArg1, fallbackArg2,...>) -> Void
+// Define a fallback function with the signature (<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void
 func testFallback (error: Bool, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
@@ -72,22 +72,22 @@ func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
 let breaker = CircuitBreaker(fallback: testFallback, command: testEndpoint)
 
 // Invoke the call to the endpoint by calling the CircuitBreaker run() function and pass any arguments
-breaker.run(args: (input : "testInput1", { data, err in
+breaker.run(commandArgs: (input : "testInput1", { data, err in
     if err {
         print(err)
     } else {
         print(data)
     }
-}))
+}), fallbackArgs: (msg: "Something went wrong."))
 
 // May be called multiple times with varied input
-breaker.run(args: (input : "testInput2", { data, err in
+breaker.run(commandArgs: (input : "testInput2", { data, err in
     if err {
         print(err)
     } else {
         print(data)
     }
-}))
+}), fallbackArgs: (msg: "Something went wrong."))
 
 ...
 ```
@@ -99,8 +99,8 @@ breaker.run(args: (input : "testInput2", { data, err in
 ```swift
 ...
 
-// Define a fallback function with the signature (<fallbackArg1, fallbackArg2,...>) -> Void
-func testFallback (err: BreakerError) {
+// Define a fallback function with the signature (<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void
+func testFallback (err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     // Client is expected to use the fallback to do alternate processing, such as show an error page.
@@ -133,7 +133,7 @@ func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
 let breakerAdvanced = CircuitBreaker(fallback: testCallback, commandWrapper: sumWrapper)
 
 // Invoke the call to the endpoint by calling the CircuitBreaker run() function and pass any arguments
-breakerAdvanced.run(args: (a: 3, b: 4))
+breakerAdvanced.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Something went wrong."))
 
 ...
 ```
@@ -149,7 +149,7 @@ CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
  * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
- * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(fallbackArg1, fallbackArg2,...) -> Void`
+ * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `command` Endpoint name to circuit break.
 
 #### Advanced Usage Constructor:
@@ -160,7 +160,7 @@ CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
  * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
   * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
- * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(fallbackArg1, fallbackArg2,...) -> Void`
+ * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `commandWrapper` Wrapper around endpoint name to circuit break, allow user defined failures.
 
 ### CircuitBreaker Stats
