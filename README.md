@@ -159,7 +159,7 @@ CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 
  * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
  * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
-  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
+ * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `commandWrapper` Wrapper around endpoint name to circuit break, allow user defined failures.
 
