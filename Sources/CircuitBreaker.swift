@@ -123,6 +123,7 @@ public class CircuitBreaker<A, B, C> {
                 self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
             } else {
                 fastFail(fallbackArgs: fallbackArgs)
+                dispatchSemaphoreHalfOpenCall.signal()
             }
            
         } else {
