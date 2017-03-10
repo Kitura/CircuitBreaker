@@ -54,8 +54,8 @@ public class CircuitBreaker<A, B, C> {
     let dispatchSemaphoreFailure = DispatchSemaphore(value: 1)
     let dispatchSemaphoreCompleted = DispatchSemaphore(value: 1)
     let dispatchSemaphoreHalfOpen = DispatchSemaphore(value: 1)
+    let dispatchSemaphoreHalfOpenCall = DispatchSemaphore(value: 1)
 
-    // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
     public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
@@ -102,20 +102,29 @@ public class CircuitBreaker<A, B, C> {
 
         if breakerState == State.open || (breakerState == State.halfopen && pendingHalfOpenCall == true) {
             fastFail(fallbackArgs: fallbackArgs)
-        } else if breakerState == State.halfopen && pendingHalfOpenCall == false {
-            pendingHalfOpenCall = true
-            let startTime:Date = Date()
-
-            if let bulkhead = self.bulkhead {
-                bulkhead.enqueue(task: {
-                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-                })
+            
+        } else if breakerState == State.halfopen {
+            dispatchSemaphoreHalfOpenCall.wait()
+            if pendingHalfOpenCall == false {
+                pendingHalfOpenCall = true
+                dispatchSemaphoreHalfOpenCall.signal()
+                
+                let startTime:Date = Date()
+                
+                if let bulkhead = self.bulkhead {
+                    bulkhead.enqueue(task: {
+                        self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                    })
+                }
+                else {
+                    callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                }
+                pendingHalfOpenCall = false
+                self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+            } else {
+                fastFail(fallbackArgs: fallbackArgs)
             }
-            else {
-                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-            }
-            pendingHalfOpenCall = false
-            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+           
         } else {
             let startTime:Date = Date()
 
