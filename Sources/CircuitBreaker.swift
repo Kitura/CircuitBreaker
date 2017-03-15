@@ -122,8 +122,8 @@ public class CircuitBreaker<A, B, C> {
                 pendingHalfOpenCall = false
                 self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
             } else {
-                fastFail(fallbackArgs: fallbackArgs)
                 dispatchSemaphoreHalfOpenCall.signal()
+                fastFail(fallbackArgs: fallbackArgs)
             }
            
         } else {
