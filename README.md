@@ -5,6 +5,8 @@
 # CircuitBreaker
 The Circuit Breaker design pattern is used to increase application stability, improve response time, and prevent the application from making constant failing requests. This library provides the tools needed to bring Circuit Breaker logic to your Swift applications.
 
+![Circuit Breaker Diagram](Docs/circuitBreakerDiagram.png)
+
 ## Contents
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
