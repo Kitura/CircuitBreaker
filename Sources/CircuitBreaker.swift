@@ -38,6 +38,7 @@ public class CircuitBreaker<A, B, C> {
 
     var state: State
     private(set) var failures: Int
+    private(set) var pendingHalfOpen: Bool
     var breakerStats: Stats
     var command: AnyFunction<A, B>?
     var fallback: AnyFallback<C>
@@ -46,15 +47,15 @@ public class CircuitBreaker<A, B, C> {
     let timeout: Double
     let resetTimeout: Int
     let maxFailures: Int
-    var pendingHalfOpen: Bool
     var bulkhead: Bulkhead?
 
     var resetTimer: DispatchSourceTimer?
     let dispatchSemaphoreState = DispatchSemaphore(value: 1)
     let dispatchSemaphoreFailure = DispatchSemaphore(value: 1)
     let dispatchSemaphoreCompleted = DispatchSemaphore(value: 1)
+    let dispatchSemaphoreHalfOpen = DispatchSemaphore(value: 1)
+    let dispatchSemaphoreHalfOpenCall = DispatchSemaphore(value: 1)
 
-    // TODO: Look at using OperationQueue and Operation instead to allow cancelling of tasks
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
     public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
@@ -99,23 +100,32 @@ public class CircuitBreaker<A, B, C> {
     public func run(commandArgs: A, fallbackArgs: C) {
         breakerStats.trackRequest()
 
-        // TODO: Fix pendingHalfOpen race condition issue
-        if state == State.open || (state == State.halfopen && pendingHalfOpen == true) {
+        if breakerState == State.open || (breakerState == State.halfopen && pendingHalfOpenCall == true) {
             fastFail(fallbackArgs: fallbackArgs)
-        } else if state == State.halfopen && pendingHalfOpen == false {
-            pendingHalfOpen = true
-            let startTime:Date = Date()
-
-            if let bulkhead = self.bulkhead {
-                bulkhead.enqueue(task: {
-                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-                })
+            
+        } else if breakerState == State.halfopen {
+            dispatchSemaphoreHalfOpenCall.wait()
+            if pendingHalfOpenCall == false {
+                pendingHalfOpenCall = true
+                dispatchSemaphoreHalfOpenCall.signal()
+                
+                let startTime:Date = Date()
+                
+                if let bulkhead = self.bulkhead {
+                    bulkhead.enqueue(task: {
+                        self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                    })
+                }
+                else {
+                    callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+                }
+                pendingHalfOpenCall = false
+                self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+            } else {
+                dispatchSemaphoreHalfOpenCall.signal()
+                fastFail(fallbackArgs: fallbackArgs)
             }
-            else {
-                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-            }
-            pendingHalfOpen = false
-            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+           
         } else {
             let startTime:Date = Date()
 
@@ -225,6 +235,21 @@ public class CircuitBreaker<A, B, C> {
             dispatchSemaphoreFailure.signal()
         }
     }
+    
+    var pendingHalfOpenCall: Bool {
+        get {
+            dispatchSemaphoreHalfOpen.wait()
+            let halfOpenCallStatus = pendingHalfOpen
+            dispatchSemaphoreHalfOpen.signal()
+            return halfOpenCallStatus
+        }
+        
+        set {
+            dispatchSemaphoreHalfOpen.wait()
+            pendingHalfOpen = newValue
+            dispatchSemaphoreHalfOpen.signal()
+        }
+    }
 
     private func handleFailures () {
         numFailures += 1
@@ -258,7 +283,7 @@ public class CircuitBreaker<A, B, C> {
     public func forceClosed () {
         breakerState = State.closed
         numFailures = 0
-        pendingHalfOpen = false
+        pendingHalfOpenCall = false
     }
 
     public func forceHalfOpen () {

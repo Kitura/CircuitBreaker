@@ -69,7 +69,6 @@ public class Stats {
         totalRequests += 1
     }
 
-    // TODO: What type is latency ???
     func trackLatency (latency:Int) -> Void {
         latencies.append(latency)
     }
@@ -93,7 +92,6 @@ public class Stats {
     }
 
     // Log current snapshot of CircuitBreaker
-    // TODO: What format should this be in?
     func snapshot () {
         Log.verbose("Total Requests: \(totalRequests)")
         Log.verbose("Concurrent Requests: \(concurrentRequests())")
