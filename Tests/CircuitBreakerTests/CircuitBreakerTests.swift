@@ -249,7 +249,7 @@ class CircuitBreakerTests: XCTestCase {
 
         breaker.forceOpen()
 
-        breaker.run(commandArgs: (), fallbackArgs: (msg: "Fast fail."))
+        breaker.run(commandArgs: (), fallbackArgs: String(describing: "Fast fail."))
 
         waitForExpectations(timeout: 10, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.open)
@@ -290,10 +290,10 @@ class CircuitBreakerTests: XCTestCase {
 
         XCTAssertEqual(breaker.breakerState, State.halfopen)
 
-        breaker.run(commandArgs: (completion: { err in
+        breaker.run(commandArgs: { err in
             Log.verbose("Error: \(err)")
             expectation1.fulfill()
-        }), fallbackArgs: (msg: "Failure."))
+        }, fallbackArgs: String(describing: "Failure."))
 
         // Check that state is now closed
         waitForExpectations(timeout: 10, handler: { _ in
@@ -325,7 +325,7 @@ class CircuitBreakerTests: XCTestCase {
 
         XCTAssertEqual(breaker.breakerState, State.halfopen)
 
-        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure."))
+        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: String(describing: "Failure."))
 
         // Check that state is now closed
         waitForExpectations(timeout: 10, handler: { _ in
@@ -348,10 +348,10 @@ class CircuitBreakerTests: XCTestCase {
 
         XCTAssertEqual(breaker.breakerState, State.halfopen)
 
-        breaker.run(commandArgs: (completion: { err in
+        breaker.run(commandArgs: { err in
             Log.verbose("Error: \(err)")
             expectation1.fulfill()
-        }), fallbackArgs: (msg: "Failure."))
+        }, fallbackArgs: String(describing: "Failure."))
 
         // Check that state is now closed
         waitForExpectations(timeout: 10, handler: { _ in
@@ -375,7 +375,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.run(commandArgs: (a: 1, b: 3, completion: { result in
             total = result
             expectation1.fulfill()
-        }), fallbackArgs: (msg: "Error getting sum."))
+        }), fallbackArgs: String(describing: "Error getting sum."))
 
         // Check that the state is closed and the sum is 4
         waitForExpectations(timeout: 10, handler: { _ in
@@ -390,7 +390,7 @@ class CircuitBreakerTests: XCTestCase {
         let breaker = CircuitBreaker(fallback: fallbackFunction, command: test)
 
         // TODO: Do something more meaningful here
-        breaker.run(commandArgs: (), fallbackArgs: (msg: "Error getting snapshot."))
+        breaker.run(commandArgs: (), fallbackArgs: String(describing: "Error getting snapshot."))
 
         breaker.snapshot()
 
@@ -417,7 +417,7 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(timeout: 5.0, fallback: fallbackTimeout, command: time)
 
-        breaker.run(commandArgs: (a: 1, seconds: 7), fallbackArgs: (msg: "Timeout."))
+        breaker.run(commandArgs: (a: 1, seconds: 7), fallbackArgs: String(describing: "Timeout."))
 
         waitForExpectations(timeout: 10, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.closed)
@@ -439,7 +439,7 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(timeout: 5.0, resetTimeout: resetTimeout, maxFailures: 1, fallback: fallbackFunction, command: time)
 
-        breaker.run(commandArgs: (a: 1, seconds: 11), fallbackArgs: (msg: "Timeout."))
+        breaker.run(commandArgs: (a: 1, seconds: 11), fallbackArgs: String(describing: "Timeout."))
 
         sleepFulfill(time: resetTimeout + 2)
 
@@ -461,12 +461,12 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(fallback: fallbackFunctionFulfill, commandWrapper: sumWrapper)
 
-        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure."))
+        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: String(describing: "Failure."))
 
         XCTAssertEqual(breaker.breakerState, State.closed)
 
         for _ in 1...6 {
-            breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: (msg: "Failure."))
+            breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: String(describing: "Failure."))
         }
 
         waitForExpectations(timeout: 10, handler: { _ in
@@ -504,7 +504,7 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(timeout: 2, fallback: fallbackTimeout, commandWrapper: timeWrapper)
 
-        breaker.run(commandArgs: (a: 3, seconds: 7), fallbackArgs: (msg: "Timeout."))
+        breaker.run(commandArgs: (a: 3, seconds: 7), fallbackArgs: String(describing: "Timeout."))
 
         waitForExpectations(timeout: 10, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.closed)
@@ -570,7 +570,7 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(fallback: fallbackFunction, commandWrapper: asyncWrapper)
 
-        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Failure."))
+        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: String(describing: "Failure."))
 
         waitForExpectations(timeout: 10, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.closed)
@@ -594,7 +594,7 @@ class CircuitBreakerTests: XCTestCase {
         breaker.run(commandArgs: (a: 1, b: 3, completion: { result in
             total = result
             expectation1.fulfill()
-        }), fallbackArgs: (msg: "Error getting sum."))
+        }), fallbackArgs: String(describing: "Error getting sum."))
 
         // Check that the state is closed and the sum is 4
         waitForExpectations(timeout: 10, handler: { _ in
@@ -623,7 +623,7 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(bulkhead: 2, fallback: fallbackFunction, commandWrapper: sumWrapperFulfill)
 
-        breaker.run(commandArgs: (a: 4, b: 3), fallbackArgs: (msg: "Error getting sum."))
+        breaker.run(commandArgs: (a: 4, b: 3), fallbackArgs: String(describing: "Error getting sum."))
 
         // Check that the state is closed
         waitForExpectations(timeout: 10, handler: { _ in
@@ -653,9 +653,9 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(bulkhead: 2, fallback: fallbackFunction, command: timeBulkhead)
 
-        breaker.run(commandArgs: (a: 4, seconds: 5), fallbackArgs: (msg: "Failure."))
-        breaker.run(commandArgs: (a: 5, seconds: 6), fallbackArgs: (msg: "Failure."))
-        breaker.run(commandArgs: (a: 3, seconds: 4), fallbackArgs: (msg: "Failure."))
+        breaker.run(commandArgs: (a: 4, seconds: 5), fallbackArgs: String(describing: "Failure."))
+        breaker.run(commandArgs: (a: 5, seconds: 6), fallbackArgs: String(describing: "Failure."))
+        breaker.run(commandArgs: (a: 3, seconds: 4), fallbackArgs: String(describing: "Failure."))
 
         waitForExpectations(timeout: 17, handler: { _ in
             XCTAssertEqual(breaker.breakerState, State.closed)
@@ -710,19 +710,19 @@ class CircuitBreakerTests: XCTestCase {
         // Breaker should start in closed state
         XCTAssertEqual(breaker.breakerState, State.closed)
 
-        breaker.run(commandArgs: (a: 1, b: 3, flag: false), fallbackArgs: (msg: "Sum")) // Success
+        breaker.run(commandArgs: (a: 1, b: 3, flag: false), fallbackArgs: String(describing: "Sum")) // Success
 
         for _ in 1...2 {
-            breaker.run(commandArgs: (a: 2, b: 4, flag: true), fallbackArgs: (msg: "Sum")) // Timeout, Timeout
+            breaker.run(commandArgs: (a: 2, b: 4, flag: true), fallbackArgs: String(describing: "Sum")) // Timeout, Timeout
         }
 
-        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum")) // Fast fail
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: String(describing: "Sum")) // Fast fail
 
-        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum")) // Fast fail
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: String(describing: "Sum")) // Fast fail
 
         sleep(5)
 
-        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: (msg: "Sum")) // Success
+        breaker.run(commandArgs: (a: 2, b: 4, flag: false), fallbackArgs: String(describing: "Sum")) // Success
 
         sleep(5)
 
