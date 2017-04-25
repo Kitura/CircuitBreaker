@@ -1,18 +1,5 @@
 {
-  "autoPin": true,
-  "pins": [
-    {
-      "package": "HeliumLogger",
-      "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/HeliumLogger.git",
-      "version": "1.7.0"
-    },
-    {
-      "package": "LoggerAPI",
-      "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/LoggerAPI.git",
-      "version": "1.7.0"
-    }
-  ],
+  "autoPin": false,
+  "pins": [],
   "version": 1
 }
