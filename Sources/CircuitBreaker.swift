@@ -58,7 +58,7 @@ public class CircuitBreaker<A, B, C> {
 
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
+    private init(timeout: Double, resetTimeout: Int, maxFailures: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -70,30 +70,19 @@ public class CircuitBreaker<A, B, C> {
 
         self.fallback = fallback
         self.command = command
-        self.commandWrapper = nil
+        self.commandWrapper = commandWrapper
 
         if bulkhead > 0 {
             self.bulkhead = Bulkhead.init(limit: bulkhead)
         }
     }
 
-    public init (timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
-        self.timeout = timeout
-        self.resetTimeout = resetTimeout
-        self.maxFailures = maxFailures
+    public convenience init(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
+        self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, bulkhead: bulkhead, fallback: fallback, command: command, commandWrapper: nil)
+    }
 
-        self.state = State.closed
-        self.failures = 0
-        self.pendingHalfOpen = false
-        self.breakerStats = Stats()
-
-        self.fallback = fallback
-        self.command = nil
-        self.commandWrapper = commandWrapper
-
-        if bulkhead > 0 {
-            self.bulkhead = Bulkhead.init(limit: bulkhead)
-        }
+    public convenience init(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+        self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, bulkhead: bulkhead, fallback: fallback, command: nil, commandWrapper: commandWrapper)
     }
 
     // Run
@@ -102,15 +91,15 @@ public class CircuitBreaker<A, B, C> {
 
         if breakerState == State.open || (breakerState == State.halfopen && pendingHalfOpenCall == true) {
             fastFail(fallbackArgs: fallbackArgs)
-            
+
         } else if breakerState == State.halfopen {
             dispatchSemaphoreHalfOpenCall.wait()
             if pendingHalfOpenCall == false {
                 pendingHalfOpenCall = true
                 dispatchSemaphoreHalfOpenCall.signal()
-                
+
                 let startTime:Date = Date()
-                
+
                 if let bulkhead = self.bulkhead {
                     bulkhead.enqueue(task: {
                         self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
@@ -125,7 +114,7 @@ public class CircuitBreaker<A, B, C> {
                 dispatchSemaphoreHalfOpenCall.signal()
                 fastFail(fallbackArgs: fallbackArgs)
             }
-           
+
         } else {
             let startTime:Date = Date()
 
@@ -235,7 +224,7 @@ public class CircuitBreaker<A, B, C> {
             dispatchSemaphoreFailure.signal()
         }
     }
-    
+
     var pendingHalfOpenCall: Bool {
         get {
             dispatchSemaphoreHalfOpen.wait()
@@ -243,7 +232,7 @@ public class CircuitBreaker<A, B, C> {
             dispatchSemaphoreHalfOpen.signal()
             return halfOpenCallStatus
         }
-        
+
         set {
             dispatchSemaphoreHalfOpen.wait()
             pendingHalfOpen = newValue
@@ -318,11 +307,11 @@ public class Invocation<A, B, C> {
         self.commandArgs = commandArgs
         self.breaker = breaker
     }
-    
+
     public func setTimedOut() {
         self.timedOut = true
     }
-    
+
     public func setCompleted() {
         self.completed = true
     }
