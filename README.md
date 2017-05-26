@@ -252,22 +252,22 @@ breakerAdvanced.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Something we
 
 #### Basic Usage Constructor:
 ```swift
-CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
+CircuitBreaker(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
 ```
- * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
+ * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
+ * `maxFailures` Number of consecutive failures allowed before setting state to open. Default is set to 5.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `command` Endpoint name to circuit break.
 
 #### Advanced Usage Constructor:
 ```swift
-CircuitBreaker(timeout: Double = 10, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
+CircuitBreaker(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
 ```
- * `timeout` Amount in seconds that the request should complete before. Default is set to 10 seconds.
+ * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` Number of failures allowed before setting state to open. Default is set to 5.
+ * `maxFailures` Number of consecutive failures allowed before setting state to open. Default is set to 5.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `commandWrapper` Invocation wrapper around endpoint name to circuit break, allows user defined failures.
