@@ -126,7 +126,7 @@ public class CircuitBreaker<A, B, C> {
     var fallback: AnyFallback<C>
     var commandWrapper: AnyFunctionWrapper<A, B>?
 
-    let timeout: Double
+    let timeout: Int
     let resetTimeout: Int
     let maxFailures: Int
     let rollingWindow: Int
@@ -142,7 +142,7 @@ public class CircuitBreaker<A, B, C> {
 
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    private init(timeout: Double, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
+    private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
         self.timeout = timeout
         self.resetTimeout = resetTimeout
         self.maxFailures = maxFailures
@@ -155,11 +155,11 @@ public class CircuitBreaker<A, B, C> {
         }
     }
 
-    public convenience init(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, rollingWindow: Int = 10, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
+    public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
         self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: command, commandWrapper: nil)
     }
 
-    public convenience init(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, rollingWindow: Int = 10, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
         self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: nil, commandWrapper: commandWrapper)
     }
 
@@ -244,7 +244,7 @@ public class CircuitBreaker<A, B, C> {
     }
 
     private func setTimeout(closure: @escaping () -> ()) {
-        queue.asyncAfter(deadline: .now() + self.timeout) { [weak self] in
+        queue.asyncAfter(deadline: .now() + .milliseconds(self.timeout)) { [weak self] in
             self?.breakerStats.trackTimeouts()
             closure()
         }
@@ -331,13 +331,12 @@ public class CircuitBreaker<A, B, C> {
         }
 
         if let timeWindow = timeWindow {
-            if failures.size >= maxFailures && timeWindow <= UInt64(rollingWindow * 1000) {
+            if failures.size >= maxFailures && timeWindow <= UInt64(rollingWindow) {
                 Log.error("Reached maximum number of failures allowed before tripping circuit.")
                 open()
                 return
             }
         }
-
     }
 
     private func handleSuccess() {
@@ -366,7 +365,7 @@ public class CircuitBreaker<A, B, C> {
     */
     private func open() {
         breakerState = State.open
-        startResetTimer(delay: .seconds(resetTimeout))
+        startResetTimer(delay: .milliseconds(resetTimeout))
     }
 
     private func fastFail(fallbackArgs: C) {
