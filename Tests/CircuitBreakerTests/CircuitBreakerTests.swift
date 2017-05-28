@@ -76,19 +76,26 @@ class CircuitBreakerTests: XCTestCase {
     func dummyCmdWrapper(invocation: Invocation<(Void), Void, Void>) {
       dummyCmd()
       invocation.notifySuccess()
-      return
     }
 
-    func sumWrapper(invocation: Invocation<(Int, Int), Int, String>) -> Int {
-        let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
-        if result != 7 {
-            invocation.notifyFailure()
-            return 0
-        } else {
-            invocation.notifySuccess()
-            return result
-        }
+    func dummyFallback(error: BreakerError, _: Void) -> Void {
+        Log.verbose("Error: \(error)")
     }
+
+    func simpleWrapper(invocation: Invocation<(Bool), Void, Void>) {
+      invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure()
+    }
+
+    // func sumWrapper(invocation: Invocation<(Int, Int), Int, String>) -> Int {
+    //     let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
+    //     if result != 7 {
+    //         invocation.notifyFailure()
+    //         return 0
+    //     } else {
+    //         invocation.notifySuccess()
+    //         return result
+    //     }
+    // }
 
     // There is no 1-tuple in Swift...
     // https://medium.com/swift-programming/facets-of-swift-part-2-tuples-4bfe58d21abf#.v4rj4md9c
@@ -155,7 +162,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Create CircuitBreaker using a commandWrapper, state should be Closed and no failures
     func testDefaultWrapperConstructor() {
-        let breaker = CircuitBreaker(fallback: fallbackFunction, commandWrapper: sumWrapper)
+        let breaker = CircuitBreaker(fallback: dummyFallback, commandWrapper: dummyCmdWrapper)
 
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -166,7 +173,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Create CircuitBreaker with user options set
     func testWrapperConstructor() {
-        let breaker = CircuitBreaker(timeout: 5000, resetTimeout: 5000, maxFailures: 3, fallback: fallbackFunction, command: sumWrapper)
+        let breaker = CircuitBreaker(timeout: 5000, resetTimeout: 5000, maxFailures: 3, fallback: dummyFallback, command: dummyCmdWrapper)
 
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -182,7 +189,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Create CircuitBreaker with user options set
     func testPartialWrapperConstructor() {
-        let breaker = CircuitBreaker(timeout: 5000, resetTimeout: 5000, fallback: fallbackFunction, command: sumWrapper)
+        let breaker = CircuitBreaker(timeout: 5000, resetTimeout: 5000, fallback: dummyFallback, command: dummyCmdWrapper)
 
         // Check that the state is Closed
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -450,26 +457,31 @@ class CircuitBreakerTests: XCTestCase {
 
     // Test Invocation Wrapper
     func testInvocationWrapper() {
-        let expectation1 = expectation(description: "The wrapper notifies the breaker of the failures, ends in open state.")
+        //let expectation1 = expectation(description: "The wrapper notifies the breaker of the failures, ends in open state.")
 
-        func fallbackFunctionFulfill (error: BreakerError, msg: String) -> Void {
-            Log.verbose("Test case fallback: \(msg)")
-            expectation1.fulfill()
-        }
+        // func fallbackFunctionFulfill (error: BreakerError, msg: String) -> Void {
+        //     Log.verbose("Test case fallback: \(msg)")
+        //     expectation1.fulfill()
+        // }
 
-        let breaker = CircuitBreaker(fallback: fallbackFunctionFulfill, commandWrapper: sumWrapper)
+        let maxFailures = 5
 
-        breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: String(describing: "Failure."))
+        let breaker = CircuitBreaker(maxFailures: maxFailures, fallback: dummyFallback, commandWrapper: simpleWrapper)
+
+        ///breaker.run(commandArgs: (success: true), fallbackArgs: String(describing: "Failure."))
+        breaker.run(commandArgs: true, fallbackArgs: ())
 
         XCTAssertEqual(breaker.breakerState, State.closed)
 
-        for _ in 1...6 {
-            breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: String(describing: "Failure."))
+        for _ in 1...maxFailures {
+            breaker.run(commandArgs: false, fallbackArgs: ())
         }
 
-        waitForExpectations(timeout: 10, handler: { _ in
-            XCTAssertEqual(breaker.breakerState, State.open)
-        })
+        XCTAssertEqual(breaker.breakerState, State.open)
+
+        // waitForExpectations(timeout: 10, handler: { _ in
+        //     XCTAssertEqual(breaker.breakerState, State.open)
+        // })
     }
 
     // Test Invocation Wrapper

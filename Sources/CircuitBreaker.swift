@@ -128,7 +128,9 @@ public class CircuitBreaker<A, B, C> {
                 completed = true
                 semaphoreCompleted.signal()
                 if error {
+                    print("Before handleFailure...")
                     _self?.handleFailure()
+                    print("After handleFailure....")
                     let _ = fallback(.timeout, fallbackArgs)
                 } else {
                     _self?.handleSuccess()
