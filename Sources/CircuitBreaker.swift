@@ -14,8 +14,7 @@
  * limitations under the License.
  **/
 
- //https://medium.com/@JoyceMatos/data-structures-in-swift-queues-and-stacks-e7d715634f07
- //https://gist.github.com/kareman/931017634606b7f7b9c0
+ //https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
 
 import Foundation
 import Dispatch
@@ -134,11 +133,12 @@ public class CircuitBreaker<A, B, C> {
     var bulkhead: Bulkhead?
 
     var resetTimer: DispatchSourceTimer?
-    let semaphoreState = DispatchSemaphore(value: 1)
+    //let semaphoreState = DispatchSemaphore(value: 1)
     let semaphoreCompleted = DispatchSemaphore(value: 1)
-    let semaphoreHalfOpen = DispatchSemaphore(value: 1)
+    //let semaphoreHalfOpen = DispatchSemaphore(value: 1)
     let semaphoreHalfOpenCall = DispatchSemaphore(value: 1)
-    let semaphoreFailures = DispatchSemaphore(value: 1)
+    //let semaphoreFailures = DispatchSemaphore(value: 1)
+    let semaphoreCircuit = DispatchSemaphore(value: 1)
 
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
@@ -167,15 +167,10 @@ public class CircuitBreaker<A, B, C> {
     public func run(commandArgs: A, fallbackArgs: C) {
         breakerStats.trackRequest()
 
-        if breakerState == State.open || (breakerState == State.halfopen && pendingHalfOpenCall == true) {
+        if breakerState == State.open {
             fastFail(fallbackArgs: fallbackArgs)
 
         } else if breakerState == State.halfopen {
-            semaphoreHalfOpenCall.wait()
-            if pendingHalfOpenCall == false {
-                pendingHalfOpenCall = true
-                semaphoreHalfOpenCall.signal()
-
                 let startTime:Date = Date()
 
                 if let bulkhead = self.bulkhead {
@@ -186,12 +181,8 @@ public class CircuitBreaker<A, B, C> {
                 else {
                     callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
                 }
-                pendingHalfOpenCall = false
+
                 self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
-            } else {
-                semaphoreHalfOpenCall.signal()
-                fastFail(fallbackArgs: fallbackArgs)
-            }
 
         } else {
             let startTime:Date = Date()
@@ -222,7 +213,7 @@ public class CircuitBreaker<A, B, C> {
                 completed = true
                 semaphoreCompleted.signal()
                 if error {
-                    _self?.handleFailures()
+                    _self?.handleFailure()
                     let _ = fallback(.timeout, fallbackArgs)
                 } else {
                     _self?.handleSuccess()
@@ -265,7 +256,7 @@ public class CircuitBreaker<A, B, C> {
     }
 
     public func notifyFailure() {
-        handleFailures()
+        handleFailure()
     }
 
     public func notifySuccess() {
@@ -275,16 +266,17 @@ public class CircuitBreaker<A, B, C> {
     // Get/Set functions
     public private(set) var breakerState: State {
         get {
-            semaphoreState.wait()
-            let currentState = state
-            semaphoreState.signal()
-            return currentState
+            //semaphoreState.wait()
+            //let currentState = state
+            //semaphoreState.signal()
+            //return currentState
+            return state
         }
 
         set {
-            semaphoreState.wait()
+            //semaphoreState.wait()
             state = newValue
-            semaphoreState.signal()
+            //semaphoreState.signal()
         }
     }
 
@@ -294,23 +286,25 @@ public class CircuitBreaker<A, B, C> {
         }
     }
 
-    var pendingHalfOpenCall: Bool {
-        get {
-            semaphoreHalfOpen.wait()
-            let halfOpenCallStatus = pendingHalfOpen
-            semaphoreHalfOpen.signal()
-            return halfOpenCallStatus
-        }
+    // var pendingHalfOpenCall: Bool {
+    //     get {
+    //         //semaphoreHalfOpen.wait()
+    //         //let halfOpenCallStatus = pendingHalfOpen
+    //         //semaphoreHalfOpen.signal()
+    //         //return halfOpenCallStatus
+    //         return pendingHalfOpen
+    //     }
+    //
+    //     set {
+    //         //semaphoreHalfOpen.wait()
+    //         pendingHalfOpen = newValue
+    //         //semaphoreHalfOpen.signal()
+    //     }
+    // }
 
-        set {
-            semaphoreHalfOpen.wait()
-            pendingHalfOpen = newValue
-            semaphoreHalfOpen.signal()
-        }
-    }
-
-    private func handleFailures() {
-        semaphoreFailures.wait()
+    private func handleFailure() {
+        semaphoreCircuit.wait()
+        Log.verbose("Handling failure...")
         // Add a new failure
         failures.add(Date.currentTimeMillis())
         if failures.size > maxFailures {
@@ -327,47 +321,71 @@ public class CircuitBreaker<A, B, C> {
 
         defer {
             breakerStats.trackFailedResponse()
-            semaphoreFailures.signal()
+            semaphoreCircuit.signal()
         }
 
         if (state == State.halfopen) {
             Log.error("Failed in halfopen state.")
-            forceOpen()
+            open()
             return
         }
 
         if let timeWindow = timeWindow {
-            if failures.size >= maxFailures && timeWindow <= UInt64(rollingWindow) {
+            if failures.size >= maxFailures && timeWindow <= UInt64(rollingWindow * 1000) {
                 Log.error("Reached maximum number of failures allowed before tripping circuit.")
-                forceOpen()
+                open()
                 return
             }
         }
+
     }
 
     private func handleSuccess() {
-        forceClosed()
+        semaphoreCircuit.wait()
+        Log.verbose("Handling success...")
+        if state == State.halfopen {
+          close()
+        }
         breakerStats.trackSuccessfulResponse()
+        semaphoreCircuit.signal()
+    }
+
+    /**
+    * This function should be called within the boundaries of a semaphore.
+    * Otherwise, resulting behavior may be unexpected.
+    */
+    private func close() {
+      // Remove all failures (i.e. reset failure counter to 0)
+      failures.clear()
+      breakerState = State.closed
+    }
+
+    /**
+    * This function should be called within the boundaries of a semaphore.
+    * Otherwise, resulting behavior may be unexpected.
+    */
+    private func open() {
+        breakerState = State.open
+        startResetTimer(delay: .seconds(resetTimeout))
     }
 
     private func fastFail(fallbackArgs: C) {
-        Log.verbose("Breaker open.")
+        Log.verbose("Breaker open... failing fast.")
         breakerStats.trackRejected()
         let _ = fallback(.fastFail, fallbackArgs)
     }
 
     public func forceOpen() {
-        breakerState = State.open
-        startResetTimer(delay: .seconds(resetTimeout))
+        semaphoreCircuit.wait()
+        open()
+        semaphoreCircuit.signal()
     }
 
     public func forceClosed() {
-        semaphoreFailures.wait()
-        breakerState = State.closed
-        // Remove all failures (i.e. reset failure counter to 0)
-        failures.clear()
-        pendingHalfOpenCall = false
-        semaphoreFailures.signal()
+        semaphoreCircuit.wait()
+        close()
+        //pendingHalfOpenCall = false
+        semaphoreCircuit.signal()
     }
 
     public func forceHalfOpen() {

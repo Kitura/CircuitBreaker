@@ -246,14 +246,14 @@ class CircuitBreakerTests: XCTestCase {
     // Should reset failures to 0
     //TODO: Re-implement this test case
     func testResetFailures() {
-        let breaker = CircuitBreaker(timeout: 1, maxFailures: 2, fallback: fallbackFunction, command: time)
+        let breaker = CircuitBreaker(timeout: 1, maxFailures: 2, rollingWindow: 30, fallback: fallbackFunction, command: time)
         // Cause multiple failures, exceeding max allowed before tripping circuit
         breaker.run(commandArgs: (100, 5), fallbackArgs: String(describing: "Timing out on purpose."))
         breaker.run(commandArgs: (100, 5), fallbackArgs: String(describing: "Timing out on purpose."))
-        breaker.run(commandArgs: (100, 5), fallbackArgs: String(describing: "Timing out on purpose."))
 
-        // Check that failures is 10
-        XCTAssertEqual(breaker.numberOfFailures, 3)
+        // Check that failures is 2
+        XCTAssertEqual(breaker.numberOfFailures, 2)
+        XCTAssertEqual(breaker.state, State.open)
 
         // Force closed
         breaker.forceClosed()
@@ -440,11 +440,14 @@ class CircuitBreakerTests: XCTestCase {
 
         let breaker = CircuitBreaker(fallback: fallbackFunctionFulfill, commandWrapper: sumWrapper)
 
+      //  print("testInvocationWrapper - 0")
+
         breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: String(describing: "Failure."))
 
         XCTAssertEqual(breaker.breakerState, State.closed)
 
         for _ in 1...6 {
+          //  print("testInvocationWrapper - \(i)")
             breaker.run(commandArgs: (a: 2, b: 2), fallbackArgs: String(describing: "Failure."))
         }
 
