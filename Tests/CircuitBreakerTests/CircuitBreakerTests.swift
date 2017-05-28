@@ -69,6 +69,16 @@ class CircuitBreakerTests: XCTestCase {
         return a + b
     }
 
+    func dummyCmd() {
+      return
+    }
+
+    func dummyCmdWrapper(invocation: Invocation<(Void), Void, Void>) {
+      dummyCmd()
+      invocation.notifySuccess()
+      return
+    }
+
     func sumWrapper(invocation: Invocation<(Int, Int), Int, String>) -> Int {
         let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
         if result != 7 {

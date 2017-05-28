@@ -32,87 +32,6 @@ public enum BreakerError {
 }
 
 public class CircuitBreaker<A, B, C> {
-/*
-  public class Builder {
-    var id: String?
-    var name: String?
-    var uris: [String]?
-    var version: String?
-    var instanceId: String?
-    var instanceIndex: Int?
-    var limits: Limits?
-    var port: Int?
-    var spaceId: String?
-    var startedAt: Date? // Not provided on Diego
-    init() {}
-
-    func setId(id: String?) -> Builder {
-      self.id = id
-      return self
-    }
-
-    func setName(name: String?) -> Builder {
-      self.name = name
-      return self
-    }
-
-    func setUris(uris: [String]) -> Builder {
-      self.uris = uris
-      return self
-    }
-
-    func setVersion(version: String?) -> Builder {
-      self.version = version
-      return self
-    }
-
-    func setInstanceId(instanceId: String?) -> Builder {
-      self.instanceId = instanceId
-      return self
-    }
-
-    func setInstanceIndex(instanceIndex: Int?) -> Builder {
-      self.instanceIndex = instanceIndex
-      return self
-    }
-
-    func setLimits(limits: Limits) -> Builder {
-      self.limits = limits
-      return self
-    }
-
-    func setPort(port: Int?) -> Builder {
-      self.port = port
-      return self
-    }
-
-    func setSpaceId(spaceId: String?) -> Builder {
-      self.spaceId = spaceId
-      return self
-    }
-
-    func setStartedAt(startedAt: Date?) -> Builder {
-      self.startedAt = startedAt
-      return self
-    }
-
-    func build() -> App? {
-      guard let id = id, let name = name,
-      let uris = uris, let version = version,
-      let instanceId = instanceId,
-      let instanceIndex = instanceIndex,
-      let limits = limits,
-      let port = port,
-      let spaceId = spaceId else {
-          return nil
-      }
-
-      return App(id: id, name: name, uris: uris, version: version, instanceId: instanceId,
-        instanceIndex: instanceIndex, limits: limits, port: port, spaceId: spaceId,
-        startedAt: startedAt)
-    }
-  }*/
-
     // Closure aliases
     public typealias AnyFunction<A, B> = (A) -> (B)
     public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
@@ -133,11 +52,7 @@ public class CircuitBreaker<A, B, C> {
     var bulkhead: Bulkhead?
 
     var resetTimer: DispatchSourceTimer?
-    //let semaphoreState = DispatchSemaphore(value: 1)
     let semaphoreCompleted = DispatchSemaphore(value: 1)
-    //let semaphoreHalfOpen = DispatchSemaphore(value: 1)
-    let semaphoreHalfOpenCall = DispatchSemaphore(value: 1)
-    //let semaphoreFailures = DispatchSemaphore(value: 1)
     let semaphoreCircuit = DispatchSemaphore(value: 1)
 
     let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
@@ -266,17 +181,11 @@ public class CircuitBreaker<A, B, C> {
     // Get/Set functions
     public private(set) var breakerState: State {
         get {
-            //semaphoreState.wait()
-            //let currentState = state
-            //semaphoreState.signal()
-            //return currentState
             return state
         }
 
         set {
-            //semaphoreState.wait()
             state = newValue
-            //semaphoreState.signal()
         }
     }
 
@@ -285,22 +194,6 @@ public class CircuitBreaker<A, B, C> {
             return failures.size
         }
     }
-
-    // var pendingHalfOpenCall: Bool {
-    //     get {
-    //         //semaphoreHalfOpen.wait()
-    //         //let halfOpenCallStatus = pendingHalfOpen
-    //         //semaphoreHalfOpen.signal()
-    //         //return halfOpenCallStatus
-    //         return pendingHalfOpen
-    //     }
-    //
-    //     set {
-    //         //semaphoreHalfOpen.wait()
-    //         pendingHalfOpen = newValue
-    //         //semaphoreHalfOpen.signal()
-    //     }
-    // }
 
     private func handleFailure() {
         semaphoreCircuit.wait()
