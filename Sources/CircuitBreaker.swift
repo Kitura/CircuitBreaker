@@ -131,6 +131,8 @@ public class CircuitBreaker<A, B, C> {
                     print("Before handleFailure...")
                     _self?.handleFailure()
                     print("After handleFailure....")
+                    //TODO: Reivew when fallback is invoked???? only when failing fast or when handling a failure
+                    //See wrapper logic
                     let _ = fallback(.timeout, fallbackArgs)
                 } else {
                     _self?.handleSuccess()

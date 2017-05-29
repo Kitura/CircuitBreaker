@@ -86,17 +86,6 @@ class CircuitBreakerTests: XCTestCase {
       invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure()
     }
 
-    // func sumWrapper(invocation: Invocation<(Int, Int), Int, String>) -> Int {
-    //     let result = sum(a: invocation.commandArgs.0, b: invocation.commandArgs.1)
-    //     if result != 7 {
-    //         invocation.notifyFailure()
-    //         return 0
-    //     } else {
-    //         invocation.notifySuccess()
-    //         return result
-    //     }
-    // }
-
     // There is no 1-tuple in Swift...
     // https://medium.com/swift-programming/facets-of-swift-part-2-tuples-4bfe58d21abf#.v4rj4md9c
     func fallbackFunction(error: BreakerError, msg: String) -> Void {
@@ -261,7 +250,6 @@ class CircuitBreakerTests: XCTestCase {
     }
 
     // Should reset failures to 0
-    //TODO: Re-implement this test case
     func testResetFailures() {
         let timeout: Int = 1000
         let maxFailures = 2
@@ -457,18 +445,10 @@ class CircuitBreakerTests: XCTestCase {
 
     // Test Invocation Wrapper
     func testInvocationWrapper() {
-        //let expectation1 = expectation(description: "The wrapper notifies the breaker of the failures, ends in open state.")
-
-        // func fallbackFunctionFulfill (error: BreakerError, msg: String) -> Void {
-        //     Log.verbose("Test case fallback: \(msg)")
-        //     expectation1.fulfill()
-        // }
-
         let maxFailures = 5
 
         let breaker = CircuitBreaker(maxFailures: maxFailures, fallback: dummyFallback, commandWrapper: simpleWrapper)
 
-        ///breaker.run(commandArgs: (success: true), fallbackArgs: String(describing: "Failure."))
         breaker.run(commandArgs: true, fallbackArgs: ())
 
         XCTAssertEqual(breaker.breakerState, State.closed)
@@ -478,10 +458,6 @@ class CircuitBreakerTests: XCTestCase {
         }
 
         XCTAssertEqual(breaker.breakerState, State.open)
-
-        // waitForExpectations(timeout: 10, handler: { _ in
-        //     XCTAssertEqual(breaker.breakerState, State.open)
-        // })
     }
 
     // Test Invocation Wrapper
