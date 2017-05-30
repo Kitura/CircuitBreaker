@@ -16,9 +16,9 @@
 
 import XCTest
 import Foundation
-import HeliumLogger
-import LoggerAPI
 import Dispatch
+//import HeliumLogger
+//import LoggerAPI
 
 @testable import CircuitBreaker
 
@@ -76,7 +76,7 @@ class CircuitBreakerTests: XCTestCase {
     }
 
     func dummyFallback(error: BreakerError, _: Void) -> Void {
-        Log.verbose("Error: \(error)")
+        print("dummyFallback() -> Error: \(error)")
     }
 
     func simpleWrapper(invocation: Invocation<(Bool), Void, Void>) {
@@ -98,7 +98,7 @@ class CircuitBreakerTests: XCTestCase {
 
     func time(milliseconds: Int) {
         sleep(UInt32(milliseconds / 1000))
-        Log.verbose("Slept for \(milliseconds)ms.")
+        print("time() - > Slept for \(milliseconds) ms.")
     }
 
     func timeWrapper(invocation: Invocation<(Int), Void, BreakerError>) {
@@ -232,6 +232,8 @@ class CircuitBreakerTests: XCTestCase {
 
         breaker.run(commandArgs: (), fallbackArgs: BreakerError.fastFail)
 
+        // Validate circuit state
+        XCTAssertTrue(fastFailed)
         XCTAssertEqual(breaker.breakerState, State.open)
         XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
     }
