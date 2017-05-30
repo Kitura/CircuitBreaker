@@ -28,23 +28,21 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ...
 
      dependencies: [
-         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 0),
+         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 1),
 
          ...
 
      ])
  ```
 
-### Basic Usage:
-
-*The CircuitBreaker state is based on timeouts only.*
+### Basic Usage (*the CircuitBreaker state is based on timeouts only.*):
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
 func testFallback (error: Bool, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client is expected to use the fallback to do alternate processing, such as show an error page.
+    // Client code can use the fallback function to do alternate processing, such as show an error page.
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
@@ -161,9 +159,7 @@ breaker.run(commandArgs: (input : "testInput2", { data, err in
 ...
 ```
 
-### Advanced Usage:
-
-*The CircuitBreaker state is based on timeouts and user defined failures.*
+### Advanced Usage (*the CircuitBreaker state is based on timeouts and user defined failures.*):
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift

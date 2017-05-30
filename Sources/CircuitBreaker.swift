@@ -128,11 +128,8 @@ public class CircuitBreaker<A, B, C> {
                 completed = true
                 semaphoreCompleted.signal()
                 if error {
-                    print("Before handleFailure...")
                     _self?.handleFailure()
-                    print("After handleFailure....")
-                    //TODO: Reivew when fallback is invoked???? only when failing fast or when handling a failure
-                    //See wrapper logic
+                    //Note: fallback function is only invoked when failing fast OR when timing out
                     let _ = fallback(.timeout, fallbackArgs)
                 } else {
                     _self?.handleSuccess()

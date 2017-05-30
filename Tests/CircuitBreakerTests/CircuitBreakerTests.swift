@@ -507,7 +507,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Validate state cycle of the circuit with halfopen
     func testStateCycle() {
-        // Breaker enters open state after two maxFailures. Then after resetTimeout, it should enter half open state.
+        // Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.
         let timeout = 2000
         let resetTimeout = 10000
         let maxFailures = 2
@@ -536,6 +536,71 @@ class CircuitBreakerTests: XCTestCase {
 
         breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
 
+        XCTAssertEqual(breaker.breakerState, State.closed)
+    }
+
+    // Validate fallback function is called from the circuit breaker library.
+    // func testFallbackWithWrapper() {
+    //     XCTFail("Not implemented...")
+    //     let timeout = 5000
+    //     let breaker = CircuitBreaker(timeout: timeout, fallback: fallbackFunction, command: time)
+    //
+    //     breaker.run(commandArgs: (timeout + 2000), fallbackArgs: BreakerError.timeout)
+    //
+    //     // Validate fallback function was called
+    //     XCTAssertEqual(timedOut, true)
+    //
+    //     // Validate state of the circuit
+    //     XCTAssertEqual(breaker.breakerState, State.closed)
+    // }
+
+    // Validate state cycle of the circuit (rolling window)
+    func testRollingWindow() {
+        // Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.
+        let timeout = 2000
+        let resetTimeout = 10000
+        let maxFailures = 3
+        let rollingWindow = (timeout * maxFailures) + 10000
+
+        let breaker = CircuitBreaker(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, fallback: fallbackFunction, command: time)
+
+        // Breaker should start in closed state
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+
+        // Validate state of circuit
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        XCTAssertEqual(breaker.breakerStats.successfulResponses, 1)
+        XCTAssertEqual(breaker.breakerStats.failedResponses, 0)
+        XCTAssertEqual(breaker.breakerStats.totalRequests, 1)
+        XCTAssertEqual(breaker.breakerStats.rejectedRequests, 0)
+
+        // Create maxFailures-1 consecutive failures
+        for _ in 1...(maxFailures-1) {
+            breaker.run(commandArgs: (timeout + 1000), fallbackArgs: BreakerError.timeout)
+            XCTAssertEqual(breaker.breakerState, State.closed)
+        }
+
+        // Create a successful invocation
+        breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+        XCTAssertEqual(breaker.breakerState, State.closed)
+
+        // Create one more failure
+        breaker.run(commandArgs: (timeout + 1000), fallbackArgs: BreakerError.timeout) // timeout
+        XCTAssertEqual(breaker.breakerState, State.open)
+        XCTAssertEqual(breaker.breakerStats.successfulResponses, 2)
+        XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
+        XCTAssertEqual(breaker.breakerStats.totalRequests, (maxFailures + 2))
+
+        breaker.run(commandArgs: 0, fallbackArgs: BreakerError.fastFail) // Fast fail
+        XCTAssertEqual(breaker.breakerState, State.open)
+        XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
+
+        // Wait for reset timeout
+        sleep(UInt32(resetTimeout/1000) + 1)
+        XCTAssertEqual(breaker.breakerState, State.halfopen)
+
+        breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
         XCTAssertEqual(breaker.breakerState, State.closed)
     }
 
