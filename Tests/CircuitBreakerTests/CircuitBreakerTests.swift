@@ -76,7 +76,7 @@ class CircuitBreakerTests: XCTestCase {
     }
 
     func dummyFallback(error: BreakerError, _: Void) -> Void {
-        print("dummyFallback() -> Error: \(error)")
+        //print("dummyFallback() -> Error: \(error)")
     }
 
     func simpleWrapper(invocation: Invocation<(Bool), Void, Void>) {
@@ -98,7 +98,7 @@ class CircuitBreakerTests: XCTestCase {
 
     func time(milliseconds: Int) {
         sleep(UInt32(milliseconds / 1000))
-        print("time() - > Slept for \(milliseconds) ms.")
+        //print("time() - > Slept for \(milliseconds) ms.")
     }
 
     func timeWrapper(invocation: Invocation<(Int), Void, BreakerError>) {
@@ -410,8 +410,8 @@ class CircuitBreakerTests: XCTestCase {
             //sumAsync(a: invocation.args.0, b: invocation.args.1, completion: invocation.args.2)
             let queue = DispatchQueue(label: "asyncWrapperTestQueue", attributes: .concurrent)
             queue.async(execute: {
-                let sum = invocation.commandArgs.0 + invocation.commandArgs.1
-                print("Sum (asyncWrapper): \(sum)")
+                let _ = invocation.commandArgs.0 + invocation.commandArgs.1
+                //print("Sum (asyncWrapper): \(sum)")
                 invocation.notifySuccess()
                 expectation1.fulfill()
             })
@@ -464,7 +464,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Run multiple requests in the bulkhead queue
     func testBulkheadFullQueue() {
-        let expectation1 = expectation(description: "Wait for predefined amount of time and then return.")
+        let expectation1 = expectation(description: "Wait for a predefined amount of time and then return.")
 
         func timeBulkhead(fulfill: Bool, milliseconds: Int) {
             sleep(UInt32(milliseconds / 1000))
@@ -538,21 +538,6 @@ class CircuitBreakerTests: XCTestCase {
 
         XCTAssertEqual(breaker.breakerState, State.closed)
     }
-
-    // Validate fallback function is called from the circuit breaker library.
-    // func testFallbackWithWrapper() {
-    //     XCTFail("Not implemented...")
-    //     let timeout = 5000
-    //     let breaker = CircuitBreaker(timeout: timeout, fallback: fallbackFunction, command: time)
-    //
-    //     breaker.run(commandArgs: (timeout + 2000), fallbackArgs: BreakerError.timeout)
-    //
-    //     // Validate fallback function was called
-    //     XCTAssertEqual(timedOut, true)
-    //
-    //     // Validate state of the circuit
-    //     XCTAssertEqual(breaker.breakerState, State.closed)
-    // }
 
     // Validate state cycle of the circuit (rolling window)
     func testRollingWindow() {

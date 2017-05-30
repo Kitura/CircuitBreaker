@@ -19,7 +19,7 @@ import Dispatch
 
 // Invocation entity
 public class Invocation<A, B, C> {
-  
+
     public let commandArgs: A
     private(set) var timedOut: Bool = false
     private(set) var completed: Bool = false
@@ -52,69 +52,24 @@ public class Invocation<A, B, C> {
     }
 }
 
-public class Collection<T> {
+class Bulkhead {
+    private let serialQueue: DispatchQueue
+    private let concurrentQueue: DispatchQueue
+    private let semaphore: DispatchSemaphore
 
-  let semaphoreQueue = DispatchSemaphore(value: 1)
-  private var list = [T]()
+    init(limit: Int) {
+        serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
+        concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
+        semaphore = DispatchSemaphore(value: limit)
+    }
 
-  var isEmpty: Bool {
-    semaphoreQueue.wait()
-    let empty = list.isEmpty
-    semaphoreQueue.signal()
-    return empty
-  }
-
-  var size: Int {
-    semaphoreQueue.wait()
-    let size = list.count
-    semaphoreQueue.signal()
-    return size
-  }
-
-  public func add(_ element: T) {
-    semaphoreQueue.wait()
-    list.append(element)
-    semaphoreQueue.signal()
-  }
-
-  public func removeFirst() -> T? {
-    semaphoreQueue.wait()
-    let element: T? = list.removeFirst()
-    semaphoreQueue.signal()
-    return element
-  }
-
-  public func removeLast() -> T? {
-    semaphoreQueue.wait()
-    let element: T? = list.removeLast()
-    semaphoreQueue.signal()
-    return element
-  }
-
-  public func peekFirst() -> T? {
-    semaphoreQueue.wait()
-    let element: T? = list.first
-    semaphoreQueue.signal()
-    return element
-  }
-
-  public func peekLast() -> T? {
-    semaphoreQueue.wait()
-    let element: T? = list.last
-    semaphoreQueue.signal()
-    return element
-  }
-
-  public func clear() {
-    semaphoreQueue.wait()
-    list.removeAll()
-    semaphoreQueue.signal()
-  }
-}
-
-extension Date {
-  public static func currentTimeMillis() -> UInt64 {
-    let timeMillis = UInt64(NSDate().timeIntervalSince1970 * 1000.0)
-    return timeMillis
-  }
+    func enqueue(task: @escaping () -> Void ) {
+        serialQueue.async { [weak self] in
+            self?.semaphore.wait()
+            self?.concurrentQueue.async {
+                task()
+                self?.semaphore.signal()
+            }
+        }
+    }
 }

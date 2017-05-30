@@ -14,11 +14,10 @@
  * limitations under the License.
  **/
 
- //https://www.cocoawithlove.com/blog/2016/06/02/threads-and-mutexes.html
-
 import Foundation
 import Dispatch
 import LoggerAPI
+import Utils
 
 public enum State {
     case open
@@ -38,7 +37,7 @@ public class CircuitBreaker<A, B, C> {
     public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
     var state: State = State.closed
-    private var failures = Collection<UInt64>()
+    private var failures: FailureQueue
     private(set) var pendingHalfOpen: Bool = false
     var breakerStats: Stats = Stats()
     var command: AnyFunction<A, B>?
@@ -65,6 +64,7 @@ public class CircuitBreaker<A, B, C> {
         self.fallback = fallback
         self.command = command
         self.commandWrapper = commandWrapper
+        self.failures = FailureQueue(size: maxFailures)
         if bulkhead > 0 {
             self.bulkhead = Bulkhead.init(limit: bulkhead)
         }
@@ -192,7 +192,7 @@ public class CircuitBreaker<A, B, C> {
 
     var numberOfFailures: Int {
         get {
-            return failures.size
+            return failures.count
         }
     }
 
@@ -201,17 +201,9 @@ public class CircuitBreaker<A, B, C> {
         Log.verbose("Handling failure...")
         // Add a new failure
         failures.add(Date.currentTimeMillis())
-        if failures.size > maxFailures {
-          let _ = failures.removeFirst()
-        }
 
-        // Get time difference
-        let timeWindow: UInt64?
-        if let firstFailureTs = failures.peekFirst(), let lastFailureTs = failures.peekLast() {
-          timeWindow = lastFailureTs - firstFailureTs
-        } else {
-          timeWindow = nil
-        }
+        // Get time difference between oldest and newest failure
+        let timeWindow: UInt64? = failures.currentTimeWindow
 
         defer {
             breakerStats.trackFailedResponse()
@@ -225,7 +217,7 @@ public class CircuitBreaker<A, B, C> {
         }
 
         if let timeWindow = timeWindow {
-            if failures.size >= maxFailures && timeWindow <= UInt64(rollingWindow) {
+            if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
                 Log.error("Reached maximum number of failures allowed before tripping circuit.")
                 open()
                 return
@@ -277,7 +269,6 @@ public class CircuitBreaker<A, B, C> {
     public func forceClosed() {
         semaphoreCircuit.wait()
         close()
-        //pendingHalfOpenCall = false
         semaphoreCircuit.signal()
     }
 
@@ -298,29 +289,5 @@ public class CircuitBreaker<A, B, C> {
         resetTimer?.scheduleOneshot(deadline: .now() + delay)
 
         resetTimer?.resume()
-    }
-
-}
-
-class Bulkhead {
-
-    private let serialQueue: DispatchQueue
-    private let concurrentQueue: DispatchQueue
-    private let semaphore: DispatchSemaphore
-
-    init(limit: Int) {
-        serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
-        concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
-        semaphore = DispatchSemaphore(value: limit)
-    }
-
-    func enqueue(task: @escaping () -> Void ) {
-        serialQueue.async { [weak self] in
-            self?.semaphore.wait()
-            self?.concurrentQueue.async {
-                task()
-                self?.semaphore.signal()
-            }
-        }
     }
 }
