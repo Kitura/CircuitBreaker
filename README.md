@@ -247,7 +247,7 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
 ```
  * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` NNumber of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
+ * `maxFailures` Number of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
   * `rollingWindow` Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
