@@ -1,4 +1,3 @@
 .build/*
-Packages/*
 CircuitBreaker.xcodeproj
 *.DS_Store

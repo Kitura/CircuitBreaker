@@ -28,51 +28,36 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ...
 
      dependencies: [
-         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 0),
+         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 1),
 
          ...
 
      ])
  ```
 
-### Basic Usage:
+### Basic Usage
 
-*The CircuitBreaker state is based on timeouts only.*
+*In this form of usage, the CircuitBreaker state is based on timeouts only.*
+
+If the function you are circuit breaking makes an asynchronous call(s) and the execution time of that call should be taking into account, then see [`Advanced Usage`](#advanced-usage) below.
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
-func testFallback (error: Bool, msg: String) {
+func myFallback (error: Bool, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client is expected to use the fallback to do alternate processing, such as show an error page.
+    // Client code can use the fallback function to do alternate processing, such as show an error page.
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
 ```
 
-2. Create an endpoint to circuit break:
+2. Create a function to circuit break:
 ```swift
-func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
-    // Create Request
-    var req = URLRequest(url: URL(string: "http://testAPIRoute/\(input)")!)
-    req.httpMethod = "GET"
-    req.allHTTPHeaderFields = ["Content-Type": "application/json"]
-
-    let session = URLSession.shared
-
-    // Perform Request
-    session.dataTask(with: req) {result, res, err in
-        guard let result = result else {
-            let json = JSON("Error: No results.")
-            completion(json, true)
-            return
-        }
-
-        // Convert results to a JSON object
-        let json = JSON(data: result)
-
-        completion(json, false)
-        }.resume()
+func myFunction(a: Int, b: Int) -> Int {
+    // do stuff
+    let value: Int = ...
+    return value
 }
 ```
 
@@ -80,135 +65,109 @@ func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
   * Must specify the fallback function, and the endpoint to circuit break
   * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead
 ```swift
-let breaker = CircuitBreaker(fallback: testFallback, command: testEndpoint)
+let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
 ```
 
-4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
+4. Invoke the call to the function by calling the CircuitBreaker `run()` function and pass the corresponding arguments:
 ```swift
-breaker.run(commandArgs: (input : "testInput1", { data, err in
-    if err {
-        print(err)
-    } else {
-        print(data)
-    }
-}), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
 ```
 
  * May be called multiple times with varied input:
 ```swift
-breaker.run(commandArgs: (input : "testInput2", { data, err in
-    if err {
-        print(err)
-    } else {
-        print(data)
-    }
-}), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wrong."))
 ```
 
 Full Implementation:
 ```swift
 ...
 
-func testFallback (error: Bool, msg: String) {
+func myFallback (error: Bool, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client is expected to use the fallback to do alternate processing, such as show an error page.
+    // Client code can use the fallback function to do alternate processing, such as show an error page.
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
 
-func testEndpoint(input: String, completion: @escaping (JSON, Bool) -> ()) {
-    // Create Request
-    var req = URLRequest(url: URL(string: "http://testAPIRoute/\(input)")!)
-    req.httpMethod = "GET"
-    req.allHTTPHeaderFields = ["Content-Type": "application/json"]
-
-    let session = URLSession.shared
-
-    // Perform Request
-    session.dataTask(with: req) {result, res, err in
-        guard let result = result else {
-            let json = JSON("Error: No results.")
-            completion(json, true)
-            return
-        }
-
-        // Convert results to a JSON object
-        let json = JSON(data: result)
-
-        completion(json, false)
-        }.resume()
+func myFunction(a: Int, b: Int) -> Int {
+    // do stuff
+    let value: Int = ...
+    return value
 }
 
-let breaker = CircuitBreaker(fallback: testFallback, command: testEndpoint)
+let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
 
-breaker.run(commandArgs: (input : "testInput1", { data, err in
-    if err {
-        print(err)
-    } else {
-        print(data)
-    }
-}), fallbackArgs: (msg: "Something went wrong."))
-
-breaker.run(commandArgs: (input : "testInput2", { data, err in
-    if err {
-        print(err)
-    } else {
-        print(data)
-    }
-}), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wrong."))
 
 ...
 ```
 
-### Advanced Usage:
+### Advanced Usage
 
-*The CircuitBreaker state is based on timeouts and user defined failures.*
+*In this form of usage, the CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).*
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
-func testFallback (err: BreakerError, msg: String) {
+func myFallback (err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client is expected to use the fallback to do alternate processing, such as show an error page.
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
 ```
 
-2. Create an endpoint to circuit break:
+2. Create a function wrapper for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success):
 ```swift
-func sum(a: Int, b: Int) -> (Int) {
-    print(a + b)
-    return a + b
-}
-```
+func myWrapper(invocation: Invocation<(String), Void, String>) {
+  let requestParam = invocation.commandArgs
+  // Create HTTP request
+  guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
+    // Something went wrong...
 
-3. Create an Invocation wrapper of the endpoint you wish to circuit break:
-  * This allows the user to define and alert the CircuitBreaker of a failure
-```swift
-func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
-    let result = sum(a: invocation.args.0, b: invocation.args.1)
-    if result != 7 {
-        invocation.notifyFailure()
-        return 0
-    } else {
-        invocation.notifySuccess()
-        return result
+    ...
+
+    invocation.notifyFailure()
+  }
+
+  var req = URLRequest(url: url)
+  req.httpMethod = "GET"
+  req.allHTTPHeaderFields = ["Content-Type": "application/json"]
+  let session = URLSession.shared
+
+  // Perform Request
+  session.dataTask(with: req) { result, res, err in
+    guard let result = result else {
+      // Failed getting a result from the server
+
+      ...
+
+      invocation.notifyFailure()
+      return
     }
+
+    // Convert results to a JSON object
+    let json = JSON(data: result)
+    // Process JSON data
+
+    ...
+
+    invocation.notifySuccess()
+  }.resume()
 }
 ```
 
-4. Create a CircuitBreaker instance for each endpoint you wish to circuit break:
-  * Must specify the fallback function, and the endpoint to circuit break
-  * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead
+3. Create a CircuitBreaker instance for each function (e.g. endpoint) you wish to circuit break:
+  * Must specify the fallback function and the endpoint to circuit break
+  * Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
 ```swift
-let breakerAdvanced = CircuitBreaker(fallback: testCallback, commandWrapper: sumWrapper)
+let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
 ```
 
-5. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
+4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
 ```swift
-breakerAdvanced.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 ```
 
 Full Implementation:
@@ -216,33 +175,53 @@ Full Implementation:
 ```swift
 ...
 
-func testFallback (err: BreakerError, msg: String) {
+func myFallback (err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client is expected to use the fallback to do alternate processing, such as show an error page.
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
 
-func sum(a: Int, b: Int) -> (Int) {
-    print(a + b)
-    return a + b
-}
+func myWrapper(invocation: Invocation<(String), Void, String>) {
+  let requestParam = invocation.commandArgs
+  // Create HTTP request
+  guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
+    // Something went wrong...
 
-func sumWrapper(invocation: Invocation<(Int, Int), Int>) -> Int {
-    let result = sum(a: invocation.args.0, b: invocation.args.1)
-    if result != 7 {
-        invocation.notifyFailure()
-        return 0
-    } else {
-        invocation.notifySuccess()
-        return result
+    ...
+
+    invocation.notifyFailure()
+  }
+
+  var req = URLRequest(url: url)
+  req.httpMethod = "GET"
+  req.allHTTPHeaderFields = ["Content-Type": "application/json"]
+  let session = URLSession.shared
+
+  // Perform Request
+  session.dataTask(with: req) { result, res, err in
+    guard let result = result else {
+      // Failed getting a result from the server
+
+      ...
+
+      invocation.notifyFailure()
+      return
     }
+
+    // Convert results to a JSON object
+    let json = JSON(data: result)
+    // Process JSON data
+
+    ...
+
+    invocation.notifySuccess()
+  }.resume()
 }
 
-let breakerAdvanced = CircuitBreaker(fallback: testCallback, commandWrapper: sumWrapper)
+let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
 
-breakerAdvanced.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 
 ...
 ```
@@ -252,34 +231,36 @@ breakerAdvanced.run(commandArgs: (a: 3, b: 4), fallbackArgs: (msg: "Something we
 
 #### Basic Usage Constructor:
 ```swift
-CircuitBreaker(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
 ```
- * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
- * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` Number of consecutive failures allowed before setting state to open. Default is set to 5.
+ * `timeout` Amount in milliseconds that your function should complete before the invocation is considered a failure. Default is set to 1000 milliseconds.
+ * `resetTimeout` Amount in milliseconds to wait before setting to halfopen state. Default is set to 60000 milliseconds.
+ * `maxFailures` Number of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
+ * `rollingWindow` Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
- * `command` Endpoint name to circuit break.
+ * `command` Function to circuit break.
 
 #### Advanced Usage Constructor:
 ```swift
-CircuitBreaker(timeout: Double = 1, resetTimeout: Int = 60, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
 ```
  * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
  * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` Number of consecutive failures allowed before setting state to open. Default is set to 5.
+ * `maxFailures` Number of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
+  * `rollingWindow` Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
- * `commandWrapper` Invocation wrapper around endpoint name to circuit break, allows user defined failures.
+ * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to circuit breaker instance).
 
 ### Stats
 ```swift
 ...
 // Create CircuitBreaker
-let breaker = CircuitBreaker(fallback: tesFallback, command: testEndpoint)
+let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
 
 // Invoke breaker call
-breaker.run(args: (input: "test"))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
 
 // Log Stats snapshot
 breaker.snapshot()
