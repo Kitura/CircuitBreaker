@@ -53,7 +53,8 @@ class CircuitBreakerTests: XCTestCase {
       ("testBulkheadFullQueue", testBulkheadFullQueue),
       ("testFallback", testFallback),
       ("testStateCycle", testStateCycle),
-      ("testRollingWindow", testRollingWindow)
+      ("testRollingWindow", testRollingWindow),
+      ("testSmallRollingWindow", testSmallRollingWindow)
     ]
   }
 
@@ -595,6 +596,40 @@ class CircuitBreakerTests: XCTestCase {
 
     breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
     XCTAssertEqual(breaker.breakerState, State.closed)
+  }
+
+  // Validate state cycle of the circuit (small rolling window)
+  func testSmallRollingWindow() {
+    // Breaker should not enter open state after maxFailures is reached because the max number of failures did not occur within the time window specified by rollingWindow.
+    let timeout = 2000
+    let resetTimeout = 10000
+    let maxFailures = 5
+    let rollingWindow = timeout
+
+    XCTAssertTrue(rollingWindow <= timeout)
+
+    let breaker = CircuitBreaker(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, fallback: fallbackFunction, command: time)
+
+    // Breaker should start in closed state
+    XCTAssertEqual(breaker.breakerState, State.closed)
+    breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+
+    // Validate state of circuit
+    XCTAssertEqual(breaker.breakerState, State.closed)
+
+    // Create max failures
+    for _ in 1...(maxFailures) {
+      breaker.run(commandArgs: (timeout + 1000), fallbackArgs: BreakerError.timeout)
+      XCTAssertEqual(breaker.breakerState, State.closed)
+    }
+
+    // Execute one more successful invocation
+    breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+
+    XCTAssertEqual(breaker.breakerState, State.closed)
+    XCTAssertEqual(breaker.breakerStats.successfulResponses, 2)
+    XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
+    XCTAssertEqual(breaker.breakerStats.totalRequests, (maxFailures + 2))
   }
 
 }
