@@ -108,7 +108,7 @@ class CircuitBreakerTests: XCTestCase {
     time(milliseconds: invocation.commandArgs)
   }
 
-  func test(a: Any) -> () { testCalled = true }
+  func test(a: Any) { testCalled = true }
 
   // Create CircuitBreaker, state should be Closed and no failures
   func testDefaultConstructor() {
