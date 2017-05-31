@@ -37,23 +37,23 @@ public class CircuitBreaker<A, B, C> {
   public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
   private(set) var state: State = State.closed
-  private var failures: FailureQueue
+  private let failures: FailureQueue
   private(set) var breakerStats: Stats = Stats()
-  private var command: AnyFunction<A, B>?
-  private var fallback: AnyFallback<C>
-  private var commandWrapper: AnyFunctionWrapper<A, B>?
+  private let command: AnyFunction<A, B>?
+  private let fallback: AnyFallback<C>
+  private let commandWrapper: AnyFunctionWrapper<A, B>?
 
   let timeout: Int
   let resetTimeout: Int
   let maxFailures: Int
   let rollingWindow: Int
-  private var bulkhead: Bulkhead?
+  private let bulkhead: Bulkhead?
 
-  var resetTimer: DispatchSourceTimer?
-  let semaphoreCompleted = DispatchSemaphore(value: 1)
-  let semaphoreCircuit = DispatchSemaphore(value: 1)
+  private var resetTimer: DispatchSourceTimer?
+  private let semaphoreCompleted = DispatchSemaphore(value: 1)
+  private let semaphoreCircuit = DispatchSemaphore(value: 1)
 
-  let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
+  private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
   private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
     self.timeout = timeout
@@ -64,9 +64,7 @@ public class CircuitBreaker<A, B, C> {
     self.command = command
     self.commandWrapper = commandWrapper
     self.failures = FailureQueue(size: maxFailures)
-    if bulkhead > 0 {
-      self.bulkhead = Bulkhead.init(limit: bulkhead)
-    }
+    self.bulkhead = (bulkhead > 0) ? Bulkhead.init(limit: bulkhead) : nil
   }
 
   public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
