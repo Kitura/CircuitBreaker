@@ -102,7 +102,9 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wro
 ...
 ```
 
-### Advanced Usage (*the CircuitBreaker state is based on timeouts and user defined failures.*):
+### Advanced Usage
+
+*In this for of usage, the CircuitBreaker state is based on timeouts and user defined failures.*
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
