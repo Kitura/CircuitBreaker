@@ -165,7 +165,7 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
 let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
 ```
 
-5. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
+4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
 ```swift
 breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 ```
