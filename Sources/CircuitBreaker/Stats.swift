@@ -19,24 +19,14 @@ import LoggerAPI
 
 public class Stats {
 
-  var timeouts:Int = 0
-  var successfulResponses:Int = 0
-  var failedResponses:Int = 0
-  var totalRequests:Int = 0
-  var rejectedRequests:Int = 0
-  var latencies:Array<Int> = []
+  var timeouts: Int = 0
+  var successfulResponses: Int = 0
+  var failedResponses: Int = 0
+  var totalRequests: Int = 0
+  var rejectedRequests: Int = 0
+  var latencies: [Int] = []
 
-  init () {
-    // Set defaults
-    self.timeouts = 0
-    self.successfulResponses = 0
-    self.failedResponses = 0
-    self.totalRequests = 0
-    self.rejectedRequests = 0
-    self.latencies = []
-  }
-
-  func initCounters () -> Void {
+  private func initCounters() {
     self.timeouts = 0
     self.successfulResponses = 0
     self.failedResponses = 0
@@ -69,7 +59,7 @@ public class Stats {
     totalRequests += 1
   }
 
-  func trackLatency(latency:Int) {
+  func trackLatency(latency: Int) {
     latencies.append(latency)
   }
 
