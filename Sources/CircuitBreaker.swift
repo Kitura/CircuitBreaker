@@ -17,7 +17,6 @@
 import Foundation
 import Dispatch
 import LoggerAPI
-import Utils
 
 public enum State {
   case open
