@@ -35,9 +35,11 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ])
  ```
 
-### Basic Usage (*the CircuitBreaker state is based on timeouts only.*):
+### Basic Usage
 
-If the function you are circuit breaking makes an asynchronous call(s) and the execution time of that call should be taking into account, then see [`Advanced Usage`](#advancedusage) below.
+*In this form of usage, the CircuitBreaker state is based on timeouts only.*
+
+If the function you are circuit breaking makes an asynchronous call(s) and the execution time of that call should be taking into account, then see [`Advanced Usage`](#advanced-usage) below.
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
