@@ -106,7 +106,7 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wro
 
 ### Advanced Usage
 
-*In this for of usage, the CircuitBreaker state is based on timeouts and user defined failures.*
+*In this form of usage, the CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).*
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
@@ -118,7 +118,7 @@ func myFallback (err: BreakerError, msg: String) {
 }
 ```
 
-2. Create a function wrapper for the logic you intend to circuit break (this allows you to define and alert the CircuitBreaker of a failure):
+2. Create a function wrapper for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success):
 ```swift
 func myWrapper(invocation: Invocation<(String), Void, String>) {
   let requestParam = invocation.commandArgs
@@ -219,7 +219,7 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
   }.resume()
 }
 
-let breakerAdvanced = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
+let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
 
 breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 
