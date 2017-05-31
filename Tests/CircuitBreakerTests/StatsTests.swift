@@ -21,7 +21,7 @@ import Foundation
 
 class StatsTests: XCTestCase {
 
-  var stats: Stats!
+  var stats: Stats = Stats()
 
   static var allTests: [(String, (StatsTests) -> () throws -> Void)] {
     return [
@@ -43,7 +43,7 @@ class StatsTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    stats = Stats()
+    stats.reset()
   }
 
   // Create Stats, and check that default values are set
