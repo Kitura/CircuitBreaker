@@ -20,56 +20,56 @@ import Dispatch
 // Invocation entity
 public class Invocation<A, B, C> {
 
-    public let commandArgs: A
-    private(set) var timedOut: Bool = false
-    private(set) var completed: Bool = false
-    weak private var breaker: CircuitBreaker<A, B, C>?
-    public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A) {
-        self.commandArgs = commandArgs
-        self.breaker = breaker
-    }
+  public let commandArgs: A
+  private(set) var timedOut: Bool = false
+  private(set) var completed: Bool = false
+  weak private var breaker: CircuitBreaker<A, B, C>?
+  public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A) {
+    self.commandArgs = commandArgs
+    self.breaker = breaker
+  }
 
-    public func setTimedOut() {
-        self.timedOut = true
-    }
+  public func setTimedOut() {
+    self.timedOut = true
+  }
 
-    public func setCompleted() {
-        self.completed = true
-    }
+  public func setCompleted() {
+    self.completed = true
+  }
 
-    public func notifySuccess() {
-        if !self.timedOut {
-            self.setCompleted()
-            breaker?.notifySuccess()
-        }
+  public func notifySuccess() {
+    if !self.timedOut {
+      self.setCompleted()
+      breaker?.notifySuccess()
     }
+  }
 
-    public func notifyFailure() {
-        if !self.timedOut {
-            self.setCompleted()
-            breaker?.notifyFailure()
-        }
+  public func notifyFailure() {
+    if !self.timedOut {
+      self.setCompleted()
+      breaker?.notifyFailure()
     }
+  }
 }
 
-class Bulkhead {
-    private let serialQueue: DispatchQueue
-    private let concurrentQueue: DispatchQueue
-    private let semaphore: DispatchSemaphore
+internal class Bulkhead {
+  private let serialQueue: DispatchQueue
+  private let concurrentQueue: DispatchQueue
+  private let semaphore: DispatchSemaphore
 
-    init(limit: Int) {
-        serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
-        concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
-        semaphore = DispatchSemaphore(value: limit)
-    }
+  init(limit: Int) {
+    serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
+    concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
+    semaphore = DispatchSemaphore(value: limit)
+  }
 
-    func enqueue(task: @escaping () -> Void ) {
-        serialQueue.async { [weak self] in
-            self?.semaphore.wait()
-            self?.concurrentQueue.async {
-                task()
-                self?.semaphore.signal()
-            }
-        }
+  func enqueue(task: @escaping () -> Void ) {
+    serialQueue.async { [weak self] in
+      self?.semaphore.wait()
+      self?.concurrentQueue.async {
+        task()
+        self?.semaphore.signal()
+      }
     }
+  }
 }

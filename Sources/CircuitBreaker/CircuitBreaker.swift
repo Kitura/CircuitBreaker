@@ -1,18 +1,18 @@
 /**
- * Copyright IBM Corporation 2017
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
+* Copyright IBM Corporation 2017
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**/
 
 import Foundation
 import Dispatch
@@ -20,274 +20,273 @@ import LoggerAPI
 import Utils
 
 public enum State {
-    case open
-    case halfopen
-    case closed
+  case open
+  case halfopen
+  case closed
 }
 
 public enum BreakerError {
-    case timeout
-    case fastFail
+  case timeout
+  case fastFail
 }
 
 public class CircuitBreaker<A, B, C> {
-    // Closure aliases
-    public typealias AnyFunction<A, B> = (A) -> (B)
-    public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
-    public typealias AnyFallback<C> = (BreakerError, C) -> Void
+  // Closure aliases
+  public typealias AnyFunction<A, B> = (A) -> (B)
+  public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
+  public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
-    var state: State = State.closed
-    private var failures: FailureQueue
-    private(set) var pendingHalfOpen: Bool = false
-    var breakerStats: Stats = Stats()
-    var command: AnyFunction<A, B>?
-    var fallback: AnyFallback<C>
-    var commandWrapper: AnyFunctionWrapper<A, B>?
+  private(set) var state: State = State.closed
+  private var failures: FailureQueue
+  private(set) var breakerStats: Stats = Stats()
+  private var command: AnyFunction<A, B>?
+  private var fallback: AnyFallback<C>
+  private var commandWrapper: AnyFunctionWrapper<A, B>?
 
-    let timeout: Int
-    let resetTimeout: Int
-    let maxFailures: Int
-    let rollingWindow: Int
-    var bulkhead: Bulkhead?
+  let timeout: Int
+  let resetTimeout: Int
+  let maxFailures: Int
+  let rollingWindow: Int
+  private var bulkhead: Bulkhead?
 
-    var resetTimer: DispatchSourceTimer?
-    let semaphoreCompleted = DispatchSemaphore(value: 1)
-    let semaphoreCircuit = DispatchSemaphore(value: 1)
+  var resetTimer: DispatchSourceTimer?
+  let semaphoreCompleted = DispatchSemaphore(value: 1)
+  let semaphoreCircuit = DispatchSemaphore(value: 1)
 
-    let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
+  let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-    private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
-        self.timeout = timeout
-        self.resetTimeout = resetTimeout
-        self.maxFailures = maxFailures
-        self.rollingWindow = rollingWindow
-        self.fallback = fallback
-        self.command = command
-        self.commandWrapper = commandWrapper
-        self.failures = FailureQueue(size: maxFailures)
-        if bulkhead > 0 {
-            self.bulkhead = Bulkhead.init(limit: bulkhead)
-        }
+  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
+    self.timeout = timeout
+    self.resetTimeout = resetTimeout
+    self.maxFailures = maxFailures
+    self.rollingWindow = rollingWindow
+    self.fallback = fallback
+    self.command = command
+    self.commandWrapper = commandWrapper
+    self.failures = FailureQueue(size: maxFailures)
+    if bulkhead > 0 {
+      self.bulkhead = Bulkhead.init(limit: bulkhead)
     }
+  }
 
-    public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
-        self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: command, commandWrapper: nil)
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
+    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: command, commandWrapper: nil)
+  }
+
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
+    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: nil, commandWrapper: commandWrapper)
+  }
+
+  // Run
+  public func run(commandArgs: A, fallbackArgs: C) {
+    breakerStats.trackRequest()
+
+    if breakerState == State.open {
+      fastFail(fallbackArgs: fallbackArgs)
+
+    } else if breakerState == State.halfopen {
+      let startTime:Date = Date()
+
+      if let bulkhead = self.bulkhead {
+        bulkhead.enqueue(task: {
+          self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+        })
+      }
+      else {
+        callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+      }
+
+      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+
+    } else {
+      let startTime:Date = Date()
+
+      if let bulkhead = self.bulkhead {
+        bulkhead.enqueue(task: {
+          self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+        })
+      }
+      else {
+        callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+      }
+
+      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
     }
+  }
 
-    public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
-        self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: nil, commandWrapper: commandWrapper)
-    }
+  private func callFunction(commandArgs: A, fallbackArgs: C) {
 
-    // Run
-    public func run(commandArgs: A, fallbackArgs: C) {
-        breakerStats.trackRequest()
+    var completed = false
 
-        if breakerState == State.open {
-            fastFail(fallbackArgs: fallbackArgs)
-
-        } else if breakerState == State.halfopen {
-                let startTime:Date = Date()
-
-                if let bulkhead = self.bulkhead {
-                    bulkhead.enqueue(task: {
-                        self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-                    })
-                }
-                else {
-                    callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-                }
-
-                self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
-
+    func complete(error: Bool) -> () {
+      weak var _self = self
+      semaphoreCompleted.wait()
+      if completed {
+        semaphoreCompleted.signal()
+      } else {
+        completed = true
+        semaphoreCompleted.signal()
+        if error {
+          _self?.handleFailure()
+          //Note: fallback function is only invoked when failing fast OR when timing out
+          let _ = fallback(.timeout, fallbackArgs)
         } else {
-            let startTime:Date = Date()
-
-            if let bulkhead = self.bulkhead {
-                bulkhead.enqueue(task: {
-                    self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-                })
-            }
-            else {
-                callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-            }
-
-            self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+          _self?.handleSuccess()
         }
+        return
+      }
     }
 
-    private func callFunction(commandArgs: A, fallbackArgs: C) {
+    if let command = self.command {
+      setTimeout() {
+        complete(error: true)
+      }
 
-        var completed = false
+      let _ = command(commandArgs)
+      complete(error: false)
+    } else if let commandWrapper = self.commandWrapper {
+      let invocation = Invocation(breaker: self, commandArgs: commandArgs)
 
-        func complete(error: Bool) -> () {
-           weak var _self = self
-            semaphoreCompleted.wait()
-            if completed {
-                semaphoreCompleted.signal()
-            } else {
-                completed = true
-                semaphoreCompleted.signal()
-                if error {
-                    _self?.handleFailure()
-                    //Note: fallback function is only invoked when failing fast OR when timing out
-                    let _ = fallback(.timeout, fallbackArgs)
-                } else {
-                    _self?.handleSuccess()
-                }
-                return
-            }
+      setTimeout() { [weak invocation] in
+        if invocation?.completed == false {
+          invocation?.setTimedOut()
+          complete(error: true)
         }
+      }
 
-        if let command = self.command {
-            setTimeout() {
-                complete(error: true)
-            }
+      let _ = commandWrapper(invocation)
+    }
+  }
 
-            let _ = command(commandArgs)
-            complete(error: false)
-        } else if let commandWrapper = self.commandWrapper {
-            let invocation = Invocation(breaker: self, commandArgs: commandArgs)
+  private func setTimeout(closure: @escaping () -> ()) {
+    queue.asyncAfter(deadline: .now() + .milliseconds(self.timeout)) { [weak self] in
+      self?.breakerStats.trackTimeouts()
+      closure()
+    }
+  }
 
-            setTimeout() { [weak invocation] in
-                if invocation?.completed == false {
-                    invocation?.setTimedOut()
-                    complete(error: true)
-                }
-            }
+  // Print Current Stats Snapshot
+  public func snapshot() {
+    breakerStats.snapshot()
+  }
 
-            let _ = commandWrapper(invocation)
-        }
+  public func notifyFailure() {
+    handleFailure()
+  }
+
+  public func notifySuccess() {
+    handleSuccess()
+  }
+
+  // Get/Set functions
+  public private(set) var breakerState: State {
+    get {
+      return state
     }
 
-    private func setTimeout(closure: @escaping () -> ()) {
-        queue.asyncAfter(deadline: .now() + .milliseconds(self.timeout)) { [weak self] in
-            self?.breakerStats.trackTimeouts()
-            closure()
-        }
+    set {
+      state = newValue
+    }
+  }
+
+  var numberOfFailures: Int {
+    get {
+      return failures.count
+    }
+  }
+
+  private func handleFailure() {
+    semaphoreCircuit.wait()
+    Log.verbose("Handling failure...")
+    // Add a new failure
+    failures.add(Date.currentTimeMillis())
+
+    // Get time difference between oldest and newest failure
+    let timeWindow: UInt64? = failures.currentTimeWindow
+
+    defer {
+      breakerStats.trackFailedResponse()
+      semaphoreCircuit.signal()
     }
 
-    // Print Current Stats Snapshot
-    public func snapshot() {
-        return breakerStats.snapshot()
+    if (state == State.halfopen) {
+      Log.verbose("Failed in halfopen state.")
+      open()
+      return
     }
 
-    public func notifyFailure() {
-        handleFailure()
-    }
-
-    public func notifySuccess() {
-        handleSuccess()
-    }
-
-    // Get/Set functions
-    public private(set) var breakerState: State {
-        get {
-            return state
-        }
-
-        set {
-            state = newValue
-        }
-    }
-
-    var numberOfFailures: Int {
-        get {
-            return failures.count
-        }
-    }
-
-    private func handleFailure() {
-        semaphoreCircuit.wait()
-        Log.verbose("Handling failure...")
-        // Add a new failure
-        failures.add(Date.currentTimeMillis())
-
-        // Get time difference between oldest and newest failure
-        let timeWindow: UInt64? = failures.currentTimeWindow
-
-        defer {
-            breakerStats.trackFailedResponse()
-            semaphoreCircuit.signal()
-        }
-
-        if (state == State.halfopen) {
-            Log.error("Failed in halfopen state.")
-            open()
-            return
-        }
-
-        if let timeWindow = timeWindow {
-            if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
-                Log.error("Reached maximum number of failures allowed before tripping circuit.")
-                open()
-                return
-            }
-        }
-    }
-
-    private func handleSuccess() {
-        semaphoreCircuit.wait()
-        Log.verbose("Handling success...")
-        if state == State.halfopen {
-          close()
-        }
-        breakerStats.trackSuccessfulResponse()
-        semaphoreCircuit.signal()
-    }
-
-    /**
-    * This function should be called within the boundaries of a semaphore.
-    * Otherwise, resulting behavior may be unexpected.
-    */
-    private func close() {
-      // Remove all failures (i.e. reset failure counter to 0)
-      failures.clear()
-      breakerState = State.closed
-    }
-
-    /**
-    * This function should be called within the boundaries of a semaphore.
-    * Otherwise, resulting behavior may be unexpected.
-    */
-    private func open() {
-        breakerState = State.open
-        startResetTimer(delay: .milliseconds(resetTimeout))
-    }
-
-    private func fastFail(fallbackArgs: C) {
-        Log.verbose("Breaker open... failing fast.")
-        breakerStats.trackRejected()
-        let _ = fallback(.fastFail, fallbackArgs)
-    }
-
-    public func forceOpen() {
-        semaphoreCircuit.wait()
+    if let timeWindow = timeWindow {
+      if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
+        Log.verbose("Reached maximum number of failures allowed before tripping circuit.")
         open()
-        semaphoreCircuit.signal()
+        return
+      }
+    }
+  }
+
+  private func handleSuccess() {
+    semaphoreCircuit.wait()
+    Log.verbose("Handling success...")
+    if state == State.halfopen {
+      close()
+    }
+    breakerStats.trackSuccessfulResponse()
+    semaphoreCircuit.signal()
+  }
+
+  /**
+  * This function should be called within the boundaries of a semaphore.
+  * Otherwise, resulting behavior may be unexpected.
+  */
+  private func close() {
+    // Remove all failures (i.e. reset failure counter to 0)
+    failures.clear()
+    breakerState = State.closed
+  }
+
+  /**
+  * This function should be called within the boundaries of a semaphore.
+  * Otherwise, resulting behavior may be unexpected.
+  */
+  private func open() {
+    breakerState = State.open
+    startResetTimer(delay: .milliseconds(resetTimeout))
+  }
+
+  private func fastFail(fallbackArgs: C) {
+    Log.verbose("Breaker open... failing fast.")
+    breakerStats.trackRejected()
+    let _ = fallback(.fastFail, fallbackArgs)
+  }
+
+  public func forceOpen() {
+    semaphoreCircuit.wait()
+    open()
+    semaphoreCircuit.signal()
+  }
+
+  public func forceClosed() {
+    semaphoreCircuit.wait()
+    close()
+    semaphoreCircuit.signal()
+  }
+
+  public func forceHalfOpen() {
+    breakerState = State.halfopen
+  }
+
+  private func startResetTimer(delay: DispatchTimeInterval) {
+    // Cancel previous timer if any
+    resetTimer?.cancel()
+
+    resetTimer = DispatchSource.makeTimerSource(queue: queue)
+
+    resetTimer?.setEventHandler { [weak self] in
+      self?.forceHalfOpen()
     }
 
-    public func forceClosed() {
-        semaphoreCircuit.wait()
-        close()
-        semaphoreCircuit.signal()
-    }
+    resetTimer?.scheduleOneshot(deadline: .now() + delay)
 
-    public func forceHalfOpen() {
-        breakerState = State.halfopen
-    }
-
-    private func startResetTimer(delay: DispatchTimeInterval) {
-        // Cancel previous timer if any
-        resetTimer?.cancel()
-
-        resetTimer = DispatchSource.makeTimerSource(queue: queue)
-
-        resetTimer?.setEventHandler { [weak self] in
-            self?.forceHalfOpen()
-        }
-
-        resetTimer?.scheduleOneshot(deadline: .now() + delay)
-
-        resetTimer?.resume()
-    }
+    resetTimer?.resume()
+  }
 }
