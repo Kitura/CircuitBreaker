@@ -21,7 +21,7 @@ public class Collection<T> {
 
   internal let semaphoreQueue = DispatchSemaphore(value: 1)
   internal var list: [T]
-  private let size: Int
+  public let size: Int
 
   public var isEmpty: Bool {
     semaphoreQueue.wait()

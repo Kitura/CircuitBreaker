@@ -18,26 +18,12 @@ import Foundation
 import LoggerAPI
 
 public class Stats {
-
-  var timeouts: Int = 0
-  var successfulResponses: Int = 0
-  var failedResponses: Int = 0
-  var totalRequests: Int = 0
-  var rejectedRequests: Int = 0
-  var latencies: [Int] = []
-
-  private func initCounters() {
-    self.timeouts = 0
-    self.successfulResponses = 0
-    self.failedResponses = 0
-    self.totalRequests = 0
-    self.rejectedRequests = 0
-    self.latencies = []
-  }
-
-  func totalLatency() -> Int {
-    return latencies.reduce(0, +)
-  }
+  internal(set) public var timeouts: Int = 0
+  internal(set) public var successfulResponses: Int = 0
+  internal(set) public var failedResponses: Int = 0
+  internal(set) public var totalRequests: Int = 0
+  internal(set) public var rejectedRequests: Int = 0
+  internal(set) public var latencies: [Int] = []
 
   func trackTimeouts() {
     timeouts += 1
@@ -63,24 +49,33 @@ public class Stats {
     latencies.append(latency)
   }
 
-  func averageResponseTime() -> Int {
+  func reset() {
+    self.timeouts = 0
+    self.successfulResponses = 0
+    self.failedResponses = 0
+    self.totalRequests = 0
+    self.rejectedRequests = 0
+    self.latencies = []
+  }
+
+  public func totalLatency() -> Int {
+    return latencies.reduce(0, +)
+  }
+
+  public func averageResponseTime() -> Int {
     if latencies.count == 0 {
       return 0
     }
     return totalLatency() / latencies.count
   }
 
-  func concurrentRequests() -> Int {
+  public func concurrentRequests() -> Int {
     let totalResponses = successfulResponses + failedResponses + rejectedRequests
     return totalRequests - totalResponses
   }
 
-  func reset() {
-    initCounters()
-  }
-
   // Log current snapshot of CircuitBreaker
-  func snapshot () {
+  public func snapshot () {
     Log.verbose("Total Requests: \(totalRequests)")
     Log.verbose("Concurrent Requests: \(concurrentRequests())")
     Log.verbose("Rejected Requests: \(rejectedRequests)")

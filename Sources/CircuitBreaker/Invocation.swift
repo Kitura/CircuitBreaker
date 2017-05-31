@@ -52,7 +52,7 @@ public class Invocation<A, B, C> {
   }
 }
 
-internal class Bulkhead {
+class Bulkhead {
   private let serialQueue: DispatchQueue
   private let concurrentQueue: DispatchQueue
   private let semaphore: DispatchSemaphore

@@ -43,11 +43,11 @@ public class CircuitBreaker<A, B, C> {
   private let commandWrapper: AnyFunctionWrapper<A, B>?
   private let bulkhead: Bulkhead?
 
-  let timeout: Int
-  let resetTimeout: Int
-  let maxFailures: Int
-  let rollingWindow: Int
-  let breakerStats: Stats = Stats()
+  public let timeout: Int
+  public let resetTimeout: Int
+  public let maxFailures: Int
+  public let rollingWindow: Int
+  public let breakerStats: Stats = Stats()
 
   private var resetTimer: DispatchSourceTimer?
   private let semaphoreCompleted = DispatchSemaphore(value: 1)
