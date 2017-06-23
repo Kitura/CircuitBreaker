@@ -43,7 +43,7 @@ If the function you are circuit breaking makes an asynchronous call(s) and the e
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
-func myFallback (err: BreakerError, msg: String) {
+func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     // Client code can use the fallback function to do alternate processing, such as show an error page.
@@ -82,7 +82,7 @@ Full Implementation:
 ```swift
 ...
 
-func myFallback (err: BreakerError, msg: String) {
+func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     // Client code can use the fallback function to do alternate processing, such as show an error page.
@@ -110,7 +110,7 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wro
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
-func myFallback (err: BreakerError, msg: String) {
+func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     Log.verbose("Error: \(error)")
@@ -175,7 +175,7 @@ Full Implementation:
 ```swift
 ...
 
-func myFallback (err: BreakerError, msg: String) {
+func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     Log.verbose("Error: \(error)")
