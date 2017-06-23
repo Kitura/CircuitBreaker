@@ -118,9 +118,9 @@ func myFallback(err: BreakerError, msg: String) {
 }
 ```
 
-2. Create a function wrapper for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success):
+2. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success):
 ```swift
-func myWrapper(invocation: Invocation<(String), Void, String>) {
+func myContextFunction(invocation: Invocation<(String), Void, String>) {
   let requestParam = invocation.commandArgs
   // Create HTTP request
   guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
@@ -158,11 +158,11 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
 }
 ```
 
-3. Create a CircuitBreaker instance for each function (e.g. endpoint) you wish to circuit break:
+3. Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break:
   * Must specify the fallback function and the endpoint to circuit break
   * Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
 ```swift
-let breaker = CircuitBreaker(commandWrapper: myWrapper, fallback: myFallback)
+let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 ```
 
 4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
@@ -182,7 +182,7 @@ func myFallback(err: BreakerError, msg: String) {
     Log.verbose("Message: \(msg)")
 }
 
-func myWrapper(invocation: Invocation<(String), Void, String>) {
+func myContextFunction(invocation: Invocation<(String), Void, String>) {
   let requestParam = invocation.commandArgs
   // Create HTTP request
   guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
@@ -219,7 +219,7 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
   }.resume()
 }
 
-let breaker = CircuitBreaker(commandWrapper: myWrapper, fallback: myFallback)
+let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 
 breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 
@@ -236,7 +236,7 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
 
 #### Advanced Usage Constructor
 ```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, commandWrapper: @escaping AnyFunctionWrapper<A, B>, fallback: @escaping AnyFallback<C>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A, B>, fallback: @escaping AnyFallback<C>)
 ```
 
 #### Constructor parameters
@@ -247,7 +247,7 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `command` Function to circuit break (basic usage constructor).
- * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to the corresponding circuit breaker instance; advanced usage constructor).
+ * `contextCommand` Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance; advanced usage constructor).
 
 ### Stats
 ```swift
