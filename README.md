@@ -65,7 +65,7 @@ func myFunction(a: Int, b: Int) -> Int {
   * Must specify the fallback function, and the endpoint to circuit break
   * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead
 ```swift
-let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
+let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 ```
 
 4. Invoke the call to the function by calling the CircuitBreaker `run()` function and pass the corresponding arguments:
@@ -96,7 +96,7 @@ func myFunction(a: Int, b: Int) -> Int {
     return value
 }
 
-let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
+let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 
 breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
 breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wrong."))
@@ -162,7 +162,7 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
   * Must specify the fallback function and the endpoint to circuit break
   * Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
 ```swift
-let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
+let breaker = CircuitBreaker(commandWrapper: myWrapper, fallback: myFallback)
 ```
 
 4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
@@ -219,7 +219,7 @@ func myWrapper(invocation: Invocation<(String), Void, String>) {
   }.resume()
 }
 
-let breaker = CircuitBreaker(fallback: myFallback, commandWrapper: myWrapper)
+let breaker = CircuitBreaker(commandWrapper: myWrapper, fallback: myFallback)
 
 breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 
@@ -231,12 +231,12 @@ breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 
 #### Basic Usage Constructor
 ```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A, B>, fallback: @escaping AnyFallback<C>)
 ```
 
 #### Advanced Usage Constructor
 ```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, commandWrapper: @escaping AnyFunctionWrapper<A, B>, fallback: @escaping AnyFallback<C>)
 ```
 
 #### Constructor parameters
@@ -247,13 +247,13 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
  * `command` Function to circuit break (basic usage constructor).
- * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to circuit breaker instance; advanced usage constructor).
+ * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to the corresponding circuit breaker instance; advanced usage constructor).
 
 ### Stats
 ```swift
 ...
 // Create CircuitBreaker
-let breaker = CircuitBreaker(fallback: myFallback, command: myFunction)
+let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 
 // Invoke breaker call
 breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
