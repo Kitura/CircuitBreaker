@@ -229,12 +229,12 @@ breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 ## API
 ### CircuitBreaker
 
-#### Basic Usage Constructor:
+#### Basic Usage Constructor
 ```swift
 CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
 ```
 
-#### Advanced Usage Constructor:
+#### Advanced Usage Constructor
 ```swift
 CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
 ```
