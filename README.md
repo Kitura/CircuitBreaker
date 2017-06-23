@@ -43,7 +43,7 @@ If the function you are circuit breaking makes an asynchronous call(s) and the e
 
 1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
 ```swift
-func myFallback (error: Bool, msg: String) {
+func myFallback (err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     // Client code can use the fallback function to do alternate processing, such as show an error page.
@@ -82,7 +82,7 @@ Full Implementation:
 ```swift
 ...
 
-func myFallback (error: Bool, msg: String) {
+func myFallback (err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
     // or if the CircuitBreaker is currently in Open state and set to fail fast.
     // Client code can use the fallback function to do alternate processing, such as show an error page.
@@ -233,25 +233,21 @@ breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
 ```swift
 CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>)
 ```
+
+#### Advanced Usage Constructor:
+```swift
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
+```
+
+#### Constructor parameters
  * `timeout` Amount in milliseconds that your function should complete before the invocation is considered a failure. Default is set to 1000 milliseconds.
  * `resetTimeout` Amount in milliseconds to wait before setting to halfopen state. Default is set to 60000 milliseconds.
  * `maxFailures` Number of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
  * `rollingWindow` Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.
  * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
  * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
- * `command` Function to circuit break.
-
-#### Advanced Usage Constructor:
-```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, callback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>)
-```
- * `timeout` Amount in seconds that the request should complete before the invocation is considered a failure. Default is set to 1 second.
- * `resetTimeout` Amount in seconds to wait before setting to halfopen state. Default is set to 60 seconds.
- * `maxFailures` Number of failures allowed within `rollingWindow` before setting state to open. Default is set to 5.
- * `rollingWindow` Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.
- * `bulkhead` Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.
- * `fallback` Function user specifies to signal timeout or fastFail completion. Required format: `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`
- * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to circuit breaker instance).
+ * `command` Function to circuit break (basic usage constructor).
+ * `commandWrapper` Invocation wrapper around logic to circuit break, allows user defined failures (provides reference to circuit breaker instance; advanced usage constructor).
 
 ### Stats
 ```swift
