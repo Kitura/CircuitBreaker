@@ -29,6 +29,11 @@ public enum BreakerError {
   case fastFail
 }
 
+/// CircuitBreaker class
+///
+/// A - Parameter types used in the arguments for the command closure.
+/// B - Return type from the execution of the command closure.
+/// C - Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B, C> {
   // Closure aliases
   public typealias AnyFunction<A, B> = (A) -> (B)

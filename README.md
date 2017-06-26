@@ -68,7 +68,8 @@ func myFunction(a: Int, b: Int) -> Int {
 let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 ```
 
-4. Invoke the call to the function by calling the CircuitBreaker `run()` function and pass the corresponding arguments:
+4. Invoke the call to the function by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the command and fallback closures. In this sample, `myFunction` takes two integers as parameters while `myFallback` takes a string as its second parameter:
+
 ```swift
 breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
 ```
@@ -118,7 +119,8 @@ func myFallback(err: BreakerError, msg: String) {
 }
 ```
 
-2. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success):
+2. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an `Invocation` object as its parameter. An instance of the `Invocation` class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:
+
 ```swift
 func myContextFunction(invocation: Invocation<(String), Void, String>) {
   let requestParam = invocation.commandArgs
@@ -165,9 +167,11 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 ```
 
-4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` function and pass any arguments:
+4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the context command and fallback closures. In this sample, `myContextFunction` takes a string as its parameter while `myFallback` takes a string as its second parameter:
+
 ```swift
-breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
+let id: String = ...
+breaker.run(commandArgs: id, fallbackArgs: (msg: "Something went wrong."))
 ```
 
 Full Implementation:
@@ -221,7 +225,8 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 
 let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 
-breaker.run(commandArgs: "92827", fallbackArgs: (msg: "Something went wrong."))
+let id: String = ...
+breaker.run(commandArgs: id, fallbackArgs: (msg: "Something went wrong."))
 
 ...
 ```
