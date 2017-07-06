@@ -29,17 +29,22 @@ public enum BreakerError {
   case fastFail
 }
 
+/// CircuitBreaker class
+///
+/// A - Parameter types used in the arguments for the command closure.
+/// B - Return type from the execution of the command closure.
+/// C - Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B, C> {
   // Closure aliases
   public typealias AnyFunction<A, B> = (A) -> (B)
-  public typealias AnyFunctionWrapper<A, B> = (Invocation<A, B, C>) -> B
+  public typealias AnyContextFunction<A, B> = (Invocation<A, B, C>) -> B
   public typealias AnyFallback<C> = (BreakerError, C) -> Void
 
   private(set) var state: State = State.closed
   private let failures: FailureQueue
   private let command: AnyFunction<A, B>?
   private let fallback: AnyFallback<C>
-  private let commandWrapper: AnyFunctionWrapper<A, B>?
+  private let contextCommand: AnyContextFunction<A, B>?
   private let bulkhead: Bulkhead?
 
   public let timeout: Int
@@ -54,24 +59,24 @@ public class CircuitBreaker<A, B, C> {
 
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
-  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, fallback: @escaping AnyFallback<C>, command: (AnyFunction<A, B>)?, commandWrapper: (AnyFunctionWrapper<A, B>)?) {
+  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A, B>)?, contextCommand: (AnyContextFunction<A, B>)?, fallback: @escaping AnyFallback<C>) {
     self.timeout = timeout
     self.resetTimeout = resetTimeout
     self.maxFailures = maxFailures
     self.rollingWindow = rollingWindow
     self.fallback = fallback
     self.command = command
-    self.commandWrapper = commandWrapper
+    self.contextCommand = contextCommand
     self.failures = FailureQueue(size: maxFailures)
     self.bulkhead = (bulkhead > 0) ? Bulkhead.init(limit: bulkhead) : nil
   }
 
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, command: @escaping AnyFunction<A, B>) {
-    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: command, commandWrapper: nil)
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A, B>, fallback: @escaping AnyFallback<C>) {
+    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: command, contextCommand: nil, fallback: fallback)
   }
 
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, fallback: @escaping AnyFallback<C>, commandWrapper: @escaping AnyFunctionWrapper<A, B>) {
-    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, fallback: fallback, command: nil, commandWrapper: commandWrapper)
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A, B>, fallback: @escaping AnyFallback<C>) {
+    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
   }
 
   // Run
@@ -141,7 +146,7 @@ public class CircuitBreaker<A, B, C> {
 
       let _ = command(commandArgs)
       complete(error: false)
-    } else if let commandWrapper = self.commandWrapper {
+    } else if let contextCommand = self.contextCommand {
       let invocation = Invocation(breaker: self, commandArgs: commandArgs)
 
       setTimeout() { [weak invocation] in
@@ -151,7 +156,7 @@ public class CircuitBreaker<A, B, C> {
         }
       }
 
-      let _ = commandWrapper(invocation)
+      let _ = contextCommand(invocation)
     }
   }
 
