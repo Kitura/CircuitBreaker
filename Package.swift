@@ -28,7 +28,7 @@ let package = Package(
       )
     ],
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/LoggerAPI.git", .upToNextMajor(from: "1.0.0"))
+        .package(url: "https://github.com/IBM-Swift/LoggerAPI.git", .upToNextMajor(from: "2.0.0"))
     ],
     targets: [
       .target(
