@@ -287,7 +287,7 @@ public class CircuitBreaker<A, B, C> {
       self?.forceHalfOpen()
     }
 
-    resetTimer?.scheduleOneshot(deadline: .now() + delay)
+    resetTimer?.schedule(deadline: .now() + delay)
 
     resetTimer?.resume()
   }
