@@ -14,7 +14,7 @@ The Circuit Breaker design pattern is used to increase application stability, im
 * [API](#api)
 
 ## Swift version
-The latest version of CircuitBreaker works with the `3.1.1` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
+The latest version of CircuitBreaker works with the `3.1.1` and newer version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
 
 ## Installation
 To leverage the CircuitBreaker package in your Swift application, you should specify a dependency for it in your `Package.swift` file:
@@ -28,8 +28,11 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ...
 
      dependencies: [
+         // Swift 3
          .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 2),
 
+         // Swift 4
+         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "2.0.0")),
          ...
 
      ])
