@@ -286,11 +286,8 @@ public class CircuitBreaker<A, B, C> {
     resetTimer?.setEventHandler { [weak self] in
       self?.forceHalfOpen()
     }
-    #if swift(>=3.2)
-        resetTimer?.schedule(deadline: .now() + delay)
-    #else
-        resetTimer?.scheduleOneshot(deadline: .now() + delay)
-    #endif
+    
+    resetTimer?.schedule(deadline: .now() + delay)
 
     resetTimer?.resume()
   }
