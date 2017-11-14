@@ -1,3 +1,5 @@
+Packages
 .build/*
+build/
 *.xcodeproj
 *.DS_Store
