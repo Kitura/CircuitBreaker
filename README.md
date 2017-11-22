@@ -44,7 +44,7 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
 If the function you are circuit breaking makes an asynchronous call(s) and the execution time of that call should be taking into account, then see [`Advanced Usage`](#advanced-usage) below.
 
-1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
+1. Define a fallback function with the signature `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`:
 ```swift
 func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
@@ -55,18 +55,25 @@ func myFallback(err: BreakerError, msg: String) {
 }
 ```
 
+Note that if you need your fallback function to receive more than one value after the `BreakerError` parameter, then you need to define a tuple to contain those values:
+
+```swift
+func myOtherFallback(error: BreakerError, strs: (str1: String, str2: String)) -> Void {
+    // do stuff
+}
+```
+
 2. Create a function to circuit break:
 ```swift
-func myFunction(a: Int, b: Int) -> Int {
+func myFunction(a: Int, b: Int) -> Void {
     // do stuff
     let value: Int = ...
-    return value
 }
 ```
 
 3. Create a CircuitBreaker instance for each endpoint you wish to circuit break:
-  * Must specify the fallback function, and the endpoint to circuit break
-  * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead
+  * Must specify the fallback function, and the endpoint to circuit break.
+  * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead.
 ```swift
 let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 ```
@@ -74,12 +81,12 @@ let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 4. Invoke the call to the function by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the command and fallback closures. In this sample, `myFunction` takes two integers as parameters while `myFallback` takes a string as its second parameter:
 
 ```swift
-breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
 ```
 
  * May be called multiple times with varied input:
 ```swift
-breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: "Something went wrong.")
 ```
 
 Full Implementation:
@@ -94,16 +101,15 @@ func myFallback(err: BreakerError, msg: String) {
     Log.verbose("Message: \(msg)")
 }
 
-func myFunction(a: Int, b: Int) -> Int {
+func myFunction(a: Int, b: Int) -> Void {
     // do stuff
     let value: Int = ...
-    return value
 }
 
 let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 
-breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
-breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
+breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: "Something went wrong.")
 
 ...
 ```
@@ -112,7 +118,7 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: (msg: "Something went wro
 
 *In this form of usage, the CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).*
 
-1. Define a fallback function with the signature `(<BreakerError, (fallbackArg1, fallbackArg2,...)>) -> Void`:
+1. Define a fallback function with the signature `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`:
 ```swift
 func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if the request does not return before the specified timeout
@@ -174,7 +180,7 @@ let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFall
 
 ```swift
 let id: String = ...
-breaker.run(commandArgs: id, fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: id, fallbackArgs: "Something went wrong.")
 ```
 
 Full Implementation:
@@ -229,7 +235,7 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 
 let id: String = ...
-breaker.run(commandArgs: id, fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: id, fallbackArgs: "Something went wrong.")
 
 ...
 ```
@@ -264,7 +270,7 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
 let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 
 // Invoke breaker call
-breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: (msg: "Something went wrong."))
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
 
 // Log Stats snapshot
 breaker.snapshot()
