@@ -28,9 +28,6 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
      ...
 
      dependencies: [
-         // Swift 3
-         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 2),
-
          // Swift 4
          .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "2.0.0")),
          ...
