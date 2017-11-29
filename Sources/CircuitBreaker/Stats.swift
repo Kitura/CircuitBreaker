@@ -17,13 +17,57 @@
 import Foundation
 import LoggerAPI
 
+/// Circuit Breaker Stats
 public class Stats {
+  
+  /// Number of timeouts
   internal(set) public var timeouts: Int = 0
+
+  /// Number of successful reponses
   internal(set) public var successfulResponses: Int = 0
+
+  /// Number of failed reponses
   internal(set) public var failedResponses: Int = 0
+  
+  /// Total number of requests
   internal(set) public var totalRequests: Int = 0
+  
+  /// Number of rejected requests
   internal(set) public var rejectedRequests: Int = 0
+  
+  /// Array of request latencies
   internal(set) public var latencies: [Int] = []
+
+  /// Method returning the cumulative latency
+  public func totalLatency() -> Int {
+    return latencies.reduce(0, +)
+  }
+  
+  /// Method returning the average response time
+  public func averageResponseTime() -> Int {
+    if latencies.count == 0 {
+      return 0
+    }
+    return totalLatency() / latencies.count
+  }
+
+  /// Method returning the number of concurrent requests
+  public func concurrentRequests() -> Int {
+    let totalResponses = successfulResponses + failedResponses + rejectedRequests
+    return totalRequests - totalResponses
+  }
+  
+  /// Method to log current snapshot of CircuitBreaker
+  public func snapshot () {
+    Log.verbose("Total Requests: \(totalRequests)")
+    Log.verbose("Concurrent Requests: \(concurrentRequests())")
+    Log.verbose("Rejected Requests: \(rejectedRequests)")
+    Log.verbose("Successful Responses: \(successfulResponses)")
+    Log.verbose("Average Response Time: \(averageResponseTime())")
+    Log.verbose("Failed Responses: \(failedResponses)")
+    Log.verbose("Total Timeouts: \(timeouts)")
+    Log.verbose("Total Latency: \(totalLatency())")
+  }
 
   func trackTimeouts() {
     timeouts += 1
@@ -57,33 +101,4 @@ public class Stats {
     self.rejectedRequests = 0
     self.latencies = []
   }
-
-  public func totalLatency() -> Int {
-    return latencies.reduce(0, +)
-  }
-
-  public func averageResponseTime() -> Int {
-    if latencies.count == 0 {
-      return 0
-    }
-    return totalLatency() / latencies.count
-  }
-
-  public func concurrentRequests() -> Int {
-    let totalResponses = successfulResponses + failedResponses + rejectedRequests
-    return totalRequests - totalResponses
-  }
-
-  // Log current snapshot of CircuitBreaker
-  public func snapshot () {
-    Log.verbose("Total Requests: \(totalRequests)")
-    Log.verbose("Concurrent Requests: \(concurrentRequests())")
-    Log.verbose("Rejected Requests: \(rejectedRequests)")
-    Log.verbose("Successful Responses: \(successfulResponses)")
-    Log.verbose("Average Response Time: \(averageResponseTime())")
-    Log.verbose("Failed Responses: \(failedResponses)")
-    Log.verbose("Total Timeouts: \(timeouts)")
-    Log.verbose("Total Latency: \(totalLatency())")
-  }
-
 }

@@ -1,6 +1,12 @@
 {
   "warnings": [
-
+    {
+      "file": "/Users/AaronLiberatore/Documents/CircuitBreaker/Sources/CircuitBreaker/Utils.swift",
+      "line": 43,
+      "symbol": "Date.currentTimeMillis()",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    }
   ],
   "source_directory": "/Users/AaronLiberatore/Documents/CircuitBreaker"
 }

@@ -18,46 +18,61 @@ import Foundation
 import Dispatch
 import LoggerAPI
 
-public enum State {
-  case open
-  case halfopen
-  case closed
-}
-
-public enum BreakerError {
-  case timeout
-  case fastFail
-}
-
 /// CircuitBreaker class
 ///
-/// A - Parameter types used in the arguments for the command closure.
-/// B - Return type from the execution of the command closure.
-/// C - Parameter type used as the second argument for the fallback closure.
+/// - A: Parameter types used in the arguments for the command closure.
+/// - B: Return type from the execution of the command closure.
+/// - C: Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B, C> {
-  // Closure aliases
+
+  // MARK: Closure Aliases
+
   public typealias AnyFunction<A, B> = (A) -> (B)
   public typealias AnyContextFunction<A, B> = (Invocation<A, B, C>) -> B
   public typealias AnyFallback<C> = (BreakerError, C) -> Void
+  
+  // MARK: Public Fields
 
-  private(set) var state: State = State.closed
+  /// Execution timeout for command contect (Default: 1000 ms)
+  public let timeout: Int
+  
+  /// Timeout to reset circuit (Default: 6000 ms)
+  public let resetTimeout: Int
+  
+  /// Maximum number of failures allowed before opening circuit (Default: 5)
+  public let maxFailures: Int
+  
+  /// (Default: 10000 ms)
+  public let rollingWindow: Int
+  
+  /// Instance of Circuit Breaker Stats
+  public let breakerStats = Stats()
+
+  /// The Breaker's Current State
+  public private(set) var breakerState: State {
+    get {
+      return state
+    }
+    set {
+      state = newValue
+    }
+  }
+
+  private(set) var state = State.closed
   private let failures: FailureQueue
   private let command: AnyFunction<A, B>?
   private let fallback: AnyFallback<C>
   private let contextCommand: AnyContextFunction<A, B>?
   private let bulkhead: Bulkhead?
 
-  public let timeout: Int
-  public let resetTimeout: Int
-  public let maxFailures: Int
-  public let rollingWindow: Int
-  public let breakerStats: Stats = Stats()
-
+  /// Dispatch
   private var resetTimer: DispatchSourceTimer?
   private let semaphoreCompleted = DispatchSemaphore(value: 1)
   private let semaphoreCircuit = DispatchSemaphore(value: 1)
 
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
+
+  // MARK: Initializers
 
   private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A, B>)?, contextCommand: (AnyContextFunction<A, B>)?, fallback: @escaping AnyFallback<C>) {
     self.timeout = timeout
@@ -71,49 +86,112 @@ public class CircuitBreaker<A, B, C> {
     self.bulkhead = (bulkhead > 0) ? Bulkhead.init(limit: bulkhead) : nil
   }
 
+  /// Initializes CircuitBreaker instance with syncronous context command (Basic usage)
+  ///
+  /// - Parameters:
+  ///   - timeout: Execution timeout for command contect (Default: 1000 ms)
+  ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
+  ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
+  ///   - rollingWindow: (Default: 10000 ms)
+  ///   - bulkhead: Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature. (Default: 0)
+  ///   - command: Function to circuit break (basic usage constructor).
+  ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
+  ///
   public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A, B>, fallback: @escaping AnyFallback<C>) {
     self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: command, contextCommand: nil, fallback: fallback)
   }
-
+  
+  /// Initializes CircuitBreaker instance with syncronous context command (Advanced usage)
+  ///
+  /// - Parameters:
+  ///   - timeout: Execution timeout for command contect (Default: 1000 ms)
+  ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
+  ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
+  ///   - rollingWindow: (Default: 10000 ms)
+  ///   - bulkhead: Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.(Default: 0)
+  ///   - contextCommand: Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance; advanced usage constructor).
+  ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
+  ///
   public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A, B>, fallback: @escaping AnyFallback<C>) {
     self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
   }
 
-  // Run
+  // MARK: Class Methods
+
+  /// Runs the circuit using the provided arguments
+  /// - Parameters:
+  ///   - commandArgs: Arguments of type `A` for the circuit command
+  ///   - fallbackArgs: Arguments of type `C` for the circuit fallback
+  ///
   public func run(commandArgs: A, fallbackArgs: C) {
     breakerStats.trackRequest()
-
-    if breakerState == State.open {
-      fastFail(fallbackArgs: fallbackArgs)
-
-    } else if breakerState == State.halfopen {
-      let startTime:Date = Date()
+    
+    switch breakerState {
+    case .open: fastFail(fallbackArgs: fallbackArgs)
+    case .halfopen:
+      
+      let startTime = Date()
 
       if let bulkhead = self.bulkhead {
-        bulkhead.enqueue(task: {
-          self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-        })
+          bulkhead.enqueue {
+              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          }
       }
       else {
-        callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
 
       self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
-    } else {
-      let startTime:Date = Date()
+    case .closed:
 
+      let startTime = Date()
+      
       if let bulkhead = self.bulkhead {
-        bulkhead.enqueue(task: {
-          self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-        })
+          bulkhead.enqueue {
+              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          }
       }
       else {
-        callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
-
+      
       self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
     }
+  }
+
+  /// Method to Print Current Stats Snapshot
+  public func snapshot() {
+    breakerStats.snapshot()
+  }
+
+  /// Method to force the circuit open
+  public func notifyFailure() {
+    handleFailure()
+  }
+
+  /// Method to force the circuit open
+  public func notifySuccess() {
+    handleSuccess()
+  }
+
+  /// Method to force the circuit open
+  public func forceOpen() {
+    semaphoreCircuit.wait()
+    open()
+    semaphoreCircuit.signal()
+  }
+
+  /// Method to force the circuit closed
+  public func forceClosed() {
+    semaphoreCircuit.wait()
+    close()
+    semaphoreCircuit.signal()
+  }
+
+  /// Method to force the circuit halfopen
+  public func forceHalfOpen() {
+    breakerState = .halfopen
   }
 
   private func callFunction(commandArgs: A, fallbackArgs: C) {
@@ -167,31 +245,7 @@ public class CircuitBreaker<A, B, C> {
     }
   }
 
-  // Print Current Stats Snapshot
-  public func snapshot() {
-    breakerStats.snapshot()
-  }
-
-  public func notifyFailure() {
-    handleFailure()
-  }
-
-  public func notifySuccess() {
-    handleSuccess()
-  }
-
-  // Get/Set functions
-  public private(set) var breakerState: State {
-    get {
-      return state
-    }
-
-    set {
-      state = newValue
-    }
-  }
-
-  var numberOfFailures: Int {
+  internal var numberOfFailures: Int {
     get {
       return failures.count
     }
@@ -259,22 +313,6 @@ public class CircuitBreaker<A, B, C> {
     Log.verbose("Breaker open... failing fast.")
     breakerStats.trackRejected()
     let _ = fallback(.fastFail, fallbackArgs)
-  }
-
-  public func forceOpen() {
-    semaphoreCircuit.wait()
-    open()
-    semaphoreCircuit.signal()
-  }
-
-  public func forceClosed() {
-    semaphoreCircuit.wait()
-    close()
-    semaphoreCircuit.signal()
-  }
-
-  public func forceHalfOpen() {
-    breakerState = State.halfopen
   }
 
   private func startResetTimer(delay: DispatchTimeInterval) {
