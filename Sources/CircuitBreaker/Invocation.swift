@@ -17,7 +17,7 @@
 import Foundation
 
 /// Invocation entity
-public class Invocation<A, B, C> {
+public class Invocation<A, C> {
   
   /// Arguments for circuit command
   public let commandArgs: A
@@ -31,14 +31,14 @@ public class Invocation<A, B, C> {
   /// Completion state of invocation
   private(set) var completed: Bool = false
 
-  weak private var breaker: CircuitBreaker<A, B, C>?
+  weak private var breaker: CircuitBreaker<A, C>?
 
   /// Invocation Initializer
   /// - Parameters:
   ///   - breaker CircuitBreaker Instance
   ///   - commandArgs Arguments for command context
   ///
-  public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A, fallbackArgs: C) {
+  public init(breaker: CircuitBreaker<A, C>, commandArgs: A, fallbackArgs: C) {
     self.breaker = breaker
     self.commandArgs = commandArgs
     self.fallbackArgs = fallbackArgs

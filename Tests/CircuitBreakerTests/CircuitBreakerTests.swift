@@ -36,6 +36,8 @@ class CircuitBreakerTests: XCTestCase {
       ("testForceOpen", testForceOpen),
       ("testHalfOpenResetTimeout", testHalfOpenResetTimeout),
       ("testResetFailures", testResetFailures),
+      ("testFailingAsyncFallbackClosed", testFailingAsyncFallbackClosed),
+      ("testFailingAsyncFallbackHalfOpen", testFailingAsyncFallbackHalfOpen),
       ("testFastFail", testFastFail),
       ("testHalfOpenSuccess", testHalfOpenSuccess),
       ("testHalfOpenSuccessCtxFunction", testHalfOpenSuccessCtxFunction),
@@ -73,11 +75,11 @@ class CircuitBreakerTests: XCTestCase {
     invocationErrored = false
   }
 
-  func sum(a: Int, b: Int) -> Int {
-    return a + b
+  func sum(a: Int, b: Int) {
+     let _ = a + b
   }
 
-  func dummyCtxFunction(invocation: Invocation<(Void), Void, Void>) {
+  func dummyCtxFunction(invocation: Invocation<(Void), Void>) {
     invocation.notifySuccess()
   }
 
@@ -85,7 +87,7 @@ class CircuitBreakerTests: XCTestCase {
     //print("dummyFallback() -> Error: \(error)")
   }
 
-  func simpleCtxFunction(invocation: Invocation<(Bool), Void, Void>) {
+  func simpleCtxFunction(invocation: Invocation<(Bool), Void>) {
     invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure(error: "There was an error")
   }
 
@@ -110,7 +112,7 @@ class CircuitBreakerTests: XCTestCase {
     //print("time() - > Slept for \(milliseconds) ms.")
   }
 
-  func timeCtxFunction(invocation: Invocation<(Int), Void, BreakerError>) {
+  func timeCtxFunction(invocation: Invocation<(Int), BreakerError>) {
     time(milliseconds: invocation.commandArgs)
   }
 
@@ -420,7 +422,7 @@ class CircuitBreakerTests: XCTestCase {
   func testCtxFunctionAsync() {
     let expectation1 = expectation(description: "Add two numbers asynchronously.")
 
-    func asyncWrapper(invocation: Invocation<(Int, Int), Void, Void>) {
+    func asyncWrapper(invocation: Invocation<(Int, Int), Void>) {
       //sumAsync(a: invocation.args.0, b: invocation.args.1, completion: invocation.args.2)
       let queue = DispatchQueue(label: "asyncWrapperTestQueue", attributes: .concurrent)
       queue.async(execute: {
@@ -439,11 +441,11 @@ class CircuitBreakerTests: XCTestCase {
     })
   }
 
-  // Test Failing fallback for user called error
-  func testFailingAsyncFallback() {
+  // Test Failing fallback for user called error when circuit is closed
+  func testFailingAsyncFallbackClosed() {
     let expectation1 = expectation(description: "Fallback called")
     
-    func failingCommand(invocation: Invocation<Void, Void, Void>) {
+    func failingCommand(invocation: Invocation<Void, Void>) {
       invocation.notifyFailure(error: "The networking request failed!")
     }
 
@@ -457,6 +459,30 @@ class CircuitBreakerTests: XCTestCase {
     
     waitForExpectations(timeout: 10, handler: { _ in
       XCTAssertEqual(breaker.breakerState, State.closed)
+    })
+  }
+
+  // Test Failing fallback for user called error when circuit is half-open
+  func testFailingAsyncFallbackHalfOpen() {
+    let expectation1 = expectation(description: "Fallback called")
+  
+    func failingCommand(invocation: Invocation<Bool, Void>) {
+      invocation.notifyFailure(error: "The networking request failed!")
+    }
+
+    func fallback(error: BreakerError, _: Void) -> Void {
+      XCTAssertEqual(error, BreakerError.invocationError(error: "The networking request failed!"))
+      expectation1.fulfill()
+    }
+    
+    let breaker = CircuitBreaker(contextCommand: failingCommand, fallback: fallback)
+    breaker.forceHalfOpen()
+
+    // Context Command Failure
+    breaker.run(commandArgs: (false), fallbackArgs: ())
+
+    waitForExpectations(timeout: 10, handler: { _ in
+      XCTAssertEqual(breaker.breakerState, State.open)
     })
   }
 
@@ -481,7 +507,7 @@ class CircuitBreakerTests: XCTestCase {
   func testBulkheadCtxFunction() {
     let expectation1 = expectation(description: "Use bulkheading feature and contextCommand, breaker is closed after completion of request.")
 
-    func tstCallWrapper(invocation: Invocation<(Void), Void, Void>) {
+    func tstCallWrapper(invocation: Invocation<(Void), Void>) {
       invocation.notifySuccess()
       expectation1.fulfill()
     }
@@ -657,5 +683,4 @@ class CircuitBreakerTests: XCTestCase {
     XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
     XCTAssertEqual(breaker.breakerStats.totalRequests, (maxFailures + 2))
   }
-
 }

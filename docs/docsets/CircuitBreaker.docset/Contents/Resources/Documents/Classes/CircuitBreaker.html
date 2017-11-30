@@ -92,7 +92,7 @@
             <h1>CircuitBreaker</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="p">,</span> <span class="kt">C</span><span class="o">&gt;</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">C</span><span class="o">&gt;</span></code></pre>
 
                 </div>
               </div>
@@ -100,7 +100,6 @@
 
 <ul>
 <li>A: Parameter types used in the arguments for the command closure.</li>
-<li>B: Return type from the execution of the command closure.</li>
 <li>C: Parameter type used as the second argument for the fallback closure.</li>
 </ul>
 
@@ -294,9 +293,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAACAByxq_q0_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadq_xc7commandyAA0B5ErrorO_q0_tc8fallbacktcfc"></a>
+                    <a name="/s:14CircuitBreakerAACAByxq_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadyxc7commandyAA0B5ErrorO_q_tc8fallbacktcfc"></a>
                     <a name="//apple_ref/swift/Method/init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:command:fallback:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAACAByxq_q0_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadq_xc7commandyAA0B5ErrorO_q0_tc8fallbacktcfc">init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:command:fallback:)</a>
+                    <a class="token" href="#/s:14CircuitBreakerAACAByxq_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadyxc7commandyAA0B5ErrorO_q_tc8fallbacktcfc">init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:command:fallback:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -311,7 +310,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -412,9 +411,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAACAByxq_q0_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadq_AA10InvocationCyxq_q0_Gc14contextCommandyAA0B5ErrorO_q0_tc8fallbacktcfc"></a>
+                    <a name="/s:14CircuitBreakerAACAByxq_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadyAA10InvocationCyxq_Gc14contextCommandyAA0B5ErrorO_q_tc8fallbacktcfc"></a>
                     <a name="//apple_ref/swift/Method/init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:contextCommand:fallback:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAACAByxq_q0_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadq_AA10InvocationCyxq_q0_Gc14contextCommandyAA0B5ErrorO_q0_tc8fallbacktcfc">init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:contextCommand:fallback:)</a>
+                    <a class="token" href="#/s:14CircuitBreakerAACAByxq_GSi7timeout_Si12resetTimeoutSi11maxFailuresSi13rollingWindowSi8bulkheadyAA10InvocationCyxq_Gc14contextCommandyAA0B5ErrorO_q_tc8fallbacktcfc">init(timeout:resetTimeout:maxFailures:rollingWindow:bulkhead:contextCommand:fallback:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -429,7 +428,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">contextCommand</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyContextFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">contextCommand</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyContextFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -541,9 +540,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC3runyx11commandArgs_q0_08fallbackE0tF"></a>
+                    <a name="/s:14CircuitBreakerAAC3runyx11commandArgs_q_08fallbackE0tF"></a>
                     <a name="//apple_ref/swift/Method/run(commandArgs:fallbackArgs:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC3runyx11commandArgs_q0_08fallbackE0tF">run(commandArgs:fallbackArgs:)</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC3runyx11commandArgs_q_08fallbackE0tF">run(commandArgs:fallbackArgs:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -626,9 +625,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC13notifyFailureyAA0B5ErrorO5error_q0_12fallbackArgstF"></a>
+                    <a name="/s:14CircuitBreakerAAC13notifyFailureyAA0B5ErrorO5error_q_12fallbackArgstF"></a>
                     <a name="//apple_ref/swift/Method/notifyFailure(error:fallbackArgs:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC13notifyFailureyAA0B5ErrorO5error_q0_12fallbackArgstF">notifyFailure(error:fallbackArgs:)</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC13notifyFailureyAA0B5ErrorO5error_q_12fallbackArgstF">notifyFailure(error:fallbackArgs:)</a>
                     </code>
                   </div>
                   <div class="height-container">

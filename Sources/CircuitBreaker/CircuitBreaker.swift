@@ -21,14 +21,13 @@ import LoggerAPI
 /// CircuitBreaker class
 ///
 /// - A: Parameter types used in the arguments for the command closure.
-/// - B: Return type from the execution of the command closure.
 /// - C: Parameter type used as the second argument for the fallback closure.
-public class CircuitBreaker<A, B, C> {
+public class CircuitBreaker<A, C> {
 
   // MARK: Closure Aliases
 
-  public typealias AnyFunction<A, B> = (A) -> (B)
-  public typealias AnyContextFunction<A, B> = (Invocation<A, B, C>) -> B
+  public typealias AnyFunction<A> = (A) -> ()
+  public typealias AnyContextFunction<A> = (Invocation<A, C>) -> ()
   public typealias AnyFallback<C> = (BreakerError, C) -> Void
   
   // MARK: Public Fields
@@ -60,9 +59,9 @@ public class CircuitBreaker<A, B, C> {
 
   private(set) var state = State.closed
   private let failures: FailureQueue
-  private let command: AnyFunction<A, B>?
+  private let command: AnyFunction<A>?
   private let fallback: AnyFallback<C>
-  private let contextCommand: AnyContextFunction<A, B>?
+  private let contextCommand: AnyContextFunction<A>?
   private let bulkhead: Bulkhead?
 
   /// Dispatch
@@ -74,7 +73,7 @@ public class CircuitBreaker<A, B, C> {
 
   // MARK: Initializers
 
-  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A, B>)?, contextCommand: (AnyContextFunction<A, B>)?, fallback: @escaping AnyFallback<C>) {
+  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A>)?, contextCommand: (AnyContextFunction<A>)?, fallback: @escaping AnyFallback<C>) {
     self.timeout = timeout
     self.resetTimeout = resetTimeout
     self.maxFailures = maxFailures
@@ -97,7 +96,7 @@ public class CircuitBreaker<A, B, C> {
   ///   - command: Function to circuit break (basic usage constructor).
   ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A, B>, fallback: @escaping AnyFallback<C>) {
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A>, fallback: @escaping AnyFallback<C>) {
     self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: command, contextCommand: nil, fallback: fallback)
   }
   
@@ -112,7 +111,7 @@ public class CircuitBreaker<A, B, C> {
   ///   - contextCommand: Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance; advanced usage constructor).
   ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A, B>, fallback: @escaping AnyFallback<C>) {
+  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A>, fallback: @escaping AnyFallback<C>) {
     self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
   }
 

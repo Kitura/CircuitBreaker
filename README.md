@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/IBM-Swift/CircuitBreaker.svg?token=zkW1banusRzgHu6HwJiN&branch=master)](https://travis-ci.com/IBM-Swift/CircuitBreaker)
+[![Build Status](https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
@@ -130,7 +130,7 @@ func myFallback(err: BreakerError, msg: String) {
 2. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an `Invocation` object as its parameter. An instance of the `Invocation` class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:
 
 ```swift
-func myContextFunction(invocation: Invocation<(String), Void, String>) {
+func myContextFunction(invocation: Invocation<(String), String>) {
   let requestParam = invocation.commandArgs
   // Create HTTP request
   guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
@@ -196,7 +196,7 @@ func myFallback(err: BreakerError, msg: String) {
     Log.verbose("Message: \(msg)")
 }
 
-func myContextFunction(invocation: Invocation<(String), Void, String>) {
+func myContextFunction(invocation: Invocation<(String), String>) {
   let requestParam = invocation.commandArgs
   // Create HTTP request
   guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
@@ -246,12 +246,12 @@ breaker.run(commandArgs: id, fallbackArgs: "Something went wrong.")
 
 #### Basic Usage Constructor
 ```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A, B>, fallback: @escaping AnyFallback<C>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A>, fallback: @escaping AnyFallback<C>)
 ```
 
 #### Advanced Usage Constructor
 ```swift
-CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A, B>, fallback: @escaping AnyFallback<C>)
+CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A>, fallback: @escaping AnyFallback<C>)
 ```
 
 #### Constructor parameters
