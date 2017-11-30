@@ -29,7 +29,7 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
      dependencies: [
          // Swift 4
-         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "2.0.0")),
+         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "2.1.0")),
          ...
 
      ])
@@ -120,7 +120,7 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: "Something went wrong.")
 func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if one of the below occurs:
     //  1. The request does not return before the specified timeout
-    //  2. The CircuitBreaker is currently in Open state and set to fail fast.
+    //  2. CircuitBreaker is currently in Open state and set to fail fast.
     //  3. There was an error in the user's called context function (networking error, etc.)
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
@@ -138,7 +138,7 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 
     ...
 
-    invocation.notifyFailure()
+    invocation.notifyFailure(error: "Could not parse URL")
   }
 
   var req = URLRequest(url: url)
@@ -188,8 +188,10 @@ Full Implementation:
 ...
 
 func myFallback(err: BreakerError, msg: String) {
-    // The fallback will be called if the request does not return before the specified timeout
-    // or if the CircuitBreaker is currently in Open state and set to fail fast.
+    // The fallback will be called if one of the below occurs:
+    //  1. The request does not return before the specified timeout
+    //  2. CircuitBreaker is currently in Open state and set to fail fast.
+    //  3. There was an error in the user's called context function (networking error, etc.)
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
