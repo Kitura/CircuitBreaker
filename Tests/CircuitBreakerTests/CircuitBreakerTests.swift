@@ -61,14 +61,16 @@ class CircuitBreakerTests: XCTestCase {
   // Test instance vars
   var timedOut: Bool = false
   var fastFailed: Bool = false
+  var invocationErrored = false
   var testCalled: Bool = false
-
+  
   override func setUp() {
     super.setUp()
     //HeliumLogger.use(LoggerMessageType.debug)
     timedOut = false
     fastFailed = false
     testCalled = false
+    invocationErrored = false
   }
 
   func sum(a: Int, b: Int) -> Int {
@@ -84,7 +86,7 @@ class CircuitBreakerTests: XCTestCase {
   }
 
   func simpleCtxFunction(invocation: Invocation<(Bool), Void, Void>) {
-    invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure()
+    invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure(error: "There was an error")
   }
 
   // There is no 1-tuple in Swift...
@@ -95,6 +97,9 @@ class CircuitBreakerTests: XCTestCase {
       timedOut = true
     case .fastFail:
       fastFailed = true
+    case .invocationError:
+      invocationErrored = true
+      
     }
     // Validate the outcome was the desired one
     XCTAssertEqual(error, expectedError, "Breaker error was not the expected one.")
@@ -429,6 +434,27 @@ class CircuitBreakerTests: XCTestCase {
     let breaker = CircuitBreaker(contextCommand: asyncWrapper, fallback: dummyFallback)
     breaker.run(commandArgs: (a: 3, b: 4), fallbackArgs: ())
 
+    waitForExpectations(timeout: 10, handler: { _ in
+      XCTAssertEqual(breaker.breakerState, State.closed)
+    })
+  }
+
+  // Test Failing fallback for user called error
+  func testFailingAsyncFallback() {
+    let expectation1 = expectation(description: "Fallback called")
+    
+    func failingCommand(invocation: Invocation<Void, Void, Void>) {
+      invocation.notifyFailure(error: "The networking request failed!")
+    }
+
+    func fallback(error: BreakerError, _: Void) -> Void {
+      XCTAssertEqual(error, BreakerError.invocationError(error: "The networking request failed!"))
+      expectation1.fulfill()
+    }
+
+    let breaker = CircuitBreaker(contextCommand: failingCommand, fallback: fallback)
+    breaker.run(commandArgs: (), fallbackArgs: ())
+    
     waitForExpectations(timeout: 10, handler: { _ in
       XCTAssertEqual(breaker.breakerState, State.closed)
     })

@@ -30,13 +30,36 @@ public enum State {
 }
 
 /// Breaker Error
-public enum BreakerError {
+public enum BreakerError: CustomStringConvertible {
 
   /// The command timed out
   case timeout
 
   /// The command is failing fast
   case fastFail
+
+  /// The command failed during context command invocation
+  case invocationError(error: String)
+  
+  public var description: String {
+    switch self {
+    case .timeout: return "Breaker Timeout Error"
+    case .fastFail: return "Breaker Fast Fail Error"
+    case .invocationError(let error): return "Breaker Invocation Error: \(error)"
+    }
+  }
+}
+
+extension BreakerError: Equatable {
+
+  public static func ==(lhs: BreakerError, rhs: BreakerError) -> Bool {
+    switch (lhs, rhs) {
+    case (.timeout, .timeout)                                 : return true
+    case (.fastFail, .fastFail)                               : return true
+    case (.invocationError(let e1), .invocationError(let e2)) : return e1 == e2
+    default                                                   : return false
+    }
+  }
 }
 
 extension Date {

@@ -127,7 +127,9 @@ public class CircuitBreaker<A, B, C> {
     breakerStats.trackRequest()
     
     switch breakerState {
-    case .open: fastFail(fallbackArgs: fallbackArgs)
+    case .open:
+      fastFail(fallbackArgs: fallbackArgs)
+
     case .halfopen:
       
       let startTime = Date()
@@ -166,8 +168,8 @@ public class CircuitBreaker<A, B, C> {
   }
 
   /// Method to force the circuit open
-  public func notifyFailure() {
-    handleFailure()
+  public func notifyFailure(error: BreakerError, fallbackArgs: C) {
+    handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
   /// Method to force the circuit open
@@ -194,6 +196,7 @@ public class CircuitBreaker<A, B, C> {
     breakerState = .halfopen
   }
 
+  /// Wrapper for calling and handling CircuitBreaker command
   private func callFunction(commandArgs: A, fallbackArgs: C) {
 
     var completed = false
@@ -206,13 +209,11 @@ public class CircuitBreaker<A, B, C> {
       } else {
         completed = true
         semaphoreCompleted.signal()
-        if error {
-          _self?.handleFailure()
-          //Note: fallback function is only invoked when failing fast OR when timing out
-          let _ = fallback(.timeout, fallbackArgs)
-        } else {
-          _self?.handleSuccess()
-        }
+        
+        error ? _self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)
+                :
+                _self?.handleSuccess()
+
         return
       }
     }
@@ -224,8 +225,9 @@ public class CircuitBreaker<A, B, C> {
 
       let _ = command(commandArgs)
       complete(error: false)
+
     } else if let contextCommand = self.contextCommand {
-      let invocation = Invocation(breaker: self, commandArgs: commandArgs)
+      let invocation = Invocation(breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
 
       setTimeout() { [weak invocation] in
         if invocation?.completed == false {
@@ -238,6 +240,7 @@ public class CircuitBreaker<A, B, C> {
     }
   }
 
+  /// Wrapper for setting the command timeout and updating breaker stats
   private func setTimeout(closure: @escaping () -> ()) {
     queue.asyncAfter(deadline: .now() + .milliseconds(self.timeout)) { [weak self] in
       self?.breakerStats.trackTimeouts()
@@ -245,15 +248,18 @@ public class CircuitBreaker<A, B, C> {
     }
   }
 
+  /// The Current number of failures
   internal var numberOfFailures: Int {
     get {
       return failures.count
     }
   }
 
-  private func handleFailure() {
+  /// Handler for a circuit failure. 
+  private func handleFailure(error: BreakerError, fallbackArgs: C) {
     semaphoreCircuit.wait()
     Log.verbose("Handling failure...")
+
     // Add a new failure
     failures.add(Date.currentTimeMillis())
 
@@ -265,8 +271,9 @@ public class CircuitBreaker<A, B, C> {
       semaphoreCircuit.signal()
     }
 
-    if (state == State.halfopen) {
+    if state == .halfopen {
       Log.verbose("Failed in halfopen state.")
+      let _ = fallback(error, fallbackArgs)
       open()
       return
     }
@@ -274,16 +281,20 @@ public class CircuitBreaker<A, B, C> {
     if let timeWindow = timeWindow {
       if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
         Log.verbose("Reached maximum number of failures allowed before tripping circuit.")
+        let _ = fallback(error, fallbackArgs)
         open()
         return
       }
     }
+    
+    let _ = fallback(error, fallbackArgs)
   }
 
+  /// Command Success handler
   private func handleSuccess() {
     semaphoreCircuit.wait()
     Log.verbose("Handling success...")
-    if state == State.halfopen {
+    if state == .halfopen {
       close()
     }
     breakerStats.trackSuccessfulResponse()
@@ -297,7 +308,7 @@ public class CircuitBreaker<A, B, C> {
   private func close() {
     // Remove all failures (i.e. reset failure counter to 0)
     failures.clear()
-    breakerState = State.closed
+    breakerState = .closed
   }
 
   /**
@@ -305,16 +316,18 @@ public class CircuitBreaker<A, B, C> {
   * Otherwise, resulting behavior may be unexpected.
   */
   private func open() {
-    breakerState = State.open
+    breakerState = .open
     startResetTimer(delay: .milliseconds(resetTimeout))
   }
 
+  /// Fast Fail Handler
   private func fastFail(fallbackArgs: C) {
     Log.verbose("Breaker open... failing fast.")
     breakerStats.trackRejected()
     let _ = fallback(.fastFail, fallbackArgs)
   }
 
+  /// Reset Timer Setup Method
   private func startResetTimer(delay: DispatchTimeInterval) {
     // Cancel previous timer if any
     resetTimer?.cancel()

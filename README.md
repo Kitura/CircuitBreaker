@@ -118,8 +118,10 @@ breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: "Something went wrong.")
 1. Define a fallback function with the signature `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`:
 ```swift
 func myFallback(err: BreakerError, msg: String) {
-    // The fallback will be called if the request does not return before the specified timeout
-    // or if the CircuitBreaker is currently in Open state and set to fail fast.
+    // The fallback will be called if one of the below occurs:
+    //  1. The request does not return before the specified timeout
+    //  2. The CircuitBreaker is currently in Open state and set to fail fast.
+    //  3. There was an error in the user's called context function (networking error, etc.)
     Log.verbose("Error: \(error)")
     Log.verbose("Message: \(msg)")
 }
@@ -151,7 +153,7 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 
       ...
 
-      invocation.notifyFailure()
+      invocation.notifyFailure(error: "Failed to get a result from the server")
       return
     }
 
@@ -200,7 +202,7 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 
     ...
 
-    invocation.notifyFailure()
+    invocation.notifyFailure(error: "Could not parse URL")
   }
 
   var req = URLRequest(url: url)
@@ -215,7 +217,7 @@ func myContextFunction(invocation: Invocation<(String), Void, String>) {
 
       ...
 
-      invocation.notifyFailure()
+      invocation.notifyFailure(error: "Unexpected result from server")
       return
     }
 

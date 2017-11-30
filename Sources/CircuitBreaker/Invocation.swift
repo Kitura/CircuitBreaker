@@ -22,6 +22,9 @@ public class Invocation<A, B, C> {
   /// Arguments for circuit command
   public let commandArgs: A
 
+  /// Arguments for circuit fallback
+  public let fallbackArgs: C
+
   /// Timeout state of invocation
   private(set) var timedOut: Bool = false
 
@@ -35,9 +38,10 @@ public class Invocation<A, B, C> {
   ///   - breaker CircuitBreaker Instance
   ///   - commandArgs Arguments for command context
   ///
-  public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A) {
-    self.commandArgs = commandArgs
+  public init(breaker: CircuitBreaker<A, B, C>, commandArgs: A, fallbackArgs: C) {
     self.breaker = breaker
+    self.commandArgs = commandArgs
+    self.fallbackArgs = fallbackArgs
   }
 
   /// Marks invocation as having timed out
@@ -50,7 +54,7 @@ public class Invocation<A, B, C> {
     self.completed = true
   }
 
-  /// Notifies the circuit breaker of success if a timeout has not occurred
+  /// Notifies the circuit breaker of success if a timeout has not already been triggered
   public func notifySuccess() {
     if !self.timedOut {
       self.setCompleted()
@@ -58,11 +62,15 @@ public class Invocation<A, B, C> {
     }
   }
  
-  /// Notifies the circuit breaker of success if a timeout has not alreadt occurred
-  public func notifyFailure() {
+  /// Notifies the circuit breaker of success if a timeout has not already been triggered
+  /// - Parameters:
+  ///   - error: The corresponding error msg
+  ///
+  public func notifyFailure(error: String) {
     if !self.timedOut {
+      // There was an error within the invocated function
       self.setCompleted()
-      breaker?.notifyFailure()
+      breaker?.notifyFailure(error: .invocationError(error: error), fallbackArgs: fallbackArgs)
     }
   }
 }
