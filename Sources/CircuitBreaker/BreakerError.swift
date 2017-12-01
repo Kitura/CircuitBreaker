@@ -16,21 +16,78 @@
 
 import Foundation
 
-public struct BreakerError: Error, Equatable {
-    
-    let key: String
-    
-    let reason: String?
+/** An Error representing a failure within the CircuitBreaker call
 
-    init(key: String? = nil, reason: String? = nil) {
-        self.key = key ?? UUID().uuidString
-        self.reason = reason
+    ** BreakerError is intendend to be extended to describe command context errors **
+ 
+    ### Usage Example: ###
+    ````
+    extension BreakerError {
+      public static let URLEncodingError = BreakerError(reason: "URL Could Not Be Found")
+      public static let responseError = BreakerError(reason: "Invalid Response Error")
     }
 
-    public static func ==(lhs: BreakerError, rhs: BreakerError) -> Bool {
-        return lhs.key == rhs.key
-    }
+    func myContextFunction(invocation: Invocation<(String), Void, String>) {
+      guard let url = URL(string: "http://mysever.net/path/\(invocation.commandArgs)") else {
+        invocation.notifyFailure(error: BreakerError.URLEncodingError)
+      }
 
-    public static let timeout = BreakerError()
-    public static let fastFail = BreakerError()
+      URLSession.shared.dataTask(with: URLRequest(url: url)) { result, res, err in
+        guard let result = result else {
+          invocation.notifyFailure(error: BreakerError.responseError)
+          return
+        }
+
+        invocation.notifySuccess()
+      }.resume()
+    }
+  ````
+*/
+public struct BreakerError: Error {
+  
+  /// Unique key for a breaker error
+  let key: String
+
+  /// String descibing the error
+  let reason: String?
+
+  /// Breaker Error Initializer
+  ///
+  /// - Parameters
+  ///   - key: Optional string key for the error
+  ///   - reason: Optional string describing the error
+  init(key: String? = nil, reason: String? = nil) {
+      self.key = key ?? UUID().uuidString
+      self.reason = reason
+  }
+
+  /// Convenienve Breaker Error Initializer
+  ///
+  /// - Parameters
+  ///   - reason: Optional string describing the error
+  init(reason: String? = nil) {
+    self.init(key: nil, reason: reason)
+  }
+
+  /// MARK - Build-in Errors
+
+  /// Command Timeout Error
+  public static let timeout = BreakerError(key: "Timeout", reason: "A timeout occurred")
+
+  /// Circuit is open - error denoting failing fast state
+  public static let fastFail = BreakerError(key: "Fast Fail", reason: "An error occurred in an open state. Failing fast.")
+}
+
+/// Protocol Conformance Extension
+extension BreakerError: CustomStringConvertible, Equatable {
+  
+  /// A textual description of the BreakerError instance containing the reason.
+  public var description: String {
+    return "BreakerError : \(reason ?? "There was an error.")"
+  }
+
+  /// Indicates whether two breaker errors are the same.
+  public static func ==(lhs: BreakerError, rhs: BreakerError) -> Bool {
+    return lhs.key == rhs.key
+  }
 }

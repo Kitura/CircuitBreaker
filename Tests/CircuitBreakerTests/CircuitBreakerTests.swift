@@ -23,7 +23,6 @@ import Dispatch
 @testable import CircuitBreaker
 
 extension BreakerError {
-    public static let URLEncoding = BreakerError(reason: "URL Could Not Be Found")
     public static let networking = BreakerError(reason: "URL Could Not Be Found")
     public static let generic = BreakerError(reason: "There was an error")
 }

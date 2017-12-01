@@ -29,7 +29,10 @@ public enum State {
   case closed
 }
 
+/// Date Utils
 extension Date {
+  
+  /// Returns the current time in milliseconds
   public static func currentTimeMillis() -> UInt64 {
     let timeInMillis = UInt64(NSDate().timeIntervalSince1970 * 1000.0)
     return timeInMillis
