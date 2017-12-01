@@ -42,23 +42,23 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 If the function you are circuit breaking makes an asynchronous call(s) and the execution time of that call should be taking into account, then see [`Advanced Usage`](#advanced-usage) below.
 
 1. Define a fallback function with the signature `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`:
-```swift
-func myFallback(err: BreakerError, msg: String) {
-    // The fallback will be called if the request does not return before the specified timeout
-    // or if the CircuitBreaker is currently in Open state and set to fail fast.
-    // Client code can use the fallback function to do alternate processing, such as show an error page.
-    Log.verbose("Error: \(error)")
-    Log.verbose("Message: \(msg)")
-}
-```
+  ```swift
+  func myFallback(err: BreakerError, msg: String) {
+      // The fallback will be called if the request does not return before the specified timeout
+      // or if the CircuitBreaker is currently in Open state and set to fail fast.
+      // Client code can use the fallback function to do alternate processing, such as show an error page.
+      Log.verbose("Error: \(error)")
+      Log.verbose("Message: \(msg)")
+  }
+  ```
 
-Note that if you need your fallback function to receive more than one value after the `BreakerError` parameter, then you need to define a tuple to contain those values:
+  Note that if you need your fallback function to receive more than one value after the `BreakerError` parameter, then you need to define a tuple to contain those values:
 
-```swift
-func myOtherFallback(error: BreakerError, strs: (str1: String, str2: String)) -> Void {
-    // do stuff
-}
-```
+  ```swift
+  func myOtherFallback(error: BreakerError, strs: (str1: String, str2: String)) -> Void {
+      // do stuff
+  }
+  ```
 
 2. Create a function to circuit break:
 ```swift

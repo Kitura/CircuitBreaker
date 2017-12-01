@@ -66,11 +66,11 @@ public class Invocation<A, C> {
   /// - Parameters:
   ///   - error: The corresponding error msg
   ///
-  public func notifyFailure(error: String) {
+  public func notifyFailure(error: BreakerError) {
     if !self.timedOut {
       // There was an error within the invocated function
       self.setCompleted()
-      breaker?.notifyFailure(error: .invocationError(error: error), fallbackArgs: fallbackArgs)
+      breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
     }
   }
 }

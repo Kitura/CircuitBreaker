@@ -22,6 +22,12 @@ import Dispatch
 
 @testable import CircuitBreaker
 
+extension BreakerError {
+    public static let URLEncoding = BreakerError(reason: "URL Could Not Be Found")
+    public static let networking = BreakerError(reason: "URL Could Not Be Found")
+    public static let generic = BreakerError(reason: "There was an error")
+}
+
 class CircuitBreakerTests: XCTestCase {
 
   // Test static vars
@@ -88,7 +94,7 @@ class CircuitBreakerTests: XCTestCase {
   }
 
   func simpleCtxFunction(invocation: Invocation<(Bool), Void>) {
-    invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure(error: "There was an error")
+    invocation.commandArgs ? invocation.notifySuccess() : invocation.notifyFailure(error: .generic)
   }
 
   // There is no 1-tuple in Swift...
@@ -99,7 +105,7 @@ class CircuitBreakerTests: XCTestCase {
       timedOut = true
     case .fastFail:
       fastFailed = true
-    case .invocationError:
+    default:
       invocationErrored = true
       
     }
@@ -446,11 +452,11 @@ class CircuitBreakerTests: XCTestCase {
     let expectation1 = expectation(description: "Fallback called")
     
     func failingCommand(invocation: Invocation<Void, Void>) {
-      invocation.notifyFailure(error: "The networking request failed!")
+      invocation.notifyFailure(error: BreakerError.networking)
     }
 
     func fallback(error: BreakerError, _: Void) -> Void {
-      XCTAssertEqual(error, BreakerError.invocationError(error: "The networking request failed!"))
+      XCTAssertEqual(error, BreakerError.networking)
       expectation1.fulfill()
     }
 
@@ -467,11 +473,11 @@ class CircuitBreakerTests: XCTestCase {
     let expectation1 = expectation(description: "Fallback called")
   
     func failingCommand(invocation: Invocation<Bool, Void>) {
-      invocation.notifyFailure(error: "The networking request failed!")
+      invocation.notifyFailure(error: BreakerError.networking)
     }
 
     func fallback(error: BreakerError, _: Void) -> Void {
-      XCTAssertEqual(error, BreakerError.invocationError(error: "The networking request failed!"))
+      XCTAssertEqual(error, BreakerError.networking)
       expectation1.fulfill()
     }
     
