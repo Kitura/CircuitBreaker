@@ -69,24 +69,21 @@ func myFunction(a: Int, b: Int) -> Void {
 ```
 
 3. Create a CircuitBreaker instance for each endpoint you wish to circuit break:
-  * Must specify the fallback function, and the endpoint to circuit break.
-  * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead.
 ```swift
 let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
 ```
-
+    * Must specify the fallback function, and the endpoint to circuit break.
+    * Optional configurations include: timeout, resetTimeout, maxFailures, and bulkhead.
 4. Invoke the call to the function by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the command and fallback closures. In this sample, `myFunction` takes two integers as parameters while `myFallback` takes a string as its second parameter:
-
 ```swift
 breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
 ```
-
- * May be called multiple times with varied input:
+May be called multiple times with varied input:
 ```swift
 breaker.run(commandArgs: (a: 15, b: 35), fallbackArgs: "Something went wrong.")
 ```
 
-Full Implementation:
+##### Full Implementation:
 ```swift
 ...
 
@@ -126,9 +123,14 @@ func myFallback(err: BreakerError, msg: String) {
     Log.verbose("Message: \(msg)")
 }
 ```
-
-2. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an `Invocation` object as its parameter. An instance of the `Invocation` class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:
-
+2. Extend BreakerError by defining your own error handling to be used in your context function.
+'''
+extension BreakerError {
+    public static let URLEncodingError = BreakerError(reason: "URL could not be created")
+    public static let NetworkingError = BreakerError(reason: "There was an error, while sending the request")
+}
+'''
+3. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an `Invocation` object as its parameter. An instance of the `Invocation` class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:
 ```swift
 func myContextFunction(invocation: Invocation<(String), String>) {
   let requestParam = invocation.commandArgs
@@ -168,21 +170,20 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 }
 ```
 
-3. Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break:
-  * Must specify the fallback function and the endpoint to circuit break
-  * Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
+4. Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break:
 ```swift
 let breaker = CircuitBreaker(contextCommand: myContextFunction, fallback: myFallback)
 ```
+    * Must specify the fallback function and the endpoint to circuit break
+    * Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
 
-4. Invoke the call to the endpoint by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the context command and fallback closures. In this sample, `myContextFunction` takes a string as its parameter while `myFallback` takes a string as its second parameter:
-
+5. Invoke the call to the endpoint by calling the CircuitBreaker `run()` method. You should pass the corresponding arguments for the context command and fallback closures. In this sample, `myContextFunction` takes a string as its parameter while `myFallback` takes a string as its second parameter:
 ```swift
 let id: String = ...
 breaker.run(commandArgs: id, fallbackArgs: "Something went wrong.")
 ```
 
-Full Implementation:
+##### Full Implementation:
 
 ```swift
 ...
