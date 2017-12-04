@@ -124,12 +124,12 @@ func myFallback(err: BreakerError, msg: String) {
 }
 ```
 2. Extend BreakerError by defining your own error handling to be used in your context function.
-'''
+```swift
 extension BreakerError {
     public static let URLEncodingError = BreakerError(reason: "URL could not be created")
     public static let NetworkingError = BreakerError(reason: "There was an error, while sending the request")
 }
-'''
+```
 3. Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an `Invocation` object as its parameter. An instance of the `Invocation` class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:
 ```swift
 func myContextFunction(invocation: Invocation<(String), String>) {
@@ -140,7 +140,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 
     ...
 
-    invocation.notifyFailure(error: "Could not parse URL")
+    invocation.notifyFailure(error: BreakerError.URLEncodingError)
   }
 
   var req = URLRequest(url: url)
@@ -155,7 +155,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 
       ...
 
-      invocation.notifyFailure(error: "Failed to get a result from the server")
+      invocation.notifyFailure(error: BreakerError.NetworkingError)
       return
     }
 
@@ -188,6 +188,11 @@ breaker.run(commandArgs: id, fallbackArgs: "Something went wrong.")
 ```swift
 ...
 
+extension BreakerError {
+    public static let URLEncodingError = BreakerError(reason: "URL could not be created")
+    public static let NetworkingError = BreakerError(reason: "There was an error, while sending the request")
+}
+
 func myFallback(err: BreakerError, msg: String) {
     // The fallback will be called if one of the below occurs:
     //  1. The request does not return before the specified timeout
@@ -205,7 +210,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 
     ...
 
-    invocation.notifyFailure(error: "Could not parse URL")
+    invocation.notifyFailure(error: BreakerError.URLEncodingError)
   }
 
   var req = URLRequest(url: url)
@@ -220,7 +225,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 
       ...
 
-      invocation.notifyFailure(error: "Unexpected result from server")
+      invocation.notifyFailure(error: BreakerError.NetworkingError)
       return
     }
 
