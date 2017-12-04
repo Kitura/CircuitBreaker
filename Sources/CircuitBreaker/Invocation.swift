@@ -18,7 +18,7 @@ import Foundation
 
 /// Invocation entity
 public class Invocation<A, C> {
-  
+
   /// Arguments for circuit command
   public let commandArgs: A
 
@@ -61,7 +61,7 @@ public class Invocation<A, C> {
       breaker?.notifySuccess()
     }
   }
- 
+
   /// Notifies the circuit breaker of success if a timeout has not already been triggered
   /// - Parameters:
   ///   - error: The corresponding error msg

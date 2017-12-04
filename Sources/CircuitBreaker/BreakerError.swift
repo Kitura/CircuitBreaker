@@ -19,7 +19,7 @@ import Foundation
 /** An Error representing a failure within the CircuitBreaker call
 
     ** BreakerError is intendend to be extended to describe command context errors **
- 
+
     ### Usage Example: ###
     ````
     extension BreakerError {
@@ -44,7 +44,7 @@ import Foundation
   ````
 */
 public struct BreakerError: Error {
-  
+
   /// Unique key for a breaker error
   let key: String
 
@@ -80,7 +80,7 @@ public struct BreakerError: Error {
 
 /// Protocol Conformance Extension
 extension BreakerError: CustomStringConvertible, Equatable {
-  
+
   /// A textual description of the BreakerError instance containing the reason.
   public var description: String {
     return "BreakerError : \(reason ?? "There was an error.")"

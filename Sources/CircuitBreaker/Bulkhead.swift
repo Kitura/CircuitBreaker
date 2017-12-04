@@ -22,13 +22,13 @@ class Bulkhead {
     private let serialQueue: DispatchQueue
     private let concurrentQueue: DispatchQueue
     private let semaphore: DispatchSemaphore
-    
+
     init(limit: Int) {
         serialQueue = DispatchQueue(label: "bulkheadSerialQueue")
         concurrentQueue = DispatchQueue(label: "bulkheadConcurrentQueue", attributes: .concurrent)
         semaphore = DispatchSemaphore(value: limit)
     }
-    
+
     func enqueue(task: @escaping () -> Void ) {
         serialQueue.async { [weak self] in
             self?.semaphore.wait()
