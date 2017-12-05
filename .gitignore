@@ -3,3 +3,4 @@ Packages
 build/
 *.xcodeproj
 *.DS_Store
+Package.resolved
