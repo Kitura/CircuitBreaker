@@ -66,7 +66,6 @@ public class CircuitBreaker<A, C> {
   /// Current State of the Circuit
   private(set) var state = State.closed
 
-
   private let failures: FailureQueue
   private let command: AnyFunction<A>?
   private let fallback: AnyFallback<C>
@@ -126,7 +125,6 @@ public class CircuitBreaker<A, C> {
     self.init(name: name, group: group, timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
   }
 
-
   // MARK: Class Methods
 
   /// Runs the circuit using the provided arguments
@@ -149,8 +147,7 @@ public class CircuitBreaker<A, C> {
           bulkhead.enqueue {
               self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
-      }
-      else {
+      } else {
           callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
 
@@ -164,8 +161,7 @@ public class CircuitBreaker<A, C> {
           bulkhead.enqueue {
               self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
-      }
-      else {
+      } else {
           callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
 
@@ -212,7 +208,7 @@ public class CircuitBreaker<A, C> {
 
     var completed = false
 
-    func complete(error: Bool) -> () {
+    func complete(error: Bool) {
       weak var _self = self
       semaphoreCompleted.wait()
       if completed {
@@ -234,7 +230,7 @@ public class CircuitBreaker<A, C> {
         complete(error: true)
       }
 
-      let _ = command(commandArgs)
+      _ = command(commandArgs)
       complete(error: false)
 
     } else if let contextCommand = self.contextCommand {
@@ -247,7 +243,7 @@ public class CircuitBreaker<A, C> {
         }
       }
 
-      let _ = contextCommand(invocation)
+      _ = contextCommand(invocation)
     }
   }
 
@@ -284,7 +280,7 @@ public class CircuitBreaker<A, C> {
 
     if state == .halfopen {
       Log.verbose("Failed in halfopen state.")
-      let _ = fallback(error, fallbackArgs)
+      _ = fallback(error, fallbackArgs)
       open()
       return
     }
@@ -292,13 +288,13 @@ public class CircuitBreaker<A, C> {
     if let timeWindow = timeWindow {
       if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
         Log.verbose("Reached maximum number of failures allowed before tripping circuit.")
-        let _ = fallback(error, fallbackArgs)
+        _ = fallback(error, fallbackArgs)
         open()
         return
       }
     }
 
-    let _ = fallback(error, fallbackArgs)
+    _ = fallback(error, fallbackArgs)
   }
 
   /// Command Success handler
@@ -335,7 +331,7 @@ public class CircuitBreaker<A, C> {
   private func fastFail(fallbackArgs: C) {
     Log.verbose("Breaker open... failing fast.")
     breakerStats.trackRejected()
-    let _ = fallback(.fastFail, fallbackArgs)
+    _ = fallback(.fastFail, fallbackArgs)
   }
 
   /// Reset Timer Setup Method
@@ -357,8 +353,8 @@ public class CircuitBreaker<A, C> {
 
 extension CircuitBreaker: HystrixProvider {
 
-  /// Method to create link a Hystrix Monitor Instance
-  public func addMonitor(monitor: Monitor) {
+  /// Method to create link a Hystrix HystrixMonitor Instance
+  public func addMonitor(monitor: HystrixMonitor) {
     monitor.register(breakerRef: self)
   }
 
@@ -391,9 +387,9 @@ extension CircuitBreaker: HystrixProvider {
       "latencyExecute": breakerStats.latencyExecute,
       "latencyTotal_mean": 15,
       "latencyTotal": breakerStats.latencyTotal,
-      "propertyValue_circuitBreakerRequestVolumeThreshold": 0,//json.waitThreshold,
-      "propertyValue_circuitBreakerSleepWindowInMilliseconds": 0,//json.circuitDuration,
-      "propertyValue_circuitBreakerErrorThresholdPercentage": 0,//json.threshold,
+      "propertyValue_circuitBreakerRequestVolumeThreshold": 0, //json.waitThreshold,
+      "propertyValue_circuitBreakerSleepWindowInMilliseconds": 0, //json.circuitDuration,
+      "propertyValue_circuitBreakerErrorThresholdPercentage": 0, //json.threshold,
       "propertyValue_circuitBreakerForceOpen": false,  // not reported
       "propertyValue_circuitBreakerForceClosed": false,  // not reported
       "propertyValue_circuitBreakerEnabled": true,  // not reported
