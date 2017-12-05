@@ -20,6 +20,8 @@ import LoggerAPI
 /// Circuit Breaker Stats
 public class Stats {
 
+  /// Mark - Internally tracked Stats
+
   /// Number of timeouts
   internal(set) public var timeouts: Int = 0
 
@@ -38,35 +40,67 @@ public class Stats {
   /// Array of request latencies
   internal(set) public var latencies: [Int] = []
 
+  /// Mark - Computed Statistics
+
   /// Method returning the cumulative latency
-  public func totalLatency() -> Int {
+  public var totalLatency: Int {
     return latencies.reduce(0, +)
   }
 
   /// Method returning the average response time
-  public func averageResponseTime() -> Int {
+  public var averageResponseTime: Int {
     if latencies.count == 0 {
       return 0
     }
-    return totalLatency() / latencies.count
+    return totalLatency / latencies.count
   }
 
   /// Method returning the number of concurrent requests
-  public func concurrentRequests() -> Int {
+  public var concurrentRequests: Int {
     let totalResponses = successfulResponses + failedResponses + rejectedRequests
     return totalRequests - totalResponses
+  }
+
+  ///
+  public var errorPercentage: Int {
+    return 0
+  }
+
+  ///
+  public var errorCount: Int {
+    return rejectedRequests
+  }
+
+  ///
+  public var latencyExecute: [Double: Int] {
+    return [:]
+  }
+
+  ///
+  public var latencyTotal: [Double: Int] {
+    return [:]
+  }
+
+  /// Number of failed executions (Both rejected and failed responses)
+  public var failed: Int {
+    return rejectedRequests + failedResponses
+  }
+
+  /// Number of successful executions
+  public var successful: Int {
+    return successfulResponses
   }
 
   /// Method to log current snapshot of CircuitBreaker
   public func snapshot () {
     Log.verbose("Total Requests: \(totalRequests)")
-    Log.verbose("Concurrent Requests: \(concurrentRequests())")
+    Log.verbose("Concurrent Requests: \(concurrentRequests)")
     Log.verbose("Rejected Requests: \(rejectedRequests)")
     Log.verbose("Successful Responses: \(successfulResponses)")
-    Log.verbose("Average Response Time: \(averageResponseTime())")
+    Log.verbose("Average Response Time: \(averageResponseTime)")
     Log.verbose("Failed Responses: \(failedResponses)")
     Log.verbose("Total Timeouts: \(timeouts)")
-    Log.verbose("Total Latency: \(totalLatency())")
+    Log.verbose("Total Latency: \(totalLatency)")
   }
 
   func trackTimeouts() {

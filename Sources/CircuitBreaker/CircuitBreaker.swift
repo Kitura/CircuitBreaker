@@ -32,6 +32,12 @@ public class CircuitBreaker<A, C> {
 
   // MARK: Public Fields
 
+  /// Name of Circuit Breaker Instance
+  public private(set) var name: String
+
+  // Name of Circuit Breaker Group
+  public private(set) var group: String?
+
   /// Execution timeout for command contect (Default: 1000 ms)
   public let timeout: Int
 
@@ -45,7 +51,7 @@ public class CircuitBreaker<A, C> {
   public let rollingWindow: Int
 
   /// Instance of Circuit Breaker Stats
-  public let breakerStats = Stats()
+  public var breakerStats = Stats()
 
   /// The Breaker's Current State
   public private(set) var breakerState: State {
@@ -57,7 +63,10 @@ public class CircuitBreaker<A, C> {
     }
   }
 
+  /// Current State of the Circuit
   private(set) var state = State.closed
+
+
   private let failures: FailureQueue
   private let command: AnyFunction<A>?
   private let fallback: AnyFallback<C>
@@ -73,7 +82,9 @@ public class CircuitBreaker<A, C> {
 
   // MARK: Initializers
 
-  private init(timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A>)?, contextCommand: (AnyContextFunction<A>)?, fallback: @escaping AnyFallback<C>) {
+  private init(name: String, group: String?, timeout: Int, resetTimeout: Int, maxFailures: Int, rollingWindow: Int, bulkhead: Int, command: (AnyFunction<A>)?, contextCommand: (AnyContextFunction<A>)?, fallback: @escaping AnyFallback<C>) {
+    self.name = name
+    self.group = group
     self.timeout = timeout
     self.resetTimeout = resetTimeout
     self.maxFailures = maxFailures
@@ -96,8 +107,8 @@ public class CircuitBreaker<A, C> {
   ///   - command: Function to circuit break (basic usage constructor).
   ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A>, fallback: @escaping AnyFallback<C>) {
-    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: command, contextCommand: nil, fallback: fallback)
+  public convenience init(name: String, group: String? = nil, timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, command: @escaping AnyFunction<A>, fallback: @escaping AnyFallback<C>) {
+    self.init(name: name, group: group, timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: command, contextCommand: nil, fallback: fallback)
   }
 
   /// Initializes CircuitBreaker instance with syncronous context command (Advanced usage)
@@ -111,9 +122,10 @@ public class CircuitBreaker<A, C> {
   ///   - contextCommand: Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance; advanced usage constructor).
   ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public convenience init(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A>, fallback: @escaping AnyFallback<C>) {
-    self.init(timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
+  public convenience init(name: String, group: String? = nil, timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int = 5, rollingWindow: Int = 10000, bulkhead: Int = 0, contextCommand: @escaping AnyContextFunction<A>, fallback: @escaping AnyFallback<C>) {
+    self.init(name: name, group: group, timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, bulkhead: bulkhead, command: nil, contextCommand: contextCommand, fallback: fallback)
   }
+
 
   // MARK: Class Methods
 
@@ -340,5 +352,61 @@ public class CircuitBreaker<A, C> {
     resetTimer?.schedule(deadline: .now() + delay)
 
     resetTimer?.resume()
+  }
+}
+
+extension CircuitBreaker: HystrixProvider {
+
+  /// Method to create link a Hystrix Monitor Instance
+  public func addMonitor(monitor: Monitor) {
+    monitor.register(breakerRef: self)
+  }
+
+  /// Property to computer hystrix snapshot
+  public var hystrixSnapshot: [String: Any] {
+    return  [
+      "type": "HystrixCommand",
+      "name": name,
+      "group": group ?? "",
+      "currentTime": Date().timeIntervalSinceNow,
+      "isCircuitBreakerOpen": breakerState == .open,
+      "errorPercentage": breakerStats.errorPercentage,
+      "errorCount": breakerStats.errorCount,
+      "requestCount": breakerStats.totalRequests,
+      "rollingCountBadRequests": 0, // not reported
+      "rollingCountCollapsedRequests": 0, // not reported
+      "rollingCountExceptionsThrown": 0, // not reported
+      "rollingCountFailure": breakerStats.failed,
+      "rollingCountFallbackFailure": 0, // not reported
+      "rollingCountFallbackRejection": 0, // not reported
+      "rollingCountFallbackSuccess": 0, // not reported
+      "rollingCountResponsesFromCache": 0, // not reported
+      "rollingCountSemaphoreRejected": 0, // not reported
+      "rollingCountShortCircuited": breakerStats.rejectedRequests,
+      "rollingCountSuccess": breakerStats.successful,
+      "rollingCountThreadPoolRejected": 0, // not reported
+      "rollingCountTimeout": breakerStats.timeouts,
+      "currentConcurrentExecutionCount": 0, // not reported
+      "latencyExecute_mean": breakerStats.averageResponseTime,
+      "latencyExecute": breakerStats.latencyExecute,
+      "latencyTotal_mean": 15,
+      "latencyTotal": breakerStats.latencyTotal,
+      "propertyValue_circuitBreakerRequestVolumeThreshold": 0,//json.waitThreshold,
+      "propertyValue_circuitBreakerSleepWindowInMilliseconds": 0,//json.circuitDuration,
+      "propertyValue_circuitBreakerErrorThresholdPercentage": 0,//json.threshold,
+      "propertyValue_circuitBreakerForceOpen": false,  // not reported
+      "propertyValue_circuitBreakerForceClosed": false,  // not reported
+      "propertyValue_circuitBreakerEnabled": true,  // not reported
+      "propertyValue_executionIsolationStrategy": "THREAD",  // not reported
+      "propertyValue_executionIsolationThreadTimeoutInMilliseconds": 800,  // not reported
+      "propertyValue_executionIsolationThreadInterruptOnTimeout": true, // not reported
+      //"propertyValue_executionIsolationThreadPoolKeyOverride": nil, // not reported
+      "propertyValue_executionIsolationSemaphoreMaxConcurrentRequests": 20, //  not reported
+      "propertyValue_fallbackIsolationSemaphoreMaxConcurrentRequests": 10, //  not reported
+      "propertyValue_metricsRollingStatisticalWindowInMilliseconds": 10000, //  not reported
+      "propertyValue_requestCacheEnabled": false,  // not reported
+      "propertyValue_requestLogEnabled": false,  // not reported
+      "reportingHosts": 1  // not reported
+    ]
   }
 }
