@@ -118,9 +118,13 @@ class CircuitBreakerTests: XCTestCase {
   }
 
   func time(milliseconds: Int) {
+    #if os(Linux)
+    usleep(UInt32(milliseconds * 1000))
+    #else
     RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.001))
     let time: Double = Double(milliseconds) / 1000
     RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: time))
+    #endif
   }
 
   func timeCtxFunction(invocation: Invocation<(Int), BreakerError>) {
@@ -232,8 +236,6 @@ class CircuitBreakerTests: XCTestCase {
   // Force open state, then breaker should enter half open state after reset timeout.
   func testHalfOpenResetTimeout() {
     let resetTimeout = 100
-    let deadline = dispatchTime(afterMs: resetTimeout * 2)
-
     let breaker = CircuitBreaker(timeout: 100, resetTimeout: resetTimeout, command: test, fallback: fallbackFunction)
 
     // Force open
