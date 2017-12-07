@@ -18,7 +18,7 @@ import Foundation
 
 /// State
 public enum State {
-  
+
   /// The circuit is open i.e. broken
   case open
 
@@ -29,43 +29,9 @@ public enum State {
   case closed
 }
 
-/// Breaker Error
-public enum BreakerError: CustomStringConvertible {
-
-  /// The command timed out
-  case timeout
-
-  /// The command is failing fast
-  case fastFail
-
-  /// The command failed during context command invocation
-  case invocationError(error: String)
-  
-  public var description: String {
-    switch self {
-    case .timeout: return "Breaker Timeout Error"
-    case .fastFail: return "Breaker Fast Fail Error"
-    case .invocationError(let error): return "Breaker Invocation Error: \(error)"
-    }
-  }
-}
-
-extension BreakerError: Equatable {
-
-  public static func ==(lhs: BreakerError, rhs: BreakerError) -> Bool {
-    switch (lhs, rhs) {
-    case (.timeout, .timeout)                                 : return true
-    case (.fastFail, .fastFail)                               : return true
-    case (.invocationError(let e1), .invocationError(let e2)) : return e1 == e2
-    default                                                   : return false
-    }
-  }
-}
-
 extension Date {
   public static func currentTimeMillis() -> UInt64 {
     let timeInMillis = UInt64(NSDate().timeIntervalSince1970 * 1000.0)
     return timeInMillis
   }
 }
-

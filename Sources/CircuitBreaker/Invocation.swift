@@ -18,7 +18,7 @@ import Foundation
 
 /// Invocation entity
 public class Invocation<A, B> {
-  
+
   /// Arguments for circuit command
   public let commandArgs: A
 
@@ -61,16 +61,16 @@ public class Invocation<A, B> {
       breaker?.notifySuccess()
     }
   }
- 
+
   /// Notifies the circuit breaker of success if a timeout has not already been triggered
   /// - Parameters:
   ///   - error: The corresponding error msg
   ///
-  public func notifyFailure(error: String) {
+  public func notifyFailure(error: BreakerError) {
     if !self.timedOut {
       // There was an error within the invocated function
       self.setCompleted()
-      breaker?.notifyFailure(error: .invocationError(error: error), fallbackArgs: fallbackArgs)
+      breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
     }
   }
 }
