@@ -143,17 +143,17 @@ public class CircuitBreaker<A, B> {
     }
   }
 
-  /// Method to Print Current Stats Snapshot
+  /// Method to print current stats
   public func snapshot() {
     breakerStats.snapshot()
   }
 
-  /// Method to force the circuit open
+  /// Method to notifcy circuit of a completion with a failure
   public func notifyFailure(error: BreakerError, fallbackArgs: B) {
     handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
-  /// Method to force the circuit open
+  /// Method to notifcy circuit of a successful completion
   public func notifySuccess() {
     handleSuccess()
   }
@@ -220,7 +220,7 @@ public class CircuitBreaker<A, B> {
     }
   }
 
-  /// The Current number of failures
+  /// The current number of failures
   internal var numberOfFailures: Int {
     return failures.count
   }
@@ -260,7 +260,7 @@ public class CircuitBreaker<A, B> {
     let _ = fallback(error, fallbackArgs)
   }
 
-  /// Command Success handler
+  /// Command success handler
   private func handleSuccess() {
     semaphoreCircuit.wait()
     Log.verbose("Handling success...")
@@ -290,14 +290,14 @@ public class CircuitBreaker<A, B> {
     startResetTimer(delay: .milliseconds(resetTimeout))
   }
 
-  /// Fast Fail Handler
+  /// Fast fail handler
   private func fastFail(fallbackArgs: B) {
     Log.verbose("Breaker open... failing fast.")
     breakerStats.trackRejected()
     let _ = fallback(.fastFail, fallbackArgs)
   }
 
-  /// Reset Timer Setup Method
+  /// Reset timer setup
   private func startResetTimer(delay: DispatchTimeInterval) {
     // Cancel previous timer if any
     resetTimer?.cancel()
