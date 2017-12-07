@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master)
+[![Build Status](https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master)](https://travis-ci.org/IBM-Swift/CircuitBreaker)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
@@ -28,7 +28,7 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
      dependencies: [
          // Swift 4
-         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "3.0.0")),
+         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "4.0.0")),
          ...
 
      ])

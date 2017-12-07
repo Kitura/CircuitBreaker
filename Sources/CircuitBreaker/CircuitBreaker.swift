@@ -64,7 +64,7 @@ public class CircuitBreaker<A, B> {
 
   /// Dispatch
   private var resetTimer: DispatchSourceTimer?
-  private let semaphoreCompleted = DispatchSemaphore(value: 1)
+  private let semaphoreHasTimedOut = DispatchSemaphore(value: 1)
   private let semaphoreCircuit = DispatchSemaphore(value: 1)
 
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
@@ -149,12 +149,12 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Method to notifcy circuit of a completion with a failure
-  public func notifyFailure(error: BreakerError, fallbackArgs: B) {
+  func notifyFailure(error: BreakerError, fallbackArgs: B) {
     handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
   /// Method to notifcy circuit of a successful completion
-  public func notifySuccess() {
+  func notifySuccess() {
     handleSuccess()
   }
 
@@ -180,21 +180,19 @@ public class CircuitBreaker<A, B> {
   /// Wrapper for calling and handling CircuitBreaker command
   private func callFunction(commandArgs: A, fallbackArgs: B) {
 
-    var completed = false
+    var hasTimedOut = false
 
-    func complete(error: Bool) {
+    let timedOutHandler = {
       weak var _self = self
-      semaphoreCompleted.wait()
-      if completed {
-        semaphoreCompleted.signal()
+      _self?.semaphoreHasTimedOut.wait()
+      if hasTimedOut {
+        _self?.semaphoreHasTimedOut.signal()
       } else {
-        completed = true
-        semaphoreCompleted.signal()
-
-        error ? _self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)
-                :
-                _self?.handleSuccess()
-
+        hasTimedOut = true
+        _self?.semaphoreHasTimedOut.signal()
+        //Note: fallback function is invoked ONLY when failing fast OR when timing out OR when application
+        //notifies circuit that command did not complete successfully.
+        _self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)     
         return
       }
     }
@@ -204,12 +202,12 @@ public class CircuitBreaker<A, B> {
     setTimeout() { [weak invocation] in
       if invocation?.completed == false {
         invocation?.setTimedOut()
-        complete(error: true)
+        timedOutHandler()
       }
     }
 
-    let _ = command(invocation)
-
+    // Invoke command
+    command(invocation)
   }
 
   /// Wrapper for setting the command timeout and updating breaker stats
@@ -237,13 +235,20 @@ public class CircuitBreaker<A, B> {
     let timeWindow: UInt64? = failures.currentTimeWindow
 
     defer {
+      // Invoking callback after updating circuit stats and state
+      // This way we eliminate the possibility of a deadlock and/or
+      // holding on to the semaphore for a long time because the fallback
+      // method has not returned.
+      fallback(error, fallbackArgs)
+    }
+
+    defer {
       breakerStats.trackFailedResponse()
       semaphoreCircuit.signal()
     }
 
     if state == .halfopen {
       Log.verbose("Failed in halfopen state.")
-      let _ = fallback(error, fallbackArgs)
       open()
       return
     }
@@ -251,13 +256,11 @@ public class CircuitBreaker<A, B> {
     if let timeWindow = timeWindow {
       if failures.count >= maxFailures && timeWindow <= UInt64(rollingWindow) {
         Log.verbose("Reached maximum number of failures allowed before tripping circuit.")
-        let _ = fallback(error, fallbackArgs)
         open()
         return
       }
     }
 
-    let _ = fallback(error, fallbackArgs)
   }
 
   /// Command success handler
