@@ -36,7 +36,7 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
 ### Usage
 
-*In this form of usage, the CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).*
+*The CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).*
 
 1. Define a fallback function with the signature `(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void`:
 ```swift
@@ -61,7 +61,7 @@ extension BreakerError {
 func myContextFunction(invocation: Invocation<(String), String>) {
   let requestParam = invocation.commandArgs
   // Create HTTP request
-  guard let url = URL(string: "http://mysever.net/path/\(requestParam)") else {
+  guard let url = URL(string: "http://myserver.net/path/\(requestParam)") else {
     // Something went wrong...
 
     ...
