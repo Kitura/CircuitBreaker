@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import Dispatch
 
 /// Invocation entity
 public class Invocation<A, B> {
@@ -31,6 +32,9 @@ public class Invocation<A, B> {
   /// Completion state of invocation
   private(set) var completed: Bool = false
 
+  // Semaphore to avoid race conditions in the state of the invocation
+  private let semaphoreCompleted = DispatchSemaphore(value: 1)
+
   weak private var breaker: CircuitBreaker<A, B>?
 
   /// Invocation Initializer
@@ -44,22 +48,44 @@ public class Invocation<A, B> {
     self.fallbackArgs = fallbackArgs
   }
 
-  /// Marks invocation as having timed out
-  public func setTimedOut() {
+  /// Marks invocation as having timed out if and only if the execution
+  /// of the invocation has not completed yet. In such case, true is returned;
+  // otherwise, false.
+  public func nofityTimedOut() -> Bool {
+    semaphoreCompleted.wait()
+    if !self.completed {
+      setTimedOut()
+      semaphoreCompleted.signal()
+      return true
+    }
+    semaphoreCompleted.signal()
+    return false
+  }
+
+  /// Marks invocation as having timed out.
+  /// This function should be called within the boundaries of a semaphore.
+  /// Otherwise, resulting behavior may be unexpected.
+  private func setTimedOut() {
     self.timedOut = true
   }
 
   /// Marks invocation as completed
-  public func setCompleted() {
+  /// This function should be called within the boundaries of a semaphore.
+  /// Otherwise, resulting behavior may be unexpected.
+  private func setCompleted() {
     self.completed = true
   }
 
   /// Notifies the circuit breaker of success if a timeout has not already been triggered
   public func notifySuccess() {
+    semaphoreCompleted.wait()
     if !self.timedOut {
       self.setCompleted()
+      semaphoreCompleted.signal()
       breaker?.notifySuccess()
+      return
     }
+    semaphoreCompleted.signal()
   }
 
   /// Notifies the circuit breaker of success if a timeout has not already been triggered
@@ -67,10 +93,15 @@ public class Invocation<A, B> {
   ///   - error: The corresponding error msg
   ///
   public func notifyFailure(error: BreakerError) {
+    semaphoreCompleted.wait()
     if !self.timedOut {
       // There was an error within the invocated function
       self.setCompleted()
+      semaphoreCompleted.signal()
       breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
+      return
     }
+    semaphoreCompleted.signal()
   }
+
 }

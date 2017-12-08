@@ -58,13 +58,14 @@ public class CircuitBreaker<A, B> {
 
   private(set) var state = State.closed
   private let failures: FailureQueue
+  //fallback function is invoked ONLY when failing fast OR when timing out OR when application
+  //notifies circuit that command did not complete successfully.
   private let fallback: AnyFallback<B>
   private let command: AnyContextFunction<A>
   private let bulkhead: Bulkhead?
 
   /// Dispatch
   private var resetTimer: DispatchSourceTimer?
-  private let semaphoreHasTimedOut = DispatchSemaphore(value: 1)
   private let semaphoreCircuit = DispatchSemaphore(value: 1)
 
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
@@ -114,7 +115,6 @@ public class CircuitBreaker<A, B> {
       fastFail(fallbackArgs: fallbackArgs)
 
     case .halfopen:
-
       let startTime = Date()
 
       if let bulkhead = self.bulkhead {
@@ -128,7 +128,6 @@ public class CircuitBreaker<A, B> {
       self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
     case .closed:
-
       let startTime = Date()
 
       if let bulkhead = self.bulkhead {
@@ -180,29 +179,11 @@ public class CircuitBreaker<A, B> {
   /// Wrapper for calling and handling CircuitBreaker command
   private func callFunction(commandArgs: A, fallbackArgs: B) {
 
-    var hasTimedOut = false
-
-    let timedOutHandler = {
-      weak var _self = self
-      _self?.semaphoreHasTimedOut.wait()
-      if hasTimedOut {
-        _self?.semaphoreHasTimedOut.signal()
-      } else {
-        hasTimedOut = true
-        _self?.semaphoreHasTimedOut.signal()
-        //Note: fallback function is invoked ONLY when failing fast OR when timing out OR when application
-        //notifies circuit that command did not complete successfully.
-        _self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)     
-        return
-      }
-    }
-
     let invocation = Invocation(breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
 
-    setTimeout() { [weak invocation] in
-      if invocation?.completed == false {
-        invocation?.setTimedOut()
-        timedOutHandler()
+    setTimeout() { [weak invocation, weak self] in
+      if invocation?.nofityTimedOut() == true {
+        self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)  
       }
     }
 
