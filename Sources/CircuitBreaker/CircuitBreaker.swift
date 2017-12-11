@@ -26,7 +26,7 @@ public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases
 
-  public typealias AnyContextFunction<A> = (Invocation<A, B>) -> ()
+  public typealias AnyContextFunction<A> = (Invocation<A, B>) -> Void
   public typealias AnyFallback<C> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
@@ -79,9 +79,12 @@ public class CircuitBreaker<A, B> {
   ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
   ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
   ///   - rollingWindow: (Default: 10000 ms)
-  ///   - bulkhead: Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.(Default: 0)
-  ///   - command: Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance; advanced usage constructor).
-  ///   - fallback: Function user specifies to signal timeout or fastFail completion. Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
+  ///   - bulkhead: Number of the limit of concurrent requests running at one time.
+  ///     Default is set to 0, which is equivalent to not using the bulkheading feature.(Default: 0)
+  ///   - command: Contextual function to circuit break, which allows user defined failures
+  ///     (the context provides an indirect reference to the corresponding circuit breaker instance).
+  ///   - fallback: Function user specifies to signal timeout or fastFail completion.
+  ///     Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
   public init(timeout: Int = 1000,
               resetTimeout: Int = 60000,
@@ -181,9 +184,9 @@ public class CircuitBreaker<A, B> {
 
     let invocation = Invocation(breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
 
-    setTimeout() { [weak invocation, weak self] in
+    setTimeout { [weak invocation, weak self] in
       if invocation?.nofityTimedOut() == true {
-        self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)  
+        self?.handleFailure(error: .timeout, fallbackArgs: fallbackArgs)
       }
     }
 
@@ -192,7 +195,7 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Wrapper for setting the command timeout and updating breaker stats
-  private func setTimeout(closure: @escaping () -> ()) {
+  private func setTimeout(closure: @escaping () -> Void) {
     queue.asyncAfter(deadline: .now() + .milliseconds(self.timeout)) { [weak self] in
       self?.breakerStats.trackTimeouts()
       closure()
@@ -278,7 +281,7 @@ public class CircuitBreaker<A, B> {
   private func fastFail(fallbackArgs: B) {
     Log.verbose("Breaker open... failing fast.")
     breakerStats.trackRejected()
-    let _ = fallback(.fastFail, fallbackArgs)
+    fallback(.fastFail, fallbackArgs)
   }
 
   /// Reset timer setup

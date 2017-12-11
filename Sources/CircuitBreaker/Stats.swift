@@ -19,7 +19,7 @@ import LoggerAPI
 
 /// Circuit Breaker Stats
 public class Stats {
-  
+
   /// Number of timeouts
   internal(set) public var timeouts: Int = 0
 
@@ -28,13 +28,13 @@ public class Stats {
 
   /// Number of failed reponses
   internal(set) public var failedResponses: Int = 0
-  
+
   /// Total number of requests
   internal(set) public var totalRequests: Int = 0
-  
+
   /// Number of rejected requests
   internal(set) public var rejectedRequests: Int = 0
-  
+
   /// Array of request latencies
   internal(set) public var latencies: [Int] = []
 
@@ -42,7 +42,7 @@ public class Stats {
   public func totalLatency() -> Int {
     return latencies.reduce(0, +)
   }
-  
+
   /// Method returning the average response time
   public func averageResponseTime() -> Int {
     if latencies.count == 0 {
@@ -56,7 +56,7 @@ public class Stats {
     let totalResponses = successfulResponses + failedResponses + rejectedRequests
     return totalRequests - totalResponses
   }
-  
+
   /// Method to log current snapshot of CircuitBreaker
   public func snapshot () {
     Log.verbose("Total Requests: \(totalRequests)")
