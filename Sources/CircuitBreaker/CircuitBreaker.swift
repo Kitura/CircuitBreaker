@@ -21,13 +21,13 @@ import LoggerAPI
 /// CircuitBreaker class
 ///
 /// - A: Parameter types used in the arguments for the command closure.
-/// - C: Parameter type used as the second argument for the fallback closure.
+/// - B: Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases
 
   public typealias AnyContextFunction<A> = (Invocation<A, B>) -> Void
-  public typealias AnyFallback<C> = (BreakerError, B) -> Void
+  public typealias AnyFallback<B> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
 
@@ -108,7 +108,7 @@ public class CircuitBreaker<A, B> {
   /// Runs the circuit using the provided arguments
   /// - Parameters:
   ///   - commandArgs: Arguments of type `A` for the circuit command
-  ///   - fallbackArgs: Arguments of type `C` for the circuit fallback
+  ///   - fallbackArgs: Arguments of type `B` for the circuit fallback
   ///
   public func run(commandArgs: A, fallbackArgs: B) {
     breakerStats.trackRequest()
