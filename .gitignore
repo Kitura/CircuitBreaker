@@ -1,5 +1,7 @@
 Packages
 .build/*
+.build-ubuntu/*
 build/
 *.xcodeproj
 *.DS_Store
+Package.resolved
