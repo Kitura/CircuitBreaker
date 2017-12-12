@@ -21,15 +21,21 @@ import LoggerAPI
 /// CircuitBreaker class
 ///
 /// - A: Parameter types used in the arguments for the command closure.
-/// - B: Parameter type used as the second argument for the fallback closure.
+/// - C: Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases
 
   public typealias AnyContextFunction<A> = (Invocation<A, B>) -> Void
-  public typealias AnyFallback<B> = (BreakerError, B) -> Void
+  public typealias AnyFallback<C> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
+
+  /// Name of Circuit Breaker Instance
+  public private(set) var name: String
+
+  // Name of Circuit Breaker Group
+  public private(set) var group: String?
 
   /// Execution timeout for command contect (Default: 1000 ms)
   public let timeout: Int
@@ -75,6 +81,8 @@ public class CircuitBreaker<A, B> {
   /// Initializes CircuitBreaker instance with asyncronous context command (Advanced usage)
   ///
   /// - Parameters:
+  ///   - name: name of the circuit instance
+  ///   - group: optional group description
   ///   - timeout: Execution timeout for command contect (Default: 1000 ms)
   ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
   ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
@@ -86,13 +94,17 @@ public class CircuitBreaker<A, B> {
   ///   - fallback: Function user specifies to signal timeout or fastFail completion.
   ///     Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public init(timeout: Int = 1000,
+  public init(name: String,
+              group: String? = nil,
+              timeout: Int = 1000,
               resetTimeout: Int = 60000,
               maxFailures: Int = 5,
               rollingWindow: Int = 10000,
               bulkhead: Int = 0,
               command: @escaping AnyContextFunction<A>,
               fallback: @escaping AnyFallback<B>) {
+    self.name = name
+    self.group = group
     self.timeout = timeout
     self.resetTimeout = resetTimeout
     self.maxFailures = maxFailures
