@@ -40,6 +40,9 @@ public class Stats {
   /// Array of request latencies
   internal(set) public var latencies: [Int] = []
 
+  /// Default latency percentiles
+  public var percentiles = [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 1.0]
+
   /// Mark - Computed Statistics
 
   /// Method returning the cumulative latency
@@ -61,24 +64,28 @@ public class Stats {
     return totalRequests - totalResponses
   }
 
-  ///
-  public var errorPercentage: Int {
-    return successfulResponses / errorCount
+  /// Percentage of responses that threw an error
+  public var errorPercentage: Double {
+    return Double(errorCount) / Double(totalRequests)
   }
 
-  ///
+  /// Number of errored responses
   public var errorCount: Int {
-    return rejectedRequests
+    return failedResponses
   }
 
-  ///
+  /// Latency Executes Mapping
+  /// Percentile -> Execution time (in milliseconds)
   public var latencyExecute: [Double: Int] {
-    return [:]
+    return latenciesPercentiles
   }
 
-  ///
+  /// Latency Total Mapping
+  /// Percentile -> Total end-to-end execution time (in milliseconds)
   public var latencyTotal: [Double: Int] {
-    return [:]
+    /// NOTE: Since CircuitBreaker does not currenly track latency for rejected requests. This simply returns
+    /// the same value as latency execute
+    return latenciesPercentiles
   }
 
   /// Number of failed executions (Both rejected and failed responses)
@@ -103,39 +110,46 @@ public class Stats {
     Log.verbose("Total Latency: \(totalLatency)")
   }
 
-  func trackTimeouts() {
+  internal func trackTimeouts() {
     timeouts += 1
   }
 
-  func trackSuccessfulResponse() {
+  internal func trackSuccessfulResponse() {
     successfulResponses += 1
   }
 
-  func trackFailedResponse() {
+  internal func trackFailedResponse() {
     failedResponses += 1
   }
 
-  func trackRejected() {
+  internal func trackRejected() {
     rejectedRequests += 1
   }
 
-  func trackRequest() {
+  internal func trackRequest() {
     totalRequests += 1
   }
 
-  func trackLatency(latency: Int) {
-    if latencies.count == 0 {
-      latencies.append(latency)
-    } e
+  internal func trackLatency(latency: Int) {
+    /// Todo: insert in order
     latencies.append(latency)
   }
 
-  func reset() {
+  internal func reset() {
     self.timeouts = 0
     self.successfulResponses = 0
     self.failedResponses = 0
     self.totalRequests = 0
     self.rejectedRequests = 0
     self.latencies = []
+  }
+
+  private var latenciesPercentiles: [Double: Int] {
+    let array = latencies.sorted()
+    return percentiles.reduce([Double: Int]()) { acc, percentile in
+      var acc = acc
+      acc[percentile * 100] = percentile == 0 ? array[0] : array[Int(ceil(percentile * Double(array.count))) - 1]
+      return acc
+    }
   }
 }
