@@ -21,7 +21,7 @@ import LoggerAPI
 /// CircuitBreaker class
 ///
 /// - A: Parameter types used in the arguments for the command closure.
-/// - C: Parameter type used as the second argument for the fallback closure.
+/// - B: Parameter type used as the second argument for the fallback closure.
 public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases
@@ -130,13 +130,14 @@ public class CircuitBreaker<A, B> {
       fastFail(fallbackArgs: fallbackArgs)
 
     case .halfopen:
+      let startTime = Date()
 
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
-              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+              self.callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
       } else {
-          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
 
     case .closed:
@@ -144,12 +145,10 @@ public class CircuitBreaker<A, B> {
 
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
-              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-              self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+              self.callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
       } else {
-          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
-          self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+          callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
     }
   }
@@ -189,9 +188,9 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Wrapper for calling and handling CircuitBreaker command
-  private func callFunction(commandArgs: A, fallbackArgs: B) {
+  private func callFunction(startTime: Date, commandArgs: A, fallbackArgs: B) {
 
-    let invocation = Invocation(breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+    let invocation = Invocation(startTime: startTime, breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
 
     setTimeout { [weak invocation, weak self] in
       if invocation?.nofityTimedOut() == true {
