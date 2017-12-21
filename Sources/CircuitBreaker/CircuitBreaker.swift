@@ -27,7 +27,7 @@ public class CircuitBreaker<A, B> {
   // MARK: Closure Aliases
 
   public typealias AnyContextFunction<A> = (Invocation<A, B>) -> Void
-  public typealias AnyFallback<C> = (BreakerError, B) -> Void
+  public typealias AnyFallback<B> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
 
@@ -130,7 +130,6 @@ public class CircuitBreaker<A, B> {
       fastFail(fallbackArgs: fallbackArgs)
 
     case .halfopen:
-      let startTime = Date()
 
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
@@ -139,8 +138,6 @@ public class CircuitBreaker<A, B> {
       } else {
           callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
-
-      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
     case .closed:
       let startTime = Date()
@@ -148,12 +145,12 @@ public class CircuitBreaker<A, B> {
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
               self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+              self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
           }
       } else {
           callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
       }
-
-      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
     }
   }
 
@@ -163,12 +160,12 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Method to notifcy circuit of a completion with a failure
-  func notifyFailure(error: BreakerError, fallbackArgs: B) {
+  internal func notifyFailure(error: BreakerError, fallbackArgs: B) {
     handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
   /// Method to notifcy circuit of a successful completion
-  func notifySuccess() {
+  internal func notifySuccess() {
     handleSuccess()
   }
 
@@ -263,6 +260,7 @@ public class CircuitBreaker<A, B> {
   private func handleSuccess() {
     semaphoreCircuit.wait()
     Log.verbose("Handling success...")
+
     if state == .halfopen {
       close()
     }
