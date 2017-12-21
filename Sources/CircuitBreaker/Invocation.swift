@@ -32,6 +32,8 @@ public class Invocation<A, B> {
   /// Completion state of invocation
   private(set) var completed: Bool = false
 
+  private let startTime: Date
+
   // Semaphore to avoid race conditions in the state of the invocation
   private let semaphoreCompleted = DispatchSemaphore(value: 1)
 
@@ -42,10 +44,11 @@ public class Invocation<A, B> {
   ///   - breaker CircuitBreaker Instance
   ///   - commandArgs Arguments for command context
   ///
-  public init(breaker: CircuitBreaker<A, B>, commandArgs: A, fallbackArgs: B) {
+  public init(startTime: Date, breaker: CircuitBreaker<A, B>, commandArgs: A, fallbackArgs: B) {
     self.breaker = breaker
     self.commandArgs = commandArgs
     self.fallbackArgs = fallbackArgs
+    self.startTime = startTime
   }
 
   /// Marks invocation as having timed out if and only if the execution
@@ -56,6 +59,7 @@ public class Invocation<A, B> {
     if !self.completed {
       setTimedOut()
       semaphoreCompleted.signal()
+      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return true
     }
     semaphoreCompleted.signal()
@@ -83,6 +87,7 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifySuccess()
+      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()
@@ -99,6 +104,7 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
+      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()
