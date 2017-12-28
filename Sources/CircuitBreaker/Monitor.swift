@@ -19,8 +19,8 @@ import Foundation
 /// Protocol identifying a Hystrix observer
 public protocol HystrixMonitor {
 
-  /// Weak references to hystrix providers
-  var refs: [Weak] { get set }
+  /// References to monitored CircuitBreaker instances
+  var refs: [HystrixProvider] { get set }
 
   /// Method to register a hystrix provider
   ///
@@ -38,19 +38,4 @@ public protocol HystrixProvider: class {
 
   /// Histrix compliant instance
   var hystrixSnapshot: [String: Any] { get }
-}
-
-/// Wrapper for a weak reference
-public class Weak {
-
-  /// The weak circuit breaker instance
-  public weak var value: HystrixProvider?
-
-  /// Initializer
-  ///
-  /// - Parameters:
-  ///   - value: HystrixProvider
-  public init (value: HystrixProvider) {
-    self.value = value
-  }
 }

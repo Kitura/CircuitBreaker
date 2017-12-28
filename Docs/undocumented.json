@@ -1,19 +1,26 @@
 {
   "warnings": [
     {
-      "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Invocation.swift",
-      "line": 54,
+      "file": "/Users/AaronLiberatore/Documents/CircuitBreaker/Sources/CircuitBreaker/CircuitBreaker.swift",
+      "line": 38,
+      "symbol": "CircuitBreaker.group",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/AaronLiberatore/Documents/CircuitBreaker/Sources/CircuitBreaker/Invocation.swift",
+      "line": 57,
       "symbol": "Invocation.nofityTimedOut()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Utils.swift",
+      "file": "/Users/AaronLiberatore/Documents/CircuitBreaker/Sources/CircuitBreaker/Utils.swift",
       "line": 33,
       "symbol": "Date.currentTimeMillis()",
       "symbol_kind": "source.lang.swift.decl.function.method.static",
       "warning": "undocumented"
     }
   ],
-  "source_directory": "/Users/AaronLiberatore/Documents/circuits"
+  "source_directory": "/Users/AaronLiberatore/Documents/CircuitBreaker"
 }
