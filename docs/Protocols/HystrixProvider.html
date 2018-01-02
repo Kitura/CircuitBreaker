@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>State Enumeration Reference</title>
+    <title>HystrixProvider Protocol Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset="utf-8">
@@ -14,9 +14,9 @@
   </head>
   <body>
 
-    <a name="//apple_ref/swift/Enum/State" class="dashAnchor"></a>
+    <a name="//apple_ref/swift/Protocol/HystrixProvider" class="dashAnchor"></a>
 
-    <a title="State Enumeration Reference"></a>
+    <a title="HystrixProvider Protocol Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -44,7 +44,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="../index.html">CircuitBreaker Reference</a>
       <img class="carat" src="../img/carat.png" />
-      State Enumeration Reference
+      HystrixProvider Protocol Reference
     </p>
 
     <div class="content-wrapper">
@@ -105,14 +105,14 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>State</h1>
+            <h1>HystrixProvider</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">State</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HystrixProvider</span><span class="p">:</span> <span class="kd">class</span></code></pre>
 
                 </div>
               </div>
-            <p>State</p>
+            <p>Protocol identifying a hystrix compliant object</p>
 
           </div>
         </section>
@@ -124,9 +124,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StateO4openA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/open" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StateO4openA2CmF">open</a>
+                    <a name="/s:14CircuitBreaker15HystrixProviderP10addMonitoryAA0cF0_p7monitor_tF"></a>
+                    <a name="//apple_ref/swift/Method/addMonitor(monitor:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker15HystrixProviderP10addMonitoryAA0cF0_p7monitor_tF">addMonitor(monitor:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -134,30 +134,26 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The circuit is open i.e. broken</p>
+                        <p>Registers a monitor for a breaker reference</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">open</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">func</span> <span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="kt"><a href="../Protocols/HystrixMonitor.html">HystrixMonitor</a></span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StateO8halfopenA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/halfopen" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StateO8halfopenA2CmF">halfopen</a>
+                    <a name="/s:14CircuitBreaker15HystrixProviderP15hystrixSnapshots10DictionaryVySSypGv"></a>
+                    <a name="//apple_ref/swift/Property/hystrixSnapshot" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker15HystrixProviderP15hystrixSnapshots10DictionaryVySSypGv">hystrixSnapshot</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -165,45 +161,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The circuit is half-open i.e. experiencing errors</p>
+                        <p>Histrix compliant instance</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">halfopen</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul class="item-container">
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:14CircuitBreaker5StateO6closedA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/closed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StateO6closedA2CmF">closed</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>The circuit is closed i.e functioning normally</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">closed</span></code></pre>
+                          <pre class="highlight"><code><span class="k">var</span> <span class="nv">hystrixSnapshot</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]</span></code></pre>
 
                         </div>
                       </div>

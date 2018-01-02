@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Classes  Reference</title>
+    <title>Protocols  Reference</title>
     <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="css/highlight.css" />
     <meta charset="utf-8">
@@ -15,7 +15,7 @@
   <body>
 
 
-    <a title="Classes  Reference"></a>
+    <a title="Protocols  Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -43,7 +43,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="index.html">CircuitBreaker Reference</a>
       <img class="carat" src="img/carat.png" />
-      Classes  Reference
+      Protocols  Reference
     </p>
 
     <div class="content-wrapper">
@@ -104,8 +104,8 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>Classes</h1>
-            <p>The following classes are available globally.</p>
+            <h1>Protocols</h1>
+            <p>The following protocols are available globally.</p>
 
           </div>
         </section>
@@ -117,9 +117,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC"></a>
-                    <a name="//apple_ref/swift/Class/CircuitBreaker" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC">CircuitBreaker</a>
+                    <a name="/s:14CircuitBreaker14HystrixMonitorP"></a>
+                    <a name="//apple_ref/swift/Protocol/HystrixMonitor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker14HystrixMonitorP">HystrixMonitor</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -127,36 +127,27 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>CircuitBreaker class</p>
+                        <p>Protocol identifying a Hystrix observer</p>
 
-<ul>
-<li>A: Parameter types used in the arguments for the command closure.</li>
-<li>B: Parameter type used as the second argument for the fallback closure.</li>
-</ul>
-
-                        <a href="Classes/CircuitBreaker.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/HystrixMonitor.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HystrixMonitor</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker10InvocationC"></a>
-                    <a name="//apple_ref/swift/Class/Invocation" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker10InvocationC">Invocation</a>
+                    <a name="/s:14CircuitBreaker15HystrixProviderP"></a>
+                    <a name="//apple_ref/swift/Protocol/HystrixProvider" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker15HystrixProviderP">HystrixProvider</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -164,47 +155,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Invocation entity</p>
+                        <p>Protocol identifying a hystrix compliant object</p>
 
-                        <a href="Classes/Invocation.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/HystrixProvider.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul class="item-container">
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:14CircuitBreaker5StatsC"></a>
-                    <a name="//apple_ref/swift/Class/Stats" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC">Stats</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Circuit Breaker Stats</p>
-
-                        <a href="Classes/Stats.html" class="slightly-smaller">See more</a>
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Stats</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HystrixProvider</span><span class="p">:</span> <span class="kd">class</span></code></pre>
 
                         </div>
                       </div>

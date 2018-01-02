@@ -1,5 +1,5 @@
 /**
-* Copyright IBM Corporation 2017
+* Copyright IBM Corporation 2017, 2018
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -59,10 +59,23 @@ class StatsTests: XCTestCase {
   // Calculate total latency
   func testTotalLatency() {
     stats.latencies = [1, 2, 3, 4, 5]
-    let latency = stats.totalLatency()
+    let latency = stats.totalLatency
     XCTAssertEqual(latency, 15)
   }
 
+  // Calculate execute latency percentiles
+  func testLatencyExecutePercentiles() {
+    stats.latencies = [1, 2, 3, 4, 5]
+    let latency = stats.latencyExecute
+    XCTAssertEqual(latency, [90.0: 5, 100.0: 5, 99.5: 5, 99.0: 5, 75.0: 4, 50.0: 3, 25.0: 2, 0.0: 1, 95.0: 5])
+  }
+
+  // Calculate total latency Percentiles
+  func testLatencyTotalPercentiles() {
+    stats.latencies = [1, 2, 3, 4, 5]
+    let latency = stats.latencyTotal
+    XCTAssertEqual(latency, [90.0: 5, 100.0: 5, 99.5: 5, 99.0: 5, 75.0: 4, 50.0: 3, 25.0: 2, 0.0: 1, 95.0: 5])
+  }
   // Increase timeout count by 1
   func testTrackTimeouts() {
     stats.trackTimeouts()
@@ -102,13 +115,13 @@ class StatsTests: XCTestCase {
 
   // Check average response time when latency array is empty
   func testAvgResponseTimeInitial() {
-    XCTAssertEqual(stats.averageResponseTime(), 0)
+    XCTAssertEqual(stats.averageResponseTime, 0)
   }
 
   // Check average response time when latency array has multiple values
   func testAvgResponseTime() {
     stats.latencies = [1, 2, 3, 4, 5]
-    XCTAssertEqual(stats.averageResponseTime(), 3)
+    XCTAssertEqual(stats.averageResponseTime, 3)
   }
 
   // Calculate total concurrent requests
@@ -117,7 +130,7 @@ class StatsTests: XCTestCase {
     stats.successfulResponses = 1
     stats.failedResponses = 2
     stats.rejectedRequests = 3
-    XCTAssertEqual(stats.concurrentRequests(), 2)
+    XCTAssertEqual(stats.concurrentRequests, 2)
 
   }
 
@@ -157,5 +170,4 @@ class StatsTests: XCTestCase {
 
     stats.snapshot()
   }
-
 }
