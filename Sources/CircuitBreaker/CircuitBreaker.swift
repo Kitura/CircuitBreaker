@@ -323,6 +323,6 @@ extension CircuitBreaker: StatsProvider {
 
   /// Property to compute snapshot
   public var snapshot: Snapshot {
-    return Snapshot(type: "HystrixCommand", name: name, group: group ?? "", stats: self.breakerStats, state: breakerState)
+    return Snapshot(type: "HystrixCommand", name: name, group: group, stats: self.breakerStats, state: breakerState)
   }
 }
