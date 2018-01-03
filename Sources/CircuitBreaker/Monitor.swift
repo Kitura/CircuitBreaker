@@ -16,26 +16,48 @@
 
 import Foundation
 
-/// Protocol identifying a Hystrix observer
-public protocol HystrixMonitor {
+/// Protocol identifying a stats monitor
+public protocol StatsMonitor {
 
   /// References to monitored CircuitBreaker instances
-  var refs: [HystrixProvider] { get set }
+  var refs: [Weak] { get set }
 
-  /// Method to register a hystrix provider
+  /// Method to register a stats provider
   ///
   /// - Parameters:
-  ///   - breakerRef: The HystrixProvider to monitor
-  func register(breakerRef: HystrixProvider)
+  ///   - breakerRef: The StatsProvider to monitor
+  func register(breakerRef: StatsProvider)
 
 }
 
-/// Protocol identifying a hystrix compliant object
-public protocol HystrixProvider: class {
+public extension StatsMonitor {
+
+  // Default register method to add weak reference to pointer array
+  public mutating func register(breakerRef: StatsProvider) {
+    self.refs.append(Weak(value: breakerRef))
+  }
+}
+/// Protocol identifying a stats provider
+public protocol StatsProvider: class {
 
   /// Registers a monitor for a breaker reference
-  func addMonitor(monitor: HystrixMonitor)
+  static func addMonitor(monitor: StatsMonitor)
 
   /// Histrix compliant instance
-  var hystrixSnapshot: [String: Any] { get }
+  var snapshot: Snapshot { get }
+}
+
+/// Wrapper for a weak reference
+public class Weak {
+
+  /// The weak circuit breaker instance
+  public weak var value: StatsProvider?
+
+  /// Initializer
+  ///
+  /// - Parameters:
+  ///   - value: StatsProvider
+  public init (value: StatsProvider) {
+    self.value = value
+  }
 }

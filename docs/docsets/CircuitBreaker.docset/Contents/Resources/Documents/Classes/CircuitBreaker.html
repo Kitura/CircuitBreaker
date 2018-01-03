@@ -23,7 +23,7 @@
         <a class="header-link" href="../index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (92% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -62,6 +62,9 @@
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Classes/Stats.html">Stats</a>
               </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/Weak.html">Weak</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -84,10 +87,10 @@
             <a class="nav-group-name-link" href="../Protocols.html">Protocols</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/HystrixMonitor.html">HystrixMonitor</a>
+                <a class="nav-group-task-link" href="../Protocols/StatsMonitor.html">StatsMonitor</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/HystrixProvider.html">HystrixProvider</a>
+                <a class="nav-group-task-link" href="../Protocols/StatsProvider.html">StatsProvider</a>
               </li>
             </ul>
           </li>
@@ -96,6 +99,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Structs/BreakerError.html">BreakerError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/Snapshot.html">Snapshot</a>
               </li>
             </ul>
           </li>
@@ -585,9 +591,9 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC8snapshotyyF"></a>
-                    <a name="//apple_ref/swift/Method/snapshot()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC8snapshotyyF">snapshot()</a>
+                    <a name="/s:14CircuitBreakerAAC16current_snapshotyyF"></a>
+                    <a name="//apple_ref/swift/Method/current_snapshot()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC16current_snapshotyyF">current_snapshot()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -602,7 +608,7 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">snapshot</span><span class="p">()</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">current_snapshot</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -697,9 +703,9 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC10addMonitoryAA07HystrixD0_p7monitor_tF"></a>
+                    <a name="/s:14CircuitBreakerAAC10addMonitoryAA05StatsD0_p7monitor_tFZ"></a>
                     <a name="//apple_ref/swift/Method/addMonitor(monitor:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC10addMonitoryAA07HystrixD0_p7monitor_tF">addMonitor(monitor:)</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC10addMonitoryAA05StatsD0_p7monitor_tFZ">addMonitor(monitor:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -707,14 +713,14 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to create link a Hystrix HystrixMonitor Instance</p>
+                        <p>Method to create link a StatsMonitor Instance</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="kt"><a href="../Protocols/HystrixMonitor.html">HystrixMonitor</a></span><span class="p">)</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="kt"><a href="../Protocols/StatsMonitor.html">StatsMonitor</a></span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -724,9 +730,9 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC15hystrixSnapshots10DictionaryVySSypGv"></a>
-                    <a name="//apple_ref/swift/Property/hystrixSnapshot" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC15hystrixSnapshots10DictionaryVySSypGv">hystrixSnapshot</a>
+                    <a name="/s:14CircuitBreakerAAC8snapshotAA8SnapshotVv"></a>
+                    <a name="//apple_ref/swift/Property/snapshot" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC8snapshotAA8SnapshotVv">snapshot</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -734,14 +740,14 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Property to computer hystrix snapshot</p>
+                        <p>Property to compute snapshot</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">hystrixSnapshot</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">snapshot</span><span class="p">:</span> <span class="kt"><a href="../Structs/Snapshot.html">Snapshot</a></span></code></pre>
 
                         </div>
                       </div>

@@ -59,7 +59,8 @@ public class Invocation<A, B> {
     if !self.completed {
       setTimedOut()
       semaphoreCompleted.signal()
-      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      // Revisit Execution versus Total Latency
+      // breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return true
     }
     semaphoreCompleted.signal()

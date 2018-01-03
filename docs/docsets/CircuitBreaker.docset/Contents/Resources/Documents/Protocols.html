@@ -22,7 +22,7 @@
         <a class="header-link" href="index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (92% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -61,6 +61,9 @@
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Classes/Stats.html">Stats</a>
               </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Weak.html">Weak</a>
+              </li>
             </ul>
           </li>
           <li class="nav-group-name">
@@ -83,10 +86,10 @@
             <a class="nav-group-name-link" href="Protocols.html">Protocols</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HystrixMonitor.html">HystrixMonitor</a>
+                <a class="nav-group-task-link" href="Protocols/StatsMonitor.html">StatsMonitor</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HystrixProvider.html">HystrixProvider</a>
+                <a class="nav-group-task-link" href="Protocols/StatsProvider.html">StatsProvider</a>
               </li>
             </ul>
           </li>
@@ -95,6 +98,9 @@
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Structs/BreakerError.html">BreakerError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Snapshot.html">Snapshot</a>
               </li>
             </ul>
           </li>
@@ -117,9 +123,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker14HystrixMonitorP"></a>
-                    <a name="//apple_ref/swift/Protocol/HystrixMonitor" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker14HystrixMonitorP">HystrixMonitor</a>
+                    <a name="/s:14CircuitBreaker12StatsMonitorP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatsMonitor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker12StatsMonitorP">StatsMonitor</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -127,15 +133,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Protocol identifying a Hystrix observer</p>
+                        <p>Protocol identifying a stats monitor</p>
 
-                        <a href="Protocols/HystrixMonitor.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/StatsMonitor.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HystrixMonitor</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatsMonitor</span></code></pre>
 
                         </div>
                       </div>
@@ -145,9 +151,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker15HystrixProviderP"></a>
-                    <a name="//apple_ref/swift/Protocol/HystrixProvider" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker15HystrixProviderP">HystrixProvider</a>
+                    <a name="/s:14CircuitBreaker13StatsProviderP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatsProvider" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker13StatsProviderP">StatsProvider</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -155,15 +161,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Protocol identifying a hystrix compliant object</p>
+                        <p>Protocol identifying a stats provider</p>
 
-                        <a href="Protocols/HystrixProvider.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/StatsProvider.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HystrixProvider</span><span class="p">:</span> <span class="kd">class</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatsProvider</span><span class="p">:</span> <span class="kd">class</span></code></pre>
 
                         </div>
                       </div>
