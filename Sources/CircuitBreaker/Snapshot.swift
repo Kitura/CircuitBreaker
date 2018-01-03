@@ -16,25 +16,54 @@
 
 import Foundation
 
+/// Stats Snapshot
 public struct Snapshot: Codable {
 
   /// Tracked Statistics
+
+  /// Type of data object
+  let type: String
+
+  /// Name of CircuitBreaker instance
   let name: String
+
+  /// CircuitBreaker instance group
   let group: String?
+
+  /// Current time
   let currentTime: Double
+
+  /// Bool identifying if the circuit is open
   let isCircuitBreakerOpen: Bool
+
+  /// Percentage of responses that threw an error
   let errorPercentage: Double
+
+  /// Number of errored responses
   let errorCount: Int
+
+  /// Number of requests made
   let requestCount: Int
 
   let rollingCountShortCircuited: Int
+
+  /// Number of successful requests
   let rollingCountSuccess: Int
+
+  /// Number of failed requests
   let rollingCountFailure: Int
+
+  /// Number of timed-out requests
   let rollingCountTimeout: Int
+
+  /// Average execution latency
   let latencyExecute_mean: Int
+
+  /// Execution latency by perentile
   let latencyExecute: [Double: Int]
+
+  /// Total latency by perentile
   let latencyTotal: [Double: Int]
-  let type: String
 
   // Untracked Stats
   let rollingCountBadRequests: Int = 0
@@ -65,6 +94,14 @@ public struct Snapshot: Codable {
   let propertyValue_requestLogEnabled: Bool = false
   let reportingHosts: Int = 1
 
+  /// Initializer
+  ///
+  /// - Parameters:
+  ///   - type: The type of stats object
+  ///   - name: CircuitBreaker instance name
+  ///   - group: CircuitBreaker group name
+  ///   - stats: Stats
+  ///   - state: BreakerState
   public init(type: String, name: String, group: String? = nil, stats: Stats, state: State) {
     self.type = type
     self.name = name

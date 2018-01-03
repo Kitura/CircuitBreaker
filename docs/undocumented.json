@@ -15,20 +15,6 @@
       "warning": "undocumented"
     },
     {
-      "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Snapshot.swift",
-      "line": 19,
-      "symbol": "Snapshot",
-      "symbol_kind": "source.lang.swift.decl.struct",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Snapshot.swift",
-      "line": 68,
-      "symbol": "Snapshot.init(type:name:group:stats:state:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
       "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Utils.swift",
       "line": 33,
       "symbol": "Date.currentTimeMillis()",

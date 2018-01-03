@@ -20,7 +20,7 @@ import Foundation
 public protocol StatsMonitor {
 
   /// References to monitored CircuitBreaker instances
-  var refs: [Weak] { get set }
+  var refs: [StatsProvider] { get set }
 
   /// Method to register a stats provider
   ///
@@ -30,13 +30,6 @@ public protocol StatsMonitor {
 
 }
 
-public extension StatsMonitor {
-
-  // Default register method to add weak reference to pointer array
-  public mutating func register(breakerRef: StatsProvider) {
-    self.refs.append(Weak(value: breakerRef))
-  }
-}
 /// Protocol identifying a stats provider
 public protocol StatsProvider: class {
 
@@ -45,19 +38,4 @@ public protocol StatsProvider: class {
 
   /// Histrix compliant instance
   var snapshot: Snapshot { get }
-}
-
-/// Wrapper for a weak reference
-public class Weak {
-
-  /// The weak circuit breaker instance
-  public weak var value: StatsProvider?
-
-  /// Initializer
-  ///
-  /// - Parameters:
-  ///   - value: StatsProvider
-  public init (value: StatsProvider) {
-    self.value = value
-  }
 }
