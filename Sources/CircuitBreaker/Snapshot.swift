@@ -21,9 +21,6 @@ public struct Snapshot: Codable {
 
   /// Tracked Statistics
 
-  /// Type of data object
-  let type: String
-
   /// Name of CircuitBreaker instance
   let name: String
 
@@ -62,8 +59,14 @@ public struct Snapshot: Codable {
   /// Execution latency by perentile
   let latencyExecute: [Double: Int]
 
+  /// Average total latency
+  let latencyTotal_mean: Int
+
   /// Total latency by perentile
   let latencyTotal: [Double: Int]
+
+  /// Type of data object
+  let type: String = "HystrixCommand"
 
   // Untracked Stats
   let rollingCountBadRequests: Int = 0
@@ -76,7 +79,6 @@ public struct Snapshot: Codable {
   let rollingCountSemaphoreRejected: Int = 0
   let rollingCountThreadPoolRejected: Int = 0
   let currentConcurrentExecutionCount: Int = 0
-  let latencyTotal_mean: Int = 15
   let propertyValue_circuitBreakerRequestVolumeThreshold: Int = 0 //json.waitThreshold
   let propertyValue_circuitBreakerSleepWindowInMilliseconds: Int = 0 //json.circuitDuration
   let propertyValue_circuitBreakerErrorThresholdPercentage: Int = 0 //json.threshold
@@ -97,13 +99,11 @@ public struct Snapshot: Codable {
   /// Initializer
   ///
   /// - Parameters:
-  ///   - type: The type of stats object
   ///   - name: CircuitBreaker instance name
   ///   - group: CircuitBreaker group name
   ///   - stats: Stats
   ///   - state: BreakerState
-  public init(type: String, name: String, group: String? = nil, stats: Stats, state: State) {
-    self.type = type
+  public init(name: String, group: String? = nil, stats: Stats, state: State) {
     self.name = name
     self.group = group
     self.currentTime = Date().timeIntervalSinceNow
@@ -115,7 +115,8 @@ public struct Snapshot: Codable {
     self.rollingCountSuccess = stats.successful
     self.rollingCountFailure = stats.failed
     self.rollingCountTimeout = stats.timeouts
-    self.latencyExecute_mean = stats.averageResponseTime
+    self.latencyExecute_mean = stats.averageExecutionResponseTime
+    self.latencyTotal_mean = stats.averageTotalResponseTime
     self.latencyExecute = stats.latencyExecute
     self.latencyTotal = stats.latencyTotal
   }

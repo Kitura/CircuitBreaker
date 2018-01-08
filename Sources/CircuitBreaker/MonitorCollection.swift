@@ -14,11 +14,11 @@
  * limitations under the License.
  **/
 
-internal struct Observer {
+internal struct MonitorCollection {
 
-  internal var monitors: [StatsMonitor] = []
+  internal var values: [StatsMonitor] = []
 
-  internal static var sharedInstance = Observer()
+  internal static var sharedInstance = MonitorCollection()
 
   private init() {}
 

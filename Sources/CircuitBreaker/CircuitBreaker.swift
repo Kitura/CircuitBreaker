@@ -116,7 +116,7 @@ public class CircuitBreaker<A, B> {
 
     // Link to Observers
 
-    Observer.sharedInstance.monitors.forEach { $0.register(breakerRef: self) }
+    MonitorCollection.sharedInstance.values.forEach { $0.register(breakerRef: self) }
   }
 
   // MARK: Class Methods
@@ -158,7 +158,7 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Method to print current stats
-  public func current_snapshot() {
+  public func logSnapshot() {
     breakerStats.snapshot()
   }
 
@@ -318,11 +318,11 @@ extension CircuitBreaker: StatsProvider {
 
   /// Method to create link a StatsMonitor Instance
   public static func addMonitor(monitor: StatsMonitor) {
-    Observer.sharedInstance.monitors.append(monitor)
+    MonitorCollection.sharedInstance.values.append(monitor)
   }
 
   /// Property to compute snapshot
   public var snapshot: Snapshot {
-    return Snapshot(type: "HystrixCommand", name: name, group: group, stats: self.breakerStats, state: breakerState)
+    return Snapshot(name: name, group: group, stats: self.breakerStats, state: breakerState)
   }
 }

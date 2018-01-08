@@ -34,6 +34,8 @@ public class Invocation<A, B> {
 
   private let startTime: Date
 
+  private let startExecutionTime = Date()
+
   // Semaphore to avoid race conditions in the state of the invocation
   private let semaphoreCompleted = DispatchSemaphore(value: 1)
 
@@ -60,7 +62,8 @@ public class Invocation<A, B> {
       setTimedOut()
       semaphoreCompleted.signal()
       // Revisit Execution versus Total Latency
-      // breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      // Track latency for timeout in same way as brakes (https://github.com/awolden/brakes/)
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return true
     }
     semaphoreCompleted.signal()
@@ -88,7 +91,8 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifySuccess()
-      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackExecutionLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()
@@ -105,7 +109,8 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
-      breaker?.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackExecutionLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()

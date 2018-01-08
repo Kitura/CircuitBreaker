@@ -189,18 +189,6 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
  * `command` Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance).
 
 ### Stats
-```swift
-...
-// Create CircuitBreaker
-let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
-
-// Invoke breaker call
-breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
-
-// Log Stats snapshot
-breaker.snapshot()
-...
-```
 
 #### Tracked Stats:
  * Total Requests
@@ -211,6 +199,48 @@ breaker.snapshot()
  * Failed Responses
  * Total Timeouts
  * Total Latency
+ * Hystrix Compliant Snapshot
+
+```swift
+...
+// Create CircuitBreaker
+let breaker = CircuitBreaker(command: myFunction, fallback: myFallback)
+
+// Invoke breaker call
+breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
+
+// Log Stats snapshot
+breaker.snapshot()
+
+// Hystrix compliant snapshot
+let snapshot = breaker.snapshot
+...
+```
+
+#### Stats Observing
+
+Provided in the CircuitBreaker library is an interface for observing new CircuitBreaker instances in order to register and track stat changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's stats. The CircuitBreaker instance exposes a hystrix compliant stat snapshot to the monitor which can then be processed accordingly.
+
+Example Usage:
+
+```swift
+
+/// Initialize stat monitors
+let monitor1 = SwiftMetrics()
+let monitor2 = ...
+
+/// Register monitors
+CircuitBreaker.addMonitor(monitor1)
+CircuitBreaker.addMonitor(monitor2)
+
+// Create instances of circuit breaker...
+let circuit1 = CircuitBreaker()
+let circuit2 = CircuitBreaker()
+...
+let circuitN = CircuitBreaker()
+```
+
+
 
 ## License
 This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE).

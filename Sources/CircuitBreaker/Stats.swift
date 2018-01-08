@@ -38,7 +38,10 @@ public class Stats {
   internal(set) public var rejectedRequests: Int = 0
 
   /// Array of request latencies
-  internal(set) public var latencies: [Int] = []
+  internal(set) public var executionLatencies: [Int] = []
+
+  /// Array of request latencies
+  internal(set) public var totalLatencies: [Int] = []
 
   /// Default latency percentiles
   public var percentiles = [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 1.0]
@@ -47,15 +50,28 @@ public class Stats {
 
   /// Method returning the cumulative latency
   public var totalLatency: Int {
-    return latencies.reduce(0, +)
+    return totalLatencies.reduce(0, +)
   }
 
-  /// Method returning the average response time
-  public var averageResponseTime: Int {
-    if latencies.count == 0 {
+  /// Method returning the cumulative latency
+  public var totalExecutionLatency: Int {
+    return executionLatencies.reduce(0, +)
+  }
+
+  /// Method returning the average execution response time
+  public var averageExecutionResponseTime: Int {
+    if executionLatencies.count == 0 {
       return 0
     }
-    return totalLatency / latencies.count
+    return totalExecutionLatency / executionLatencies.count
+  }
+
+  /// Method returning the average total response time
+  public var averageTotalResponseTime: Int {
+    if totalLatencies.count == 0 {
+      return 0
+    }
+    return totalLatency / totalLatencies.count
   }
 
   /// Method returning the number of concurrent requests
@@ -77,7 +93,7 @@ public class Stats {
   /// Latency Executes Mapping
   /// Percentile -> Execution time (in milliseconds)
   public var latencyExecute: [Double: Int] {
-    return latenciesPercentiles
+    return latenciesPercentiles(executionLatencies)
   }
 
   /// Latency Total Mapping
@@ -85,7 +101,7 @@ public class Stats {
   public var latencyTotal: [Double: Int] {
     /// NOTE: Since CircuitBreaker does not currenly track latency for rejected requests. This simply returns
     /// the same value as latency execute
-    return latenciesPercentiles
+    return latenciesPercentiles(totalLatencies)
   }
 
   /// Number of failed executions (Both rejected and failed responses)
@@ -104,7 +120,8 @@ public class Stats {
     Log.verbose("Concurrent Requests: \(concurrentRequests)")
     Log.verbose("Rejected Requests: \(rejectedRequests)")
     Log.verbose("Successful Responses: \(successfulResponses)")
-    Log.verbose("Average Response Time: \(averageResponseTime)")
+    Log.verbose("Average Total Response Time: \(averageTotalResponseTime)")
+    Log.verbose("Average Execution Response Time: \(averageExecutionResponseTime)")
     Log.verbose("Failed Responses: \(failedResponses)")
     Log.verbose("Total Timeouts: \(timeouts)")
     Log.verbose("Total Latency: \(totalLatency)")
@@ -130,9 +147,14 @@ public class Stats {
     totalRequests += 1
   }
 
-  internal func trackLatency(latency: Int) {
+  internal func trackTotalLatency(latency: Int) {
     /// Todo: insert in order
-    latencies.append(latency)
+    totalLatencies.append(latency)
+  }
+
+  internal func trackExecutionLatency(latency: Int) {
+    /// Todo: insert in order
+    executionLatencies.append(latency)
   }
 
   internal func reset() {
@@ -141,10 +163,11 @@ public class Stats {
     self.failedResponses = 0
     self.totalRequests = 0
     self.rejectedRequests = 0
-    self.latencies = []
+    self.totalLatencies = []
+    self.executionLatencies = []
   }
 
-  private var latenciesPercentiles: [Double: Int] {
+  private func latenciesPercentiles(_ latencies: [Int]) -> [Double: Int] {
     let array = latencies.sorted()
     return percentiles.reduce([Double: Int]()) { acc, percentile in
       var acc = acc

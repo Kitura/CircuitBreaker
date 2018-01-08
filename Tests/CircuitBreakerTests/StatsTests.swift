@@ -53,26 +53,27 @@ class StatsTests: XCTestCase {
     XCTAssertEqual(stats.failedResponses, 0)
     XCTAssertEqual(stats.totalRequests, 0)
     XCTAssertEqual(stats.rejectedRequests, 0)
-    XCTAssertEqual(stats.latencies.count, 0)
+    XCTAssertEqual(stats.totalLatencies.count, 0)
+    XCTAssertEqual(stats.executionLatencies.count, 0)
   }
 
   // Calculate total latency
   func testTotalLatency() {
-    stats.latencies = [1, 2, 3, 4, 5]
+    stats.totalLatencies = [1, 2, 3, 4, 5]
     let latency = stats.totalLatency
     XCTAssertEqual(latency, 15)
   }
 
   // Calculate execute latency percentiles
   func testLatencyExecutePercentiles() {
-    stats.latencies = [1, 2, 3, 4, 5]
+    stats.executionLatencies = [1, 2, 3, 4, 5]
     let latency = stats.latencyExecute
     XCTAssertEqual(latency, [90.0: 5, 100.0: 5, 99.5: 5, 99.0: 5, 75.0: 4, 50.0: 3, 25.0: 2, 0.0: 1, 95.0: 5])
   }
 
   // Calculate total latency Percentiles
   func testLatencyTotalPercentiles() {
-    stats.latencies = [1, 2, 3, 4, 5]
+    stats.totalLatencies = [1, 2, 3, 4, 5]
     let latency = stats.latencyTotal
     XCTAssertEqual(latency, [90.0: 5, 100.0: 5, 99.5: 5, 99.0: 5, 75.0: 4, 50.0: 3, 25.0: 2, 0.0: 1, 95.0: 5])
   }
@@ -108,20 +109,26 @@ class StatsTests: XCTestCase {
 
   // Add latency value
   func testTrackLatency() {
-    stats.trackLatency(latency: 10)
-    XCTAssertEqual(stats.latencies.count, 1)
-    XCTAssertEqual(stats.latencies[0], 10)
+    stats.trackExecutionLatency(latency: 10)
+    stats.trackTotalLatency(latency: 10)
+    XCTAssertEqual(stats.totalLatencies.count, 1)
+    XCTAssertEqual(stats.executionLatencies.count, 1)
+    XCTAssertEqual(stats.totalLatencies[0], 10)
+    XCTAssertEqual(stats.executionLatencies[0], 10)
   }
 
   // Check average response time when latency array is empty
   func testAvgResponseTimeInitial() {
-    XCTAssertEqual(stats.averageResponseTime, 0)
+    XCTAssertEqual(stats.averageTotalResponseTime, 0)
+    XCTAssertEqual(stats.averageExecutionResponseTime, 0)
   }
 
   // Check average response time when latency array has multiple values
   func testAvgResponseTime() {
-    stats.latencies = [1, 2, 3, 4, 5]
-    XCTAssertEqual(stats.averageResponseTime, 3)
+    stats.executionLatencies = [1, 2, 3, 4, 5]
+    stats.totalLatencies = [1, 2, 3, 4, 5]
+    XCTAssertEqual(stats.averageExecutionResponseTime, 3)
+    XCTAssertEqual(stats.averageTotalResponseTime, 3)
   }
 
   // Calculate total concurrent requests
@@ -141,8 +148,8 @@ class StatsTests: XCTestCase {
     stats.failedResponses = 2
     stats.totalRequests = 8
     stats.rejectedRequests = 3
-    stats.latencies = [1, 2, 3]
-
+    stats.totalLatencies = [1, 2, 3]
+    stats.executionLatencies = [1, 2, 3]
     stats.reset()
 
     XCTAssertEqual(stats.timeouts, 0)
@@ -150,7 +157,8 @@ class StatsTests: XCTestCase {
     XCTAssertEqual(stats.failedResponses, 0)
     XCTAssertEqual(stats.totalRequests, 0)
     XCTAssertEqual(stats.rejectedRequests, 0)
-    XCTAssertEqual(stats.latencies.count, 0)
+    XCTAssertEqual(stats.totalLatencies.count, 0)
+    XCTAssertEqual(stats.executionLatencies.count, 0)
   }
 
   // Print out current snapshot of CircuitBreaker Stats
@@ -158,15 +166,18 @@ class StatsTests: XCTestCase {
 
     stats.trackRequest()
     stats.trackFailedResponse()
-    stats.trackLatency(latency: 30)
+    stats.trackTotalLatency(latency: 30)
+    stats.trackExecutionLatency(latency: 30)
 
     stats.trackRequest()
     stats.trackSuccessfulResponse()
-    stats.trackLatency(latency: 4)
+    stats.trackExecutionLatency(latency: 4)
+    stats.trackTotalLatency(latency: 4)
 
     stats.trackRequest()
     stats.trackTimeouts()
-    stats.trackLatency(latency: 100)
+    stats.trackExecutionLatency(latency: 100)
+    stats.trackTotalLatency(latency: 100)
 
     stats.snapshot()
   }
