@@ -115,8 +115,8 @@ public struct Snapshot: Codable {
     self.rollingCountSuccess = stats.successful
     self.rollingCountFailure = stats.failed
     self.rollingCountTimeout = stats.timeouts
-    self.latencyExecute_mean = stats.averageExecutionResponseTime
-    self.latencyTotal_mean = stats.averageTotalResponseTime
+    self.latencyExecute_mean = stats.meanExecutionLatency
+    self.latencyTotal_mean = stats.meanTotalLatency
     self.latencyExecute = stats.latencyExecute
     self.latencyTotal = stats.latencyTotal
   }

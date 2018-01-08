@@ -119,16 +119,16 @@ class StatsTests: XCTestCase {
 
   // Check average response time when latency array is empty
   func testAvgResponseTimeInitial() {
-    XCTAssertEqual(stats.averageTotalResponseTime, 0)
-    XCTAssertEqual(stats.averageExecutionResponseTime, 0)
+    XCTAssertEqual(stats.meanExecutionLatency, 0)
+    XCTAssertEqual(stats.meanTotalLatency, 0)
   }
 
   // Check average response time when latency array has multiple values
   func testAvgResponseTime() {
     stats.executionLatencies = [1, 2, 3, 4, 5]
     stats.totalLatencies = [1, 2, 3, 4, 5]
-    XCTAssertEqual(stats.averageExecutionResponseTime, 3)
-    XCTAssertEqual(stats.averageTotalResponseTime, 3)
+    XCTAssertEqual(stats.meanExecutionLatency, 3)
+    XCTAssertEqual(stats.meanTotalLatency, 3)
   }
 
   // Calculate total concurrent requests

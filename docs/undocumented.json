@@ -9,7 +9,7 @@
     },
     {
       "file": "/Users/AaronLiberatore/Documents/circuits/Sources/CircuitBreaker/Invocation.swift",
-      "line": 57,
+      "line": 59,
       "symbol": "Invocation.nofityTimedOut()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"

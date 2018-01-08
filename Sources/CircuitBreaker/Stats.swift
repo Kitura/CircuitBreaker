@@ -59,7 +59,7 @@ public class Stats {
   }
 
   /// Method returning the average execution response time
-  public var averageExecutionResponseTime: Int {
+  public var meanExecutionLatency: Int {
     if executionLatencies.count == 0 {
       return 0
     }
@@ -67,7 +67,7 @@ public class Stats {
   }
 
   /// Method returning the average total response time
-  public var averageTotalResponseTime: Int {
+  public var meanTotalLatency: Int {
     if totalLatencies.count == 0 {
       return 0
     }
@@ -120,8 +120,8 @@ public class Stats {
     Log.verbose("Concurrent Requests: \(concurrentRequests)")
     Log.verbose("Rejected Requests: \(rejectedRequests)")
     Log.verbose("Successful Responses: \(successfulResponses)")
-    Log.verbose("Average Total Response Time: \(averageTotalResponseTime)")
-    Log.verbose("Average Execution Response Time: \(averageExecutionResponseTime)")
+    Log.verbose("Average Total Response Time: \(meanTotalLatency)")
+    Log.verbose("Average Execution Response Time: \(meanExecutionLatency)")
     Log.verbose("Failed Responses: \(failedResponses)")
     Log.verbose("Total Timeouts: \(timeouts)")
     Log.verbose("Total Latency: \(totalLatency)")

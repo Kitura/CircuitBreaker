@@ -263,9 +263,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC9latenciesSaySiGv"></a>
-                    <a name="//apple_ref/swift/Property/latencies" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC9latenciesSaySiGv">latencies</a>
+                    <a name="/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGv"></a>
+                    <a name="//apple_ref/swift/Property/executionLatencies" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGv">executionLatencies</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -280,7 +280,34 @@ Number of timeouts</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">latencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">executionLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGv"></a>
+                    <a name="//apple_ref/swift/Property/totalLatencies" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGv">totalLatencies</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Array of request latencies</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">totalLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
 
                         </div>
                       </div>
@@ -345,9 +372,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC19averageResponseTimeSiv"></a>
-                    <a name="//apple_ref/swift/Property/averageResponseTime" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC19averageResponseTimeSiv">averageResponseTime</a>
+                    <a name="/s:14CircuitBreaker5StatsC21totalExecutionLatencySiv"></a>
+                    <a name="//apple_ref/swift/Property/totalExecutionLatency" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC21totalExecutionLatencySiv">totalExecutionLatency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -355,14 +382,68 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method returning the average response time</p>
+                        <p>Method returning the cumulative latency</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">averageResponseTime</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker5StatsC20meanExecutionLatencySiv"></a>
+                    <a name="//apple_ref/swift/Property/meanExecutionLatency" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC20meanExecutionLatencySiv">meanExecutionLatency</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Method returning the average execution response time</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker5StatsC16meanTotalLatencySiv"></a>
+                    <a name="//apple_ref/swift/Property/meanTotalLatency" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC16meanTotalLatencySiv">meanTotalLatency</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Method returning the average total response time</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanTotalLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -595,7 +676,7 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-03)</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
       <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>

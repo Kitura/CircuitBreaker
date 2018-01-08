@@ -195,10 +195,12 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
  * Concurrent Requests
  * Rejected Requests
  * Successful Responses
- * Average Response Time
+ * Average Execution Response Time
+ * Average Total Response Time
  * Failed Responses
  * Total Timeouts
  * Total Latency
+ * Total Execution Latency
  * Hystrix Compliant Snapshot
 
 ```swift
