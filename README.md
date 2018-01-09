@@ -219,30 +219,30 @@ let snapshot = breaker.snapshot
 ...
 ```
 
-#### Stats Observing
-
-Provided in the CircuitBreaker library is an interface for observing new CircuitBreaker instances in order to register and track stat changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's stats. The CircuitBreaker instance exposes a hystrix compliant stat snapshot to the monitor which can then be processed accordingly.
-
-Example Usage:
+#### Observing stats
+The CircuitBreaker library provides an interface for observing new CircuitBreaker instances in order to register and track stat changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's stats. The CircuitBreaker instance exposes a Hystrix compliant stat snapshot to the monitor which can then be processed accordingly.
 
 ```swift
 
 /// Initialize stat monitors
 let monitor1 = SwiftMetrics()
 let monitor2 = ...
+...
+let monitorN = ...
 
 /// Register monitors
 CircuitBreaker.addMonitor(monitor1)
 CircuitBreaker.addMonitor(monitor2)
+CircuitBreaker.addMonitor(monitorN)
 
-// Create instances of circuit breaker...
+// Create instances of CircuitBreaker
 let circuit1 = CircuitBreaker()
 let circuit2 = CircuitBreaker()
 ...
 let circuitN = CircuitBreaker()
 ```
 
-
+As mentioned above, the initializer takes care of notifying each one of the monitors of the new CircuitBreaker instance.
 
 ## License
 This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE).
