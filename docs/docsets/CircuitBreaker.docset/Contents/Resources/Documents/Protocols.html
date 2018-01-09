@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Enumerations  Reference</title>
+    <title>Protocols  Reference</title>
     <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="css/highlight.css" />
     <meta charset="utf-8">
@@ -15,7 +15,7 @@
   <body>
 
 
-    <a title="Enumerations  Reference"></a>
+    <a title="Protocols  Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -43,7 +43,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="index.html">CircuitBreaker Reference</a>
       <img class="carat" src="img/carat.png" />
-      Enumerations  Reference
+      Protocols  Reference
     </p>
 
     <div class="content-wrapper">
@@ -107,8 +107,8 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>Enumerations</h1>
-            <p>The following enumerations are available globally.</p>
+            <h1>Protocols</h1>
+            <p>The following protocols are available globally.</p>
 
           </div>
         </section>
@@ -120,9 +120,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StateO"></a>
-                    <a name="//apple_ref/swift/Enum/State" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StateO">State</a>
+                    <a name="/s:14CircuitBreaker12StatsMonitorP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatsMonitor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker12StatsMonitorP">StatsMonitor</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -130,15 +130,43 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>State</p>
+                        <p>Protocol identifying a stats monitor</p>
 
-                        <a href="Enums/State.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/StatsMonitor.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">State</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatsMonitor</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker13StatsProviderP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatsProvider" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker13StatsProviderP">StatsProvider</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Protocol identifying a stats provider</p>
+
+                        <a href="Protocols/StatsProvider.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatsProvider</span><span class="p">:</span> <span class="kd">class</span></code></pre>
 
                         </div>
                       </div>

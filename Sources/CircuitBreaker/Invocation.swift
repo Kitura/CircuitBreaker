@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corporation 2017
+ * Copyright IBM Corporation 2017, 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@ public class Invocation<A, B> {
   /// Completion state of invocation
   private(set) var completed: Bool = false
 
+  private let startTime: Date
+
+  private let startExecutionTime = Date()
+
   // Semaphore to avoid race conditions in the state of the invocation
   private let semaphoreCompleted = DispatchSemaphore(value: 1)
 
@@ -42,10 +46,11 @@ public class Invocation<A, B> {
   ///   - breaker CircuitBreaker Instance
   ///   - commandArgs Arguments for command context
   ///
-  public init(breaker: CircuitBreaker<A, B>, commandArgs: A, fallbackArgs: B) {
+  public init(startTime: Date, breaker: CircuitBreaker<A, B>, commandArgs: A, fallbackArgs: B) {
     self.breaker = breaker
     self.commandArgs = commandArgs
     self.fallbackArgs = fallbackArgs
+    self.startTime = startTime
   }
 
   /// Marks invocation as having timed out if and only if the execution
@@ -56,6 +61,9 @@ public class Invocation<A, B> {
     if !self.completed {
       setTimedOut()
       semaphoreCompleted.signal()
+      // Revisit Execution versus Total Latency
+      // Track latency for timeout in same way as brakes (https://github.com/awolden/brakes/)
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return true
     }
     semaphoreCompleted.signal()
@@ -83,6 +91,8 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifySuccess()
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackExecutionLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()
@@ -99,6 +109,8 @@ public class Invocation<A, B> {
       self.setCompleted()
       semaphoreCompleted.signal()
       breaker?.notifyFailure(error: error, fallbackArgs: fallbackArgs)
+      breaker?.breakerStats.trackTotalLatency(latency: Int(Date().timeIntervalSince(startTime)))
+      breaker?.breakerStats.trackExecutionLatency(latency: Int(Date().timeIntervalSince(startTime)))
       return
     }
     semaphoreCompleted.signal()

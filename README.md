@@ -11,6 +11,7 @@ The Circuit Breaker design pattern is used to increase application stability, im
 * [Installation](#installation)
 * [Usage](#usage)
 * [API](#api)
+* [License](#license)
 
 ## Swift version
 The latest version of CircuitBreaker works with the `4.0.3` and newer version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
@@ -28,7 +29,7 @@ To leverage the CircuitBreaker package in your Swift application, you should spe
 
      dependencies: [
          // Swift 4
-         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "4.0.0")),
+         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "5.0.0")),
          ...
 
      ])
@@ -189,6 +190,20 @@ CircuitBreaker(timeout: Int = 1000, resetTimeout: Int = 60000, maxFailures: Int 
  * `command` Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance).
 
 ### Stats
+
+#### Tracked Stats:
+ * Total Requests
+ * Concurrent Requests
+ * Rejected Requests
+ * Successful Responses
+ * Average Execution Response Time
+ * Average Total Response Time
+ * Failed Responses
+ * Total Timeouts
+ * Total Latency
+ * Total Execution Latency
+ * Hystrix Compliant Snapshot
+
 ```swift
 ...
 // Create CircuitBreaker
@@ -199,18 +214,37 @@ breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
 
 // Log Stats snapshot
 breaker.snapshot()
+
+// Hystrix compliant snapshot
+let snapshot = breaker.snapshot
 ...
 ```
 
-#### Tracked Stats:
- * Total Requests
- * Concurrent Requests
- * Rejected Requests
- * Successful Responses
- * Average Response Time
- * Failed Responses
- * Total Timeouts
- * Total Latency
+#### Observing stats
+The CircuitBreaker library provides an interface for observing new CircuitBreaker instances in order to register and track stat changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's stats. The CircuitBreaker instance exposes a Hystrix compliant stat snapshot to the monitor which can then be processed accordingly.
+
+```swift
+
+/// Initialize stat monitors
+let monitor1 = SwiftMetrics()
+let monitor2 = ...
+...
+let monitorN = ...
+
+/// Register monitors
+CircuitBreaker.addMonitor(monitor1)
+CircuitBreaker.addMonitor(monitor2)
+...
+CircuitBreaker.addMonitor(monitorN)
+
+// Create instances of CircuitBreaker
+let circuit1 = CircuitBreaker()
+let circuit2 = CircuitBreaker()
+...
+let circuitN = CircuitBreaker()
+```
+
+As mentioned above, the initializer takes care of notifying each one of the monitors of the new CircuitBreaker instance.
 
 ## License
 This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE).

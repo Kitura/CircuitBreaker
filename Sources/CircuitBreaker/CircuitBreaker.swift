@@ -1,5 +1,5 @@
 /**
-* Copyright IBM Corporation 2017
+* Copyright IBM Corporation 2017, 2018
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -30,6 +30,12 @@ public class CircuitBreaker<A, B> {
   public typealias AnyFallback<B> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
+
+  /// Name of Circuit Breaker Instance
+  public private(set) var name: String
+
+  // Name of Circuit Breaker Group
+  public private(set) var group: String?
 
   /// Execution timeout for command contect (Default: 1000 ms)
   public let timeout: Int
@@ -75,6 +81,8 @@ public class CircuitBreaker<A, B> {
   /// Initializes CircuitBreaker instance with asyncronous context command (Advanced usage)
   ///
   /// - Parameters:
+  ///   - name: name of the circuit instance
+  ///   - group: optional group description
   ///   - timeout: Execution timeout for command contect (Default: 1000 ms)
   ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
   ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
@@ -86,13 +94,17 @@ public class CircuitBreaker<A, B> {
   ///   - fallback: Function user specifies to signal timeout or fastFail completion.
   ///     Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
   ///
-  public init(timeout: Int = 1000,
+  public init(name: String,
+              group: String? = nil,
+              timeout: Int = 1000,
               resetTimeout: Int = 60000,
               maxFailures: Int = 5,
               rollingWindow: Int = 10000,
               bulkhead: Int = 0,
               command: @escaping AnyContextFunction<A>,
               fallback: @escaping AnyFallback<B>) {
+    self.name = name
+    self.group = group
     self.timeout = timeout
     self.resetTimeout = resetTimeout
     self.maxFailures = maxFailures
@@ -101,6 +113,10 @@ public class CircuitBreaker<A, B> {
     self.command = command
     self.failures = FailureQueue(size: maxFailures)
     self.bulkhead = (bulkhead > 0) ? Bulkhead.init(limit: bulkhead) : nil
+
+    // Link to Observers
+
+    MonitorCollection.sharedInstance.values.forEach { $0.register(breakerRef: self) }
   }
 
   // MARK: Class Methods
@@ -122,41 +138,37 @@ public class CircuitBreaker<A, B> {
 
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
-              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+              self.callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
       } else {
-          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
-
-      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
 
     case .closed:
       let startTime = Date()
 
       if let bulkhead = self.bulkhead {
           bulkhead.enqueue {
-              self.callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+              self.callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
           }
       } else {
-          callFunction(commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+          callFunction(startTime: startTime, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
       }
-
-      self.breakerStats.trackLatency(latency: Int(Date().timeIntervalSince(startTime)))
     }
   }
 
   /// Method to print current stats
-  public func snapshot() {
+  public func logSnapshot() {
     breakerStats.snapshot()
   }
 
   /// Method to notifcy circuit of a completion with a failure
-  func notifyFailure(error: BreakerError, fallbackArgs: B) {
+  internal func notifyFailure(error: BreakerError, fallbackArgs: B) {
     handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
   /// Method to notifcy circuit of a successful completion
-  func notifySuccess() {
+  internal func notifySuccess() {
     handleSuccess()
   }
 
@@ -180,9 +192,9 @@ public class CircuitBreaker<A, B> {
   }
 
   /// Wrapper for calling and handling CircuitBreaker command
-  private func callFunction(commandArgs: A, fallbackArgs: B) {
+  private func callFunction(startTime: Date, commandArgs: A, fallbackArgs: B) {
 
-    let invocation = Invocation(breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
+    let invocation = Invocation(startTime: startTime, breaker: self, commandArgs: commandArgs, fallbackArgs: fallbackArgs)
 
     setTimeout { [weak invocation, weak self] in
       if invocation?.nofityTimedOut() == true {
@@ -251,6 +263,7 @@ public class CircuitBreaker<A, B> {
   private func handleSuccess() {
     semaphoreCircuit.wait()
     Log.verbose("Handling success...")
+
     if state == .halfopen {
       close()
     }
@@ -298,5 +311,18 @@ public class CircuitBreaker<A, B> {
     resetTimer?.schedule(deadline: .now() + delay)
 
     resetTimer?.resume()
+  }
+}
+
+extension CircuitBreaker: StatsProvider {
+
+  /// Method to create link a StatsMonitor Instance
+  public static func addMonitor(monitor: StatsMonitor) {
+    MonitorCollection.sharedInstance.values.append(monitor)
+  }
+
+  /// Property to compute snapshot
+  public var snapshot: Snapshot {
+    return Snapshot(name: name, group: group, stats: self.breakerStats, state: breakerState)
   }
 }
