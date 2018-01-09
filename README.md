@@ -11,6 +11,7 @@ The Circuit Breaker design pattern is used to increase application stability, im
 * [Installation](#installation)
 * [Usage](#usage)
 * [API](#api)
+* [License](#license)
 
 ## Swift version
 The latest version of CircuitBreaker works with the `4.0.2` and newer version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
