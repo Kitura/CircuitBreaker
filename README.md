@@ -233,6 +233,7 @@ let monitorN = ...
 /// Register monitors
 CircuitBreaker.addMonitor(monitor1)
 CircuitBreaker.addMonitor(monitor2)
+...
 CircuitBreaker.addMonitor(monitorN)
 
 // Create instances of CircuitBreaker
