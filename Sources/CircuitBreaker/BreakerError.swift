@@ -46,17 +46,17 @@ import Foundation
 public struct BreakerError: Error {
 
   /// Unique key for a breaker error
-  let key: String
+  public let key: String
 
   /// String descibing the error
-  let reason: String?
+  public let reason: String?
 
   /// Breaker Error Initializer
   ///
   /// - Parameters
   ///   - key: Optional string key for the error
   ///   - reason: Optional string describing the error
-  init(key: String? = nil, reason: String? = nil) {
+  public init(key: String? = nil, reason: String? = nil) {
       self.key = key ?? UUID().uuidString
       self.reason = reason
   }
@@ -65,7 +65,7 @@ public struct BreakerError: Error {
   ///
   /// - Parameters
   ///   - reason: Optional string describing the error
-  init(reason: String? = nil) {
+  public init(reason: String? = nil) {
     self.init(key: nil, reason: reason)
   }
 
