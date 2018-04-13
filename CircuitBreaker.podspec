@@ -14,5 +14,5 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig =  {
         'SWIFT_VERSION' => '4.0.3',
   }
-  s.dependency 'LoggerAPI', '~> 1.7.2'
+  s.dependency 'LoggerAPI', '~> 1.7.2', :git => 'https://github.com/ShihabMehboob/LoggerAPI'
 end
