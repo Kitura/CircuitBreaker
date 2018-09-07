@@ -16,20 +16,22 @@
 
 import Foundation
 
-/// State
+/// Represents the state of the circuit.
 public enum State {
 
-  /// The circuit is open i.e. broken
+  /// The circuit is open, i.e. broken.
   case open
 
-  /// The circuit is half-open i.e. experiencing errors
+  /// The circuit is half-open, i.e. experiencing errors.
   case halfopen
 
-  /// The circuit is closed i.e functioning normally
+  /// The circuit is closed, i.e functioning normally.
   case closed
 }
 
+/// Extension to obtain the current date and time in milliseconds.
 extension Date {
+  /// Returns a representation of the current date and time in milliseconds.
   public static func currentTimeMillis() -> UInt64 {
     let timeInMillis = UInt64(NSDate().timeIntervalSince1970 * 1000.0)
     return timeInMillis

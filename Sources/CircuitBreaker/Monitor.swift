@@ -16,26 +16,26 @@
 
 import Foundation
 
-/// Protocol identifying a stats monitor
+/// Protocol identifying a statistics monitor.
 public protocol StatsMonitor {
 
-  /// References to monitored CircuitBreaker instances
+  /// References to monitored CircuitBreaker instances.
   var refs: [StatsProvider] { get set }
 
-  /// Method to register a stats provider
+  /// Method to register a statistics provider.
   ///
   /// - Parameters:
-  ///   - breakerRef: The StatsProvider to monitor
+  ///   - breakerRef: The StatsProvider to monitor.
   func register(breakerRef: StatsProvider)
 
 }
 
-/// Protocol identifying a stats provider
+/// Protocol identifying a statistics provider.
 public protocol StatsProvider: class {
 
-  /// Registers a monitor for a breaker reference
+  /// Registers a monitor for a referenced CircuitBreaker.
   static func addMonitor(monitor: StatsMonitor)
 
-  /// Histrix compliant instance
+  /// A Histrix compliant snapshot instance.
   var snapshot: Snapshot { get }
 }
