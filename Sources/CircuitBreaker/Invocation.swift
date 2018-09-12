@@ -81,8 +81,7 @@ public class Invocation<A, B> {
   /// result = invocation.notifyTimedOut()
   /// ```
   public func notifyTimedOut() -> Bool {
-    let boolResult = nofityTimedOut()
-    return boolResult
+    return nofityTimedOut()
   }
 
   /// Marks the invocation as having timed out.

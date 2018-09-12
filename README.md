@@ -130,7 +130,6 @@ breaker.run(commandArgs: requestParam, fallbackArgs: "Something went wrong.")
 #### Full Implementation
 
 ```swift
-...
 extension BreakerError {
     public static let encodingURLError = BreakerError(reason: "URL could not be created")
     public static let networkingError = BreakerError(reason: "There was an error, while sending the request")

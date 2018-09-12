@@ -100,7 +100,7 @@ public class CircuitBreaker<A, B> {
 
   // MARK: Initializers
 
-  /// Initializes a CircuitBreaker instance with an asyncronous context command. (Advanced usage.)
+  /// Initializes a CircuitBreaker instance with an asyncronous context command.
   ///
   /// - Parameters:
   ///   - name: Name of the CircuitBreaker instance.
