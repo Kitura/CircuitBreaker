@@ -22,7 +22,7 @@
         <a class="header-link" href="index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -108,125 +108,135 @@
         <section class="section">
           <div class="section-content">
             
-            <p><a href="https://travis-ci.org/IBM-Swift/CircuitBreaker"><img src="https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master" alt="Build Status"></a>
-<img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
-<img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux"></p>
+            <p align="center">
+    <a href="http://kitura.io/">
+        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+    </a>
+</p>
+
+<p align="center">
+    <a href="https://ibm-swift.github.io/CircuitBreaker/index.html">
+    <img src="https://img.shields.io/badge/apidoc-CircuitBreaker-1FBCE4.svg?style=flat" alt="APIDoc">
+    </a>
+    <a href="https://travis-ci.org/IBM-Swift/CircuitBreaker">
+    <img src="https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master" alt="Build Status - Master">
+    </a>
+    <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
+    <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
+    <img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2">
+    <a href="http://swift-at-ibm-slack.mybluemix.net/">
+    <img src="http://swift-at-ibm-slack.mybluemix.net/badge.svg" alt="Slack Status">
+    </a>
+</p>
 <h1 id='circuitbreaker' class='heading'>CircuitBreaker</h1>
 
-<p>The Circuit Breaker design pattern is used to increase application stability, improve response time, and prevent the application from making constant failing requests. This library provides the tools needed to bring Circuit Breaker logic to your Swift applications.</p>
+<p>The Circuit Breaker design pattern is used to increase application stability, improve response times and prevent the application from making constant failing requests. This library provides the tools needed to bring Circuit Breaker logic to your Swift applications.</p>
 
 <p><img src="resources/circuitBreakerDiagram.png" alt="Circuit Breaker Diagram"></p>
-<h2 id='contents' class='heading'>Contents</h2>
-
-<ul>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#usage">Usage</a></li>
-<li><a href="#api">API</a></li>
-</ul>
 <h2 id='swift-version' class='heading'>Swift version</h2>
 
-<p>The latest version of CircuitBreaker works with the <code>4.0.2</code> and newer version of the Swift binaries. You can download this version of the Swift binaries by following this <a href="https://swift.org/download/#releases">link</a>.</p>
-<h2 id='installation' class='heading'>Installation</h2>
+<p>The latest version of CircuitBreaker works with the <code>4.1.2</code> and newer version of the Swift binaries. You can download this version of the Swift binaries by following this <a href="https://swift.org/download/#releases">link</a>.</p>
+<h2 id='getting-started' class='heading'>Getting Started</h2>
 
-<p>To leverage the CircuitBreaker package in your Swift application, you should specify a dependency for it in your <code>Package.swift</code> file:</p>
-<pre class="highlight swift"><code> <span class="kd">import</span> <span class="kt">PackageDescription</span>
+<p>Add <code><a href="Classes/CircuitBreaker.html">CircuitBreaker</a></code> to the dependencies within your application&rsquo;s <code>Package.swift</code> file. Substitute <code>&quot;x.x.x&quot;</code> with the latest <code><a href="Classes/CircuitBreaker.html">CircuitBreaker</a></code> <a href="https://github.com/IBM-Swift/CircuitBreaker/releases">release</a>.</p>
+<pre class="highlight swift"><code><span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/CircuitBreaker.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"x.x.x"</span><span class="p">)</span>
+</code></pre>
 
- <span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="kt">Package</span><span class="p">(</span>
-     <span class="nv">name</span><span class="p">:</span> <span class="s">"MySwiftProject"</span><span class="p">,</span>
+<p>Add <code><a href="Classes/CircuitBreaker.html">CircuitBreaker</a></code> to your target&rsquo;s dependencies:</p>
+<pre class="highlight plaintext"><code>.target(name: "example", dependencies: ["CircuitBreaker"]),
+</code></pre>
 
-     <span class="o">...</span>
-
-     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-         <span class="c1">// Swift 4</span>
-         <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/IBM-Swift/CircuitBreaker.git"</span><span class="p">,</span> <span class="o">.</span><span class="nf">upToNextMajor</span><span class="p">(</span><span class="nv">from</span><span class="p">:</span> <span class="s">"4.0.0"</span><span class="p">)),</span>
-         <span class="o">...</span>
-
-     <span class="p">])</span>
+<p>Import the package inside your application:</p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">CircuitBreaker</span>
 </code></pre>
 <h3 id='usage' class='heading'>Usage</h3>
 
-<p><em>The CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call).</em></p>
+<p>The CircuitBreaker state is based on timeouts and user defined failures (quite useful when the function you are circuit breaking makes an asynchronous call). To use the CircuitBreaker in your application code you need to do the following:</p>
 
-<ol>
-<li>Define a fallback function with the signature <code>(BreakerError, (fallbackArg1, fallbackArg2,...)) -&gt; Void</code>:
-<code>swift
-func myFallback(err: BreakerError, msg: String) {
-// The fallback will be called if one of the below occurs:
-//  1. The request does not return before the specified timeout
-//  2. CircuitBreaker is currently in Open state and set to fail fast.
-//  3. There was an error in the user&#39;s called context function (networking error, etc.)
-Log.verbose(&quot;Error: \(error)&quot;)
-Log.verbose(&quot;Message: \(msg)&quot;)
-}
-</code></li>
-<li>Extend BreakerError by defining your own error handling to be used in your context function.
-<code>swift
-extension BreakerError {
-public static let encodingURLError = BreakerError(reason: &quot;URL could not be created&quot;)
-public static let networkingError = BreakerError(reason: &quot;There was an error, while sending the request&quot;)
-}
-</code></li>
-<li><p>Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). Please note that a context function receives an <code><a href="Classes/Invocation.html">Invocation</a></code> object as its parameter. An instance of the <code><a href="Classes/Invocation.html">Invocation</a></code> class states 1) the parameter types that must be passed to the context function, 2) the return type from the execution of the context function, and 3) parameter type used as the second argument for the fallback closure:</p>
-<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">myContextFunction</span><span class="p">(</span><span class="nv">invocation</span><span class="p">:</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">String</span><span class="p">),</span> <span class="kt">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
-<span class="k">let</span> <span class="nv">requestParam</span> <span class="o">=</span> <span class="n">invocation</span><span class="o">.</span><span class="n">commandArgs</span>
-<span class="c1">// Create HTTP request</span>
-<span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"http://myserver.net/path/</span><span class="se">\(</span><span class="n">requestParam</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
-<span class="c1">// Something went wrong...</span>
-
-<span class="o">...</span>
-
-<span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">encodingURLError</span><span class="p">)</span>
+<ul>
+<li>Define a fallback function with the signature <code>(BreakerError, (fallbackArg1, fallbackArg2, ...)) -&gt; Void</code>:</li>
+</ul>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">myFallback</span><span class="p">(</span><span class="nv">err</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">,</span> <span class="nv">msg</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// The fallback will be called if one of the below occurs:</span>
+    <span class="c1">//  1. The request does not return before the specified timeout</span>
+    <span class="c1">//  2. CircuitBreaker is currently in Open state and set to fail fast.</span>
+    <span class="c1">//  3. There was an error in the user's called context function (networking error, etc.)</span>
+    <span class="kt">Log</span><span class="o">.</span><span class="nf">verbose</span><span class="p">(</span><span class="s">"Error: </span><span class="se">\(</span><span class="n">err</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="kt">Log</span><span class="o">.</span><span class="nf">verbose</span><span class="p">(</span><span class="s">"Message: </span><span class="se">\(</span><span class="n">msg</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
-</code></pre></li>
-</ol>
-
-<p>var req = URLRequest(url: url)
-  req.httpMethod = <q>GET</q>
-  req.allHTTPHeaderFields = [<q>Content-Type</q>: <q>application/json</q>]
-  let session = URLSession.shared</p>
-
-<p>// Perform Request
-  session.dataTask(with: req) { result, res, err in
-    guard let result = result else {
-      // Failed getting a result from the server</p>
-<pre class="highlight plaintext"><code>  ...
-
-  invocation.notifyFailure(error: .networkingError)
-  return
-}
-
-// Convert results to a JSON object
-let json = JSON(data: result)
-// Process JSON data
-
-...
-
-invocation.notifySuccess()
 </code></pre>
 
-<p>}.resume()
-}</p>
-<pre class="highlight plaintext"><code>
-4. Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break:
-```swift
-let breaker = CircuitBreaker(command: myContextFunction, fallback: myFallback)
-</code></pre>
-<pre class="highlight plaintext"><code>* Must specify the fallback function and the endpoint to circuit break
-* Optional configurations include: timeout, resetTimeout, maxFailures, rollingWindow, and bulkhead
-</code></pre>
-
-<ol>
-<li>Invoke the call to the endpoint by calling the CircuitBreaker <code>run()</code> method. You should pass the corresponding arguments for the context command and fallback closures. In this sample, <code>myContextFunction</code> takes a string as its parameter while <code>myFallback</code> takes a string as its second parameter:
-<code>swift
-let id: String = ...
-breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
-</code></li>
-</ol>
-<h6 id='full-implementation' class='heading'>Full Implementation:</h6>
-<pre class="highlight swift"><code><span class="o">...</span>
-<span class="kd">extension</span> <span class="kt">BreakerError</span> <span class="p">{</span>
+<ul>
+<li>Extend BreakerError by defining your own error handling to be used in your context function:</li>
+</ul>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BreakerError</span> <span class="p">{</span>
     <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">encodingURLError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"URL could not be created"</span><span class="p">)</span>
     <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">networkingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"There was an error, while sending the request"</span><span class="p">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">jsonDecodingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"Could not decode result into JSON"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<ul>
+<li>Create a context function for the logic you intend to circuit break (this allows you to alert the CircuitBreaker of a failure or a success). A context function receives an <code><a href="Classes/Invocation.html">Invocation</a></code> object as its parameter. An instance of the <code><a href="Classes/Invocation.html">Invocation</a></code> class states:
+
+<ul>
+<li>The parameter types that must be passed to the context function.</li>
+<li>The return type from the execution of the context function.</li>
+<li>The parameter type used as the second argument for the fallback closure.</li>
+</ul></li>
+</ul>
+<pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">myContextFunction</span><span class="p">(</span><span class="nv">invocation</span><span class="p">:</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">String</span><span class="p">),</span> <span class="kt">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">let</span> <span class="nv">requestParam</span> <span class="o">=</span> <span class="n">invocation</span><span class="o">.</span><span class="n">commandArgs</span>
+  <span class="c1">// Create HTTP request</span>
+  <span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"http://myserver.net/path/</span><span class="se">\(</span><span class="n">requestParam</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// Something went wrong</span>
+
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">encodingURLError</span><span class="p">)</span>
+    <span class="k">return</span>
+  <span class="p">}</span>
+
+  <span class="k">var</span> <span class="nv">req</span> <span class="o">=</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
+  <span class="n">req</span><span class="o">.</span><span class="n">httpMethod</span> <span class="o">=</span> <span class="s">"GET"</span>
+  <span class="k">let</span> <span class="nv">session</span> <span class="o">=</span> <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span>
+
+  <span class="c1">// Perform the request</span>
+  <span class="n">session</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">req</span><span class="p">)</span> <span class="p">{</span> <span class="n">result</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">err</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">result</span> <span class="o">=</span> <span class="n">result</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="c1">// Failed getting a result from the server</span>
+
+      <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">networkingError</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Convert results to a JSON object</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">json</span> <span class="o">=</span> <span class="p">(</span><span class="k">try</span><span class="p">?</span> <span class="kt">JSONSerialization</span><span class="o">.</span><span class="nf">jsonObject</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="p">[]))</span> <span class="k">as?</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">jsonDecodingError</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="c1">// Process JSON data</span>
+
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifySuccess</span><span class="p">()</span>
+  <span class="p">}</span><span class="o">.</span><span class="nf">resume</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<ul>
+<li>Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break. The CircuitBreaker instance must specify a name for the circuit breaker, the endpoint to circuit break and the fallback function. Optional configurations include: group, timeout, resetTimeout, maxFailures, rollingWindow and bulkhead, for further details about these configuration options see the <a href="https://ibm-swift.github.io/CircuitBreaker/index.html">API reference</a>.</li>
+</ul>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+</code></pre>
+
+<ul>
+<li>Invoke the call to the endpoint by calling the CircuitBreaker <code>run()</code> method. You should pass the corresponding arguments for the context command and fallback closures. In this sample, <code>myContextFunction</code> takes a string as its parameter while <code>myFallback</code> takes a string as its second parameter:</li>
+</ul>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">requestParam</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"myRequestParams"</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="n">requestParam</span><span class="p">,</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
+</code></pre>
+<h4 id='full-implementation' class='heading'>Full Implementation</h4>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BreakerError</span> <span class="p">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">encodingURLError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"URL could not be created"</span><span class="p">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">networkingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"There was an error, while sending the request"</span><span class="p">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">jsonDecodingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"Could not decode result into JSON"</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="kd">func</span> <span class="nf">myFallback</span><span class="p">(</span><span class="nv">err</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">,</span> <span class="nv">msg</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
@@ -234,7 +244,7 @@ breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
     <span class="c1">//  1. The request does not return before the specified timeout</span>
     <span class="c1">//  2. CircuitBreaker is currently in Open state and set to fail fast.</span>
     <span class="c1">//  3. There was an error in the user's called context function (networking error, etc.)</span>
-    <span class="kt">Log</span><span class="o">.</span><span class="nf">verbose</span><span class="p">(</span><span class="s">"Error: </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="kt">Log</span><span class="o">.</span><span class="nf">verbose</span><span class="p">(</span><span class="s">"Error: </span><span class="se">\(</span><span class="n">err</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
     <span class="kt">Log</span><span class="o">.</span><span class="nf">verbose</span><span class="p">(</span><span class="s">"Message: </span><span class="se">\(</span><span class="n">msg</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -244,14 +254,11 @@ breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
   <span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"http://mysever.net/path/</span><span class="se">\(</span><span class="n">requestParam</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
     <span class="c1">// Something went wrong...</span>
 
-    <span class="o">...</span>
-
     <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">encodingURLError</span><span class="p">)</span>
   <span class="p">}</span>
 
   <span class="k">var</span> <span class="nv">req</span> <span class="o">=</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
   <span class="n">req</span><span class="o">.</span><span class="n">httpMethod</span> <span class="o">=</span> <span class="s">"GET"</span>
-  <span class="n">req</span><span class="o">.</span><span class="n">allHTTPHeaderFields</span> <span class="o">=</span> <span class="p">[</span><span class="s">"Content-Type"</span><span class="p">:</span> <span class="s">"application/json"</span><span class="p">]</span>
   <span class="k">let</span> <span class="nv">session</span> <span class="o">=</span> <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span>
 
   <span class="c1">// Perform Request</span>
@@ -259,47 +266,30 @@ breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
     <span class="k">guard</span> <span class="k">let</span> <span class="nv">result</span> <span class="o">=</span> <span class="n">result</span> <span class="k">else</span> <span class="p">{</span>
       <span class="c1">// Failed getting a result from the server</span>
 
-      <span class="o">...</span>
-
       <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">networkingError</span><span class="p">)</span>
       <span class="k">return</span>
     <span class="p">}</span>
 
     <span class="c1">// Convert results to a JSON object</span>
-    <span class="k">let</span> <span class="nv">json</span> <span class="o">=</span> <span class="kt">JSON</span><span class="p">(</span><span class="nv">data</span><span class="p">:</span> <span class="n">result</span><span class="p">)</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">json</span> <span class="o">=</span> <span class="p">(</span><span class="k">try</span><span class="p">?</span> <span class="kt">JSONSerialization</span><span class="o">.</span><span class="nf">jsonObject</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span> <span class="nv">options</span><span class="p">:</span> <span class="p">[]))</span> <span class="k">as?</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="o">.</span><span class="n">jsonDecodingError</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
     <span class="c1">// Process JSON data</span>
-
-    <span class="o">...</span>
 
     <span class="n">invocation</span><span class="o">.</span><span class="nf">notifySuccess</span><span class="p">()</span>
   <span class="p">}</span><span class="o">.</span><span class="nf">resume</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
 
-<span class="k">let</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="o">...</span>
-<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="n">id</span><span class="p">,</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
-
-<span class="o">...</span>
+<span class="k">let</span> <span class="nv">requestParam</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"myRequestParams"</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="n">requestParam</span><span class="p">,</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
 </code></pre>
-<h2 id='api' class='heading'>API</h2>
-<h3 id='circuitbreaker' class='heading'>CircuitBreaker</h3>
-<h4 id='constructor' class='heading'>Constructor</h4>
-<pre class="highlight swift"><code><span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyContextFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span><span class="p">)</span>
-</code></pre>
-<h4 id='constructor-parameters' class='heading'>Constructor parameters</h4>
+<h4 id='statistics' class='heading'>Statistics</h4>
 
-<ul>
-<li><code>timeout</code> Amount in milliseconds that your function should complete before the invocation is considered a failure. Default is set to 1000 milliseconds.</li>
-<li><code>resetTimeout</code> Amount in milliseconds to wait before setting to halfopen state. Default is set to 60000 milliseconds.</li>
-<li><code>maxFailures</code> Number of failures allowed within <code>rollingWindow</code> before setting state to open. Default is set to 5.</li>
-<li><code>rollingWindow</code> Time window in milliseconds where the maximum number of failures must occur to trip the circuit. For instance, say <code>maxFailures</code> is 5 and <code>rollingWindow</code> is 10000 milliseconds. In such case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures are not consecutive. Default is set to 10000 milliseconds.</li>
-<li><code>bulkhead</code> Number of the limit of concurrent requests running at one time. Default is set to 0, which is equivalent to not using the bulkheading feature.</li>
-<li><code>fallback</code> Function user specifies to signal timeout or fastFail completion. Required format: <code>(BreakerError, (fallbackArg1, fallbackArg2,...)) -&gt; Void</code></li>
-<li><code>command</code> Contextual function to circuit break, which allows user defined failures (the context provides an indirect reference to the corresponding circuit breaker instance).</li>
-</ul>
-<h3 id='stats' class='heading'>Stats</h3>
-<h4 id='tracked-stats' class='heading'>Tracked Stats:</h4>
+<p>The following statistics will be tracked for the CircuitBreaker instance:</p>
+<h5 id='tracked-statistics' class='heading'>Tracked Statistics</h5>
 
 <ul>
 <li>Total Requests</li>
@@ -314,43 +304,33 @@ breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
 <li>Total Execution Latency</li>
 <li>Hystrix Compliant Snapshot</li>
 </ul>
-<pre class="highlight swift"><code><span class="o">...</span>
-<span class="c1">// Create CircuitBreaker</span>
-<span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">command</span><span class="p">:</span> <span class="n">myFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+
+<p>The example code below shows how to log a snapshot of the statistics and how to create
+ a Hystrix compliant snapshot.</p>
+<pre class="highlight swift"><code><span class="c1">// Create CircuitBreaker</span>
+<span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
 
 <span class="c1">// Invoke breaker call</span>
 <span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="p">(</span><span class="nv">a</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="nv">b</span><span class="p">:</span> <span class="mi">20</span><span class="p">),</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
 
-<span class="c1">// Log Stats snapshot</span>
-<span class="n">breaker</span><span class="o">.</span><span class="nf">snapshot</span><span class="p">()</span>
+<span class="c1">// Log statistics snapshot</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">logSnapshot</span><span class="p">()</span>
 
 <span class="c1">// Hystrix compliant snapshot</span>
 <span class="k">let</span> <span class="nv">snapshot</span> <span class="o">=</span> <span class="n">breaker</span><span class="o">.</span><span class="n">snapshot</span>
-<span class="o">...</span>
 </code></pre>
-<h4 id='stats-observing' class='heading'>Stats Observing</h4>
+<h4 id='observing-statistics' class='heading'>Observing statistics</h4>
 
-<p>Provided in the CircuitBreaker library is an interface for observing new CircuitBreaker instances in order to register and track stat changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance&rsquo;s stats. The CircuitBreaker instance exposes a hystrix compliant stat snapshot to the monitor which can then be processed accordingly.</p>
+<p>The CircuitBreaker library provides an interface for observing new CircuitBreaker instances in order to register and track statistics changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance&rsquo;s statistics. The CircuitBreaker instance exposes a Hystrix compliant statistics snapshot to the monitor which can then be processed accordingly.  See the API documentation for more information.</p>
+<h2 id='api-documentation' class='heading'>API Documentation</h2>
 
-<p>Example Usage:</p>
-<pre class="highlight swift"><code>
-<span class="c1">/// Initialize stat monitors</span>
-<span class="k">let</span> <span class="nv">monitor1</span> <span class="o">=</span> <span class="kt">SwiftMetrics</span><span class="p">()</span>
-<span class="k">let</span> <span class="nv">monitor2</span> <span class="o">=</span> <span class="o">...</span>
+<p>For more information visit our <a href="https://ibm-swift.github.io/CircuitBreaker/index.html">API reference</a>.</p>
+<h2 id='community' class='heading'>Community</h2>
 
-<span class="c1">/// Register monitors</span>
-<span class="kt">CircuitBreaker</span><span class="o">.</span><span class="nf">addMonitor</span><span class="p">(</span><span class="n">monitor1</span><span class="p">)</span>
-<span class="kt">CircuitBreaker</span><span class="o">.</span><span class="nf">addMonitor</span><span class="p">(</span><span class="n">monitor2</span><span class="p">)</span>
-
-<span class="c1">// Create instances of circuit breaker...</span>
-<span class="k">let</span> <span class="nv">circuit1</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">()</span>
-<span class="k">let</span> <span class="nv">circuit2</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">()</span>
-<span class="o">...</span>
-<span class="k">let</span> <span class="nv">circuitN</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">()</span>
-</code></pre>
+<p>We love to talk server-side Swift, and Kitura. Join our <a href="http://swift-at-ibm-slack.mybluemix.net/">Slack</a> to meet the team!</p>
 <h2 id='license' class='heading'>License</h2>
 
-<p>This Swift package is licensed under Apache 2.0. Full license text is available in <a href="LICENSE">LICENSE</a>.</p>
+<p>This Swift package is licensed under Apache 2.0. Full license text is available in <a href="https://github.com/IBM-Swift/CircuitBreaker/blob/master/LICENSE">LICENSE</a>.</p>
 
           </div>
         </section>
@@ -359,8 +339,8 @@ breaker.run(commandArgs: id, fallbackArgs: &quot;Something went wrong.&quot;)
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

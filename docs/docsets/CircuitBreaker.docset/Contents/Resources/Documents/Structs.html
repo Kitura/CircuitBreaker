@@ -22,7 +22,7 @@
         <a class="header-link" href="index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -130,32 +130,30 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>An Error representing a failure within the CircuitBreaker call</p>
-<pre class="highlight plaintext"><code>** BreakerError is intendend to be extended to describe command context errors **
+                        <p>An Error representing a failure within the CircuitBreaker call.</p>
 
-### Usage Example: ###
-````
-extension BreakerError {
-  public static let URLEncodingError = BreakerError(reason: "URL Could Not Be Found")
-  public static let responseError = BreakerError(reason: "Invalid Response Error")
-}
+<p><strong>BreakerError is intended to be extended to describe command context errors.</strong></p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BreakerError</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">URLEncodingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"URL Could Not Be Found"</span><span class="p">)</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">responseError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"Invalid Response Error"</span><span class="p">)</span>
+<span class="p">}</span>
 
-func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
-  guard let url = URL(string: "http://mysever.net/path/\(invocation.commandArgs)") else {
-    invocation.notifyFailure(error: BreakerError.URLEncodingError)
-  }
+<span class="kd">func</span> <span class="nf">myContextFunction</span><span class="p">(</span><span class="nv">invocation</span><span class="p">:</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">String</span><span class="p">),</span> <span class="kt">Void</span><span class="p">,</span> <span class="kt">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"http://mysever.net/path/</span><span class="se">\(</span><span class="n">invocation</span><span class="o">.</span><span class="n">commandArgs</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="o">.</span><span class="kt">URLEncodingError</span><span class="p">)</span>
+  <span class="p">}</span>
 
-  URLSession.shared.dataTask(with: URLRequest(url: url)) { result, res, err in
-    guard let result = result else {
-      invocation.notifyFailure(error: BreakerError.responseError)
-      return
-    }
+  <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">))</span> <span class="p">{</span> <span class="n">result</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">err</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">result</span> <span class="o">=</span> <span class="n">result</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="o">.</span><span class="n">responseError</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
 
-    invocation.notifySuccess()
-  }.resume()
-}
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifySuccess</span><span class="p">()</span>
+  <span class="p">}</span><span class="o">.</span><span class="nf">resume</span><span class="p">()</span>
+<span class="p">}</span>
 </code></pre>
-<pre class="highlight plaintext"><code></code></pre>
 
                         <a href="Structs/BreakerError.html" class="slightly-smaller">See more</a>
                       </div>
@@ -163,7 +161,7 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">BreakerError</span><span class="p">:</span> <span class="kt">Error</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">BreakerError</span><span class="p">:</span> <span class="kt">Error</span></code></pre>
 
                         </div>
                       </div>
@@ -187,7 +185,7 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Stats Snapshot</p>
+                        <p>A snapshot of the current statistics.</p>
 
                         <a href="Structs/Snapshot.html" class="slightly-smaller">See more</a>
                       </div>
@@ -195,7 +193,7 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Snapshot</span><span class="p">:</span> <span class="kt">Codable</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Snapshot</span><span class="p">:</span> <span class="kt">Codable</span></code></pre>
 
                         </div>
                       </div>
@@ -210,8 +208,8 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

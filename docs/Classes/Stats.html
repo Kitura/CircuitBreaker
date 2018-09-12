@@ -23,7 +23,7 @@
         <a class="header-link" href="../index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -111,11 +111,11 @@
             <h1>Stats</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Stats</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Stats</span></code></pre>
 
                 </div>
               </div>
-            <p>Circuit Breaker Stats</p>
+            <p>Circuit Breaker statistics.</p>
 
           </div>
         </section>
@@ -123,13 +123,20 @@
         <section class="section">
           <div class="section-content">
             <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Internally-tracked%20Statistics"></a>
+                <a name="//apple_ref/swift/Section/Internally-tracked Statistics" class="dashAnchor"></a>
+                <a href="#/Internally-tracked%20Statistics">
+                  <h3 class="section-name">Internally-tracked Statistics</h3>
+                </a>
+              </div>
               <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC8timeoutsSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC8timeoutsSivp"></a>
                     <a name="//apple_ref/swift/Property/timeouts" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC8timeoutsSiv">timeouts</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC8timeoutsSivp">timeouts</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -137,15 +144,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Mark - Internally tracked Stats
-Number of timeouts</p>
+                        <p>Number of timeouts.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">timeouts</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">timeouts</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
 
                         </div>
                       </div>
@@ -155,9 +161,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC19successfulResponsesSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC19successfulResponsesSivp"></a>
                     <a name="//apple_ref/swift/Property/successfulResponses" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC19successfulResponsesSiv">successfulResponses</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC19successfulResponsesSivp">successfulResponses</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -165,14 +171,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of successful reponses</p>
+                        <p>Number of successful responses.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">successfulResponses</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">successfulResponses</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
 
                         </div>
                       </div>
@@ -182,9 +188,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC15failedResponsesSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC15failedResponsesSivp"></a>
                     <a name="//apple_ref/swift/Property/failedResponses" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC15failedResponsesSiv">failedResponses</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC15failedResponsesSivp">failedResponses</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -192,14 +198,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of failed reponses</p>
+                        <p>Number of failed responses.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">failedResponses</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">failedResponses</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
 
                         </div>
                       </div>
@@ -209,9 +215,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC13totalRequestsSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC13totalRequestsSivp"></a>
                     <a name="//apple_ref/swift/Property/totalRequests" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC13totalRequestsSiv">totalRequests</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC13totalRequestsSivp">totalRequests</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -219,14 +225,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Total number of requests</p>
+                        <p>Total number of requests.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">totalRequests</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">totalRequests</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
 
                         </div>
                       </div>
@@ -236,9 +242,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC16rejectedRequestsSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC16rejectedRequestsSivp"></a>
                     <a name="//apple_ref/swift/Property/rejectedRequests" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC16rejectedRequestsSiv">rejectedRequests</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC16rejectedRequestsSivp">rejectedRequests</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -246,14 +252,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of rejected requests</p>
+                        <p>Number of rejected requests.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">rejectedRequests</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">rejectedRequests</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span></code></pre>
 
                         </div>
                       </div>
@@ -263,9 +269,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGvp"></a>
                     <a name="//apple_ref/swift/Property/executionLatencies" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGv">executionLatencies</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC18executionLatenciesSaySiGvp">executionLatencies</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -273,14 +279,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Array of request latencies</p>
+                        <p>Array of request latencies.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">executionLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">executionLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
 
                         </div>
                       </div>
@@ -290,9 +296,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGvp"></a>
                     <a name="//apple_ref/swift/Property/totalLatencies" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGv">totalLatencies</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC14totalLatenciesSaySiGvp">totalLatencies</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -300,14 +306,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Array of request latencies</p>
+                        <p>Array of request latencies.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">totalLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">internal(set)</span> <span class="kd">public</span> <span class="k">var</span> <span class="nv">totalLatencies</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></code></pre>
 
                         </div>
                       </div>
@@ -317,9 +323,9 @@ Number of timeouts</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC11percentilesSaySdGv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC11percentilesSaySdGvp"></a>
                     <a name="//apple_ref/swift/Property/percentiles" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC11percentilesSaySdGv">percentiles</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC11percentilesSaySdGvp">percentiles</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -327,26 +333,37 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Default latency percentiles</p>
+                        <p>Default latency percentiles.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">percentiles</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">percentiles</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Computed%20Statistics"></a>
+                <a name="//apple_ref/swift/Section/Computed Statistics" class="dashAnchor"></a>
+                <a href="#/Computed%20Statistics">
+                  <h3 class="section-name">Computed Statistics</h3>
+                </a>
+              </div>
+              <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC12totalLatencySiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC12totalLatencySivp"></a>
                     <a name="//apple_ref/swift/Property/totalLatency" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC12totalLatencySiv">totalLatency</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC12totalLatencySivp">totalLatency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -354,15 +371,14 @@ Number of timeouts</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Mark - Computed Statistics
-Method returning the cumulative latency</p>
+                        <p>Returns the cumulative latency.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -372,9 +388,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC21totalExecutionLatencySiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC21totalExecutionLatencySivp"></a>
                     <a name="//apple_ref/swift/Property/totalExecutionLatency" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC21totalExecutionLatencySiv">totalExecutionLatency</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC21totalExecutionLatencySivp">totalExecutionLatency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -382,14 +398,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method returning the cumulative latency</p>
+                        <p>Returns the cumulative latency.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -399,9 +415,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC20meanExecutionLatencySiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC20meanExecutionLatencySivp"></a>
                     <a name="//apple_ref/swift/Property/meanExecutionLatency" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC20meanExecutionLatencySiv">meanExecutionLatency</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC20meanExecutionLatencySivp">meanExecutionLatency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -409,14 +425,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method returning the average execution response time</p>
+                        <p>Returns the average execution response time.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanExecutionLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -426,9 +442,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC16meanTotalLatencySiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC16meanTotalLatencySivp"></a>
                     <a name="//apple_ref/swift/Property/meanTotalLatency" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC16meanTotalLatencySiv">meanTotalLatency</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC16meanTotalLatencySivp">meanTotalLatency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -436,14 +452,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method returning the average total response time</p>
+                        <p>Returns the average total response time.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanTotalLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">meanTotalLatency</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -453,9 +469,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC18concurrentRequestsSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC18concurrentRequestsSivp"></a>
                     <a name="//apple_ref/swift/Property/concurrentRequests" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC18concurrentRequestsSiv">concurrentRequests</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC18concurrentRequestsSivp">concurrentRequests</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -463,14 +479,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method returning the number of concurrent requests</p>
+                        <p>Returns the number of concurrent requests.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">concurrentRequests</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">concurrentRequests</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -480,9 +496,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC15errorPercentageSdv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC15errorPercentageSdvp"></a>
                     <a name="//apple_ref/swift/Property/errorPercentage" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC15errorPercentageSdv">errorPercentage</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC15errorPercentageSdvp">errorPercentage</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -490,14 +506,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Percentage of responses that threw an error</p>
+                        <p>Percentage of responses that threw an error.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">errorPercentage</span><span class="p">:</span> <span class="kt">Double</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">errorPercentage</span><span class="p">:</span> <span class="kt">Double</span></code></pre>
 
                         </div>
                       </div>
@@ -507,9 +523,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC10errorCountSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC10errorCountSivp"></a>
                     <a name="//apple_ref/swift/Property/errorCount" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC10errorCountSiv">errorCount</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC10errorCountSivp">errorCount</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -517,14 +533,14 @@ Method returning the cumulative latency</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of errored responses</p>
+                        <p>Number of errored responses.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">errorCount</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">errorCount</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -534,9 +550,9 @@ Method returning the cumulative latency</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC14latencyExecutes10DictionaryVySdSiGv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC14latencyExecutes10DictionaryVySdSiGvp"></a>
                     <a name="//apple_ref/swift/Property/latencyExecute" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC14latencyExecutes10DictionaryVySdSiGv">latencyExecute</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC14latencyExecutes10DictionaryVySdSiGvp">latencyExecute</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -545,14 +561,14 @@ Method returning the cumulative latency</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Latency Executes Mapping
-Percentile -&gt; Execution time (in milliseconds)</p>
+Percentile -&gt; Execution time (in milliseconds).</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">latencyExecute</span><span class="p">:</span> <span class="p">[</span><span class="kt">Double</span><span class="p">:</span> <span class="kt">Int</span><span class="p">]</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">latencyExecute</span><span class="p">:</span> <span class="p">[</span><span class="kt">Double</span><span class="p">:</span> <span class="kt">Int</span><span class="p">]</span></code></pre>
 
                         </div>
                       </div>
@@ -562,9 +578,9 @@ Percentile -&gt; Execution time (in milliseconds)</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC12latencyTotals10DictionaryVySdSiGv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC12latencyTotals10DictionaryVySdSiGvp"></a>
                     <a name="//apple_ref/swift/Property/latencyTotal" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC12latencyTotals10DictionaryVySdSiGv">latencyTotal</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC12latencyTotals10DictionaryVySdSiGvp">latencyTotal</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -573,14 +589,14 @@ Percentile -&gt; Execution time (in milliseconds)</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Latency Total Mapping
-Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
+Percentile -&gt; Total end-to-end execution time (in milliseconds).</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">latencyTotal</span><span class="p">:</span> <span class="p">[</span><span class="kt">Double</span><span class="p">:</span> <span class="kt">Int</span><span class="p">]</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">latencyTotal</span><span class="p">:</span> <span class="p">[</span><span class="kt">Double</span><span class="p">:</span> <span class="kt">Int</span><span class="p">]</span></code></pre>
 
                         </div>
                       </div>
@@ -590,9 +606,9 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC6failedSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC6failedSivp"></a>
                     <a name="//apple_ref/swift/Property/failed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC6failedSiv">failed</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC6failedSivp">failed</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -600,14 +616,14 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of failed executions (Both rejected and failed responses)</p>
+                        <p>Number of failed executions (this includes both rejected and failed responses).</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">failed</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">failed</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -617,9 +633,9 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker5StatsC10successfulSiv"></a>
+                    <a name="/s:14CircuitBreaker5StatsC10successfulSivp"></a>
                     <a name="//apple_ref/swift/Property/successful" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker5StatsC10successfulSiv">successful</a>
+                    <a class="token" href="#/s:14CircuitBreaker5StatsC10successfulSivp">successful</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -627,14 +643,14 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Number of successful executions</p>
+                        <p>Number of successful executions.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">successful</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">successful</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -654,14 +670,14 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to log current snapshot of CircuitBreaker</p>
+                        <p>Logs a snapshot of the current CircuitBreaker statistics.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">snapshot</span> <span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">snapshot</span> <span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -676,8 +692,8 @@ Percentile -&gt; Total end-to-end execution time (in milliseconds)</p>
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
