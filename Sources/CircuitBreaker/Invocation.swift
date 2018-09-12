@@ -17,13 +17,15 @@
 import Foundation
 import Dispatch
 
-/// Invocation entity
+/// Invocation entity. A context function receives an `Invocation` object as its parameter.
+/// The Invocation object allows you to notify the circuit breaker of success or failure, provided
+/// that a timeout has not already been triggered.
 public class Invocation<A, B> {
 
-  /// Arguments for circuit command
+  /// Arguments for circuit command.
   public let commandArgs: A
 
-  /// Arguments for circuit fallback
+  /// Arguments for circuit fallback.
   public let fallbackArgs: B
 
   /// Timeout state of invocation
@@ -41,11 +43,12 @@ public class Invocation<A, B> {
 
   weak private var breaker: CircuitBreaker<A, B>?
 
-  /// Invocation Initializer
+  /// Invocation initializer.
   /// - Parameters:
-  ///   - breaker CircuitBreaker Instance
-  ///   - commandArgs Arguments for command context
-  ///
+  ///   - startTime: The startTime for `Invocation`.
+  ///   - breaker: CircuitBreaker instance.
+  ///   - commandArgs: Arguments of type `A` for the command context.
+  ///   - fallbackArgs: Arguments of type `B` for the circuit fallback.
   public init(startTime: Date, breaker: CircuitBreaker<A, B>, commandArgs: A, fallbackArgs: B) {
     self.breaker = breaker
     self.commandArgs = commandArgs
@@ -53,9 +56,9 @@ public class Invocation<A, B> {
     self.startTime = startTime
   }
 
-  /// Marks invocation as having timed out if and only if the execution
+  /// :nodoc: Marks invocation as having timed out if and only if the execution
   /// of the invocation has not completed yet. In such case, true is returned;
-  // otherwise, false.
+  /// otherwise, false.
   public func nofityTimedOut() -> Bool {
     semaphoreCompleted.wait()
     if !self.completed {
@@ -70,21 +73,36 @@ public class Invocation<A, B> {
     return false
   }
 
-  /// Marks invocation as having timed out.
+  /// Marks invocation as having timed out if and only if the execution
+  /// of the invocation has not completed yet. In such case, true is returned;
+  /// otherwise, false.
+  /// ### Usage Example: ###
+  /// ```swift
+  /// result = invocation.notifyTimedOut()
+  /// ```
+  public func notifyTimedOut() -> Bool {
+    return nofityTimedOut()
+  }
+
+  /// Marks the invocation as having timed out.
   /// This function should be called within the boundaries of a semaphore.
   /// Otherwise, resulting behavior may be unexpected.
   private func setTimedOut() {
     self.timedOut = true
   }
 
-  /// Marks invocation as completed
+  /// Marks the invocation as completed.
   /// This function should be called within the boundaries of a semaphore.
   /// Otherwise, resulting behavior may be unexpected.
   private func setCompleted() {
     self.completed = true
   }
 
-  /// Notifies the circuit breaker of success if a timeout has not already been triggered
+  /// Notifies the circuit breaker of success if a timeout has not already been triggered.
+  /// ### Usage Example: ###
+  /// ```swift
+  /// invocation.notifySuccess()
+  /// ```
   public func notifySuccess() {
     semaphoreCompleted.wait()
     if !self.timedOut {
@@ -98,9 +116,14 @@ public class Invocation<A, B> {
     semaphoreCompleted.signal()
   }
 
-  /// Notifies the circuit breaker of success if a timeout has not already been triggered
+  /// Notifies the circuit breaker of failure if a timeout has not already been triggered.
+  /// ### Usage Example: ###
+  /// The example below notifies the circuit breaker of a predefined encodingURLError.
+  /// ```swift
+  /// invocation.notifyFailure(error: .encodingURLError)
+  /// ```
   /// - Parameters:
-  ///   - error: The corresponding error msg
+  ///   - error: The corresponding error msg.
   ///
   public func notifyFailure(error: BreakerError) {
     semaphoreCompleted.wait()

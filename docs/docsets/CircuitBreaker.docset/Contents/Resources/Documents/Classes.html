@@ -22,7 +22,7 @@
         <a class="header-link" href="index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -130,12 +130,24 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>CircuitBreaker class</p>
+                        <p>CircuitBreaker enables you to use Circuit Breaker logic in your Swift applications.</p>
 
 <ul>
 <li>A: Parameter types used in the arguments for the command closure.</li>
 <li>B: Parameter type used as the second argument for the fallback closure.</li>
 </ul>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>The example below shows how to create a <code>CircuitBreaker</code> instance for each context
+function (e.g. endpoint) you wish to circuit break. You need to give the CircuitBreaker instance a name,
+create a context function for the endpoint you intend to circuit break (<code>myContextFunction</code> in the example
+below) and define a fallback function (<code>myFallback</code> in the example below) to call if there are timeouts
+or user defined failures occur.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+</code></pre>
+
+<p>For a more complete example see the
+<a href="https://github.com/IBM-Swift/CircuitBreaker">CircuitBreaker README</a>.</p>
 
                         <a href="Classes/CircuitBreaker.html" class="slightly-smaller">See more</a>
                       </div>
@@ -143,7 +155,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
@@ -167,7 +179,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Invocation entity</p>
+                        <p>Invocation entity. A context function receives an <code>Invocation</code> object as its parameter.
+The Invocation object allows you to notify the circuit breaker of success or failure, provided
+that a timeout has not already been triggered.</p>
 
                         <a href="Classes/Invocation.html" class="slightly-smaller">See more</a>
                       </div>
@@ -175,7 +189,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
@@ -199,7 +213,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Circuit Breaker Stats</p>
+                        <p>Circuit Breaker statistics.</p>
 
                         <a href="Classes/Stats.html" class="slightly-smaller">See more</a>
                       </div>
@@ -207,7 +221,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Stats</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">Stats</span></code></pre>
 
                         </div>
                       </div>
@@ -222,8 +236,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

@@ -16,7 +16,7 @@
 
 import Foundation
 
-/// Stats Snapshot
+/// A snapshot of the current statistics.
 public struct Snapshot: Codable {
 
   /// Tracked Statistics
@@ -62,7 +62,7 @@ public struct Snapshot: Codable {
   /// Average total latency
   let latencyTotal_mean: Int
 
-  /// Total latency by perentile
+  /// Total latency by percentile
   let latencyTotal: [Double: Int]
 
   /// Type of data object
@@ -96,13 +96,13 @@ public struct Snapshot: Codable {
   let propertyValue_requestLogEnabled: Bool = false
   let reportingHosts: Int = 1
 
-  /// Initializer
+  /// Initialize a snapshot of the current statistics.
   ///
   /// - Parameters:
-  ///   - name: CircuitBreaker instance name
-  ///   - group: CircuitBreaker group name
-  ///   - stats: Stats
-  ///   - state: BreakerState
+  ///   - name: CircuitBreaker instance name.
+  ///   - group: CircuitBreaker group name.
+  ///   - stats: The CircuitBreaker statistics.
+  ///   - state: The state of the circuit.
   public init(name: String, group: String? = nil, stats: Stats, state: State) {
     self.name = name
     self.group = group

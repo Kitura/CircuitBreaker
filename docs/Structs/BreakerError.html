@@ -23,7 +23,7 @@
         <a class="header-link" href="../index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -111,36 +111,34 @@
             <h1>BreakerError</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">BreakerError</span><span class="p">:</span> <span class="kt">Error</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">BreakerError</span><span class="p">:</span> <span class="kt">Error</span></code></pre>
 
                 </div>
               </div>
-            <p>An Error representing a failure within the CircuitBreaker call</p>
-<pre class="highlight plaintext"><code>** BreakerError is intendend to be extended to describe command context errors **
+            <p>An Error representing a failure within the CircuitBreaker call.</p>
 
-### Usage Example: ###
-````
-extension BreakerError {
-  public static let URLEncodingError = BreakerError(reason: "URL Could Not Be Found")
-  public static let responseError = BreakerError(reason: "Invalid Response Error")
-}
+<p><strong>BreakerError is intended to be extended to describe command context errors.</strong></p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BreakerError</span> <span class="p">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">URLEncodingError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"URL Could Not Be Found"</span><span class="p">)</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">responseError</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="s">"Invalid Response Error"</span><span class="p">)</span>
+<span class="p">}</span>
 
-func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
-  guard let url = URL(string: "http://mysever.net/path/\(invocation.commandArgs)") else {
-    invocation.notifyFailure(error: BreakerError.URLEncodingError)
-  }
+<span class="kd">func</span> <span class="nf">myContextFunction</span><span class="p">(</span><span class="nv">invocation</span><span class="p">:</span> <span class="kt">Invocation</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">String</span><span class="p">),</span> <span class="kt">Void</span><span class="p">,</span> <span class="kt">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"http://mysever.net/path/</span><span class="se">\(</span><span class="n">invocation</span><span class="o">.</span><span class="n">commandArgs</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="o">.</span><span class="kt">URLEncodingError</span><span class="p">)</span>
+  <span class="p">}</span>
 
-  URLSession.shared.dataTask(with: URLRequest(url: url)) { result, res, err in
-    guard let result = result else {
-      invocation.notifyFailure(error: BreakerError.responseError)
-      return
-    }
+  <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">))</span> <span class="p">{</span> <span class="n">result</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">err</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">result</span> <span class="o">=</span> <span class="n">result</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">invocation</span><span class="o">.</span><span class="nf">notifyFailure</span><span class="p">(</span><span class="nv">error</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="o">.</span><span class="n">responseError</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="p">}</span>
 
-    invocation.notifySuccess()
-  }.resume()
-}
+    <span class="n">invocation</span><span class="o">.</span><span class="nf">notifySuccess</span><span class="p">()</span>
+  <span class="p">}</span><span class="o">.</span><span class="nf">resume</span><span class="p">()</span>
+<span class="p">}</span>
 </code></pre>
-<pre class="highlight plaintext"><code></code></pre>
 
           </div>
         </section>
@@ -152,9 +150,9 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker0B5ErrorV7timeoutACvZ"></a>
-                    <a name="//apple_ref/swift/Variable/timeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV7timeoutACvZ">timeout</a>
+                    <a name="/s:14CircuitBreaker0B5ErrorV3keySSvp"></a>
+                    <a name="//apple_ref/swift/Property/key" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV3keySSvp">key</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -162,15 +160,14 @@ func myContextFunction(invocation: Invocation&lt;(String), Void, String&gt;) {
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>MARK - Build-in Errors
-Command Timeout Error</p>
+                        <p>Unique key for a breaker error.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">timeout</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="s">"Timeout"</span><span class="p">,</span> <span class="nv">reason</span><span class="p">:</span> <span class="s">"A timeout occurred"</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">key</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
@@ -180,9 +177,9 @@ Command Timeout Error</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker0B5ErrorV8fastFailACvZ"></a>
-                    <a name="//apple_ref/swift/Variable/fastFail" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV8fastFailACvZ">fastFail</a>
+                    <a name="/s:14CircuitBreaker0B5ErrorV6reasonSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/reason" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV6reasonSSSgvp">reason</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -190,14 +187,133 @@ Command Timeout Error</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Circuit is open - error denoting failing fast state</p>
+                        <p>String describing the breaker error.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">fastFail</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="s">"Fast Fail"</span><span class="p">,</span> <span class="nv">reason</span><span class="p">:</span> <span class="s">"An error occurred in an open state. Failing fast."</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">reason</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker0B5ErrorVACSSSg3key_AD6reasontcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(key:reason:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorVACSSSg3key_AD6reasontcfc">init(key:reason:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializes a BreakerError instance for a given key and reason.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">reason</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker0B5ErrorVACSSSg6reason_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(reason:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorVACSSSg6reason_tcfc">init(reason:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializes a BreakerError instance for a given reason.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">reason</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Built-in%20Errors"></a>
+                <a name="//apple_ref/swift/Section/Built-in Errors" class="dashAnchor"></a>
+                <a href="#/Built-in%20Errors">
+                  <h3 class="section-name">Built-in Errors</h3>
+                </a>
+              </div>
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker0B5ErrorV7timeoutACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/timeout" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV7timeoutACvpZ">timeout</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Command timeout error.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">timeout</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="s">"Timeout"</span><span class="p">,</span> <span class="nv">reason</span><span class="p">:</span> <span class="s">"A timeout occurred."</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreaker0B5ErrorV8fastFailACvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/fastFail" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV8fastFailACvpZ">fastFail</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Circuit is open - error denoting failing fast state.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">fastFail</span> <span class="o">=</span> <span class="kt">BreakerError</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="s">"Fast Fail"</span><span class="p">,</span> <span class="nv">reason</span><span class="p">:</span> <span class="s">"An error occurred in an open state. Failing fast."</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -211,9 +327,9 @@ Command Timeout Error</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreaker0B5ErrorV11descriptionSSv"></a>
+                    <a name="/s:14CircuitBreaker0B5ErrorV11descriptionSSvp"></a>
                     <a name="//apple_ref/swift/Property/description" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV11descriptionSSv">description</a>
+                    <a class="token" href="#/s:14CircuitBreaker0B5ErrorV11descriptionSSvp">description</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -228,7 +344,7 @@ Command Timeout Error</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
@@ -255,7 +371,7 @@ Command Timeout Error</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">==</span><span class="p">(</span><span class="nv">lhs</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">,</span> <span class="nv">rhs</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">==</span><span class="p">(</span><span class="nv">lhs</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">,</span> <span class="nv">rhs</span><span class="p">:</span> <span class="kt">BreakerError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
                       </div>
@@ -270,8 +386,8 @@ Command Timeout Error</p>
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

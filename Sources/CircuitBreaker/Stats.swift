@@ -17,48 +17,48 @@
 import Foundation
 import LoggerAPI
 
-/// Circuit Breaker Stats
+/// Circuit Breaker statistics.
 public class Stats {
 
-  /// Mark - Internally tracked Stats
+  // MARK: Internally-tracked Statistics
 
-  /// Number of timeouts
+  /// Number of timeouts.
   internal(set) public var timeouts: Int = 0
 
-  /// Number of successful reponses
+  /// Number of successful responses.
   internal(set) public var successfulResponses: Int = 0
 
-  /// Number of failed reponses
+  /// Number of failed responses.
   internal(set) public var failedResponses: Int = 0
 
-  /// Total number of requests
+  /// Total number of requests.
   internal(set) public var totalRequests: Int = 0
 
-  /// Number of rejected requests
+  /// Number of rejected requests.
   internal(set) public var rejectedRequests: Int = 0
 
-  /// Array of request latencies
+  /// Array of request latencies.
   internal(set) public var executionLatencies: [Int] = []
 
-  /// Array of request latencies
+  /// Array of request latencies.
   internal(set) public var totalLatencies: [Int] = []
 
-  /// Default latency percentiles
+  /// Default latency percentiles.
   public var percentiles = [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 1.0]
 
-  /// Mark - Computed Statistics
+  // MARK: Computed Statistics
 
-  /// Method returning the cumulative latency
+  /// Returns the cumulative latency.
   public var totalLatency: Int {
     return totalLatencies.reduce(0, +)
   }
 
-  /// Method returning the cumulative latency
+  /// Returns the cumulative latency.
   public var totalExecutionLatency: Int {
     return executionLatencies.reduce(0, +)
   }
 
-  /// Method returning the average execution response time
+  /// Returns the average execution response time.
   public var meanExecutionLatency: Int {
     if executionLatencies.count == 0 {
       return 0
@@ -66,7 +66,7 @@ public class Stats {
     return totalExecutionLatency / executionLatencies.count
   }
 
-  /// Method returning the average total response time
+  /// Returns the average total response time.
   public var meanTotalLatency: Int {
     if totalLatencies.count == 0 {
       return 0
@@ -74,47 +74,47 @@ public class Stats {
     return totalLatency / totalLatencies.count
   }
 
-  /// Method returning the number of concurrent requests
+  /// Returns the number of concurrent requests.
   public var concurrentRequests: Int {
     let totalResponses = successfulResponses + failedResponses + rejectedRequests
     return totalRequests - totalResponses
   }
 
-  /// Percentage of responses that threw an error
+  /// Percentage of responses that threw an error.
   public var errorPercentage: Double {
     return Double(errorCount) / Double(totalRequests)
   }
 
-  /// Number of errored responses
+  /// Number of errored responses.
   public var errorCount: Int {
     return failedResponses
   }
 
   /// Latency Executes Mapping
-  /// Percentile -> Execution time (in milliseconds)
+  /// Percentile -> Execution time (in milliseconds).
   public var latencyExecute: [Double: Int] {
     return latenciesPercentiles(executionLatencies)
   }
 
   /// Latency Total Mapping
-  /// Percentile -> Total end-to-end execution time (in milliseconds)
+  /// Percentile -> Total end-to-end execution time (in milliseconds).
   public var latencyTotal: [Double: Int] {
-    /// NOTE: Since CircuitBreaker does not currenly track latency for rejected requests. This simply returns
-    /// the same value as latency execute
+    /// NOTE: Since CircuitBreaker does not currently track latency for rejected requests this returns
+    /// the same value as latency execute.
     return latenciesPercentiles(totalLatencies)
   }
 
-  /// Number of failed executions (Both rejected and failed responses)
+  /// Number of failed executions (this includes both rejected and failed responses).
   public var failed: Int {
     return rejectedRequests + failedResponses
   }
 
-  /// Number of successful executions
+  /// Number of successful executions.
   public var successful: Int {
     return successfulResponses
   }
 
-  /// Method to log current snapshot of CircuitBreaker
+  /// Logs a snapshot of the current CircuitBreaker statistics.
   public func snapshot () {
     Log.verbose("Total Requests: \(totalRequests)")
     Log.verbose("Concurrent Requests: \(concurrentRequests)")

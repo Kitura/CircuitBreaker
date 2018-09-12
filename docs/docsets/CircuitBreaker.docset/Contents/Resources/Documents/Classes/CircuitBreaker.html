@@ -23,7 +23,7 @@
         <a class="header-link" href="../index.html">
           CircuitBreaker Docs
         </a>
-         (95% documented)
+         (100% documented)
       </p>
     
       <p class="header-col--secondary">
@@ -111,22 +111,99 @@
             <h1>CircuitBreaker</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
 
                 </div>
               </div>
-            <p>CircuitBreaker class</p>
+            <p>CircuitBreaker enables you to use Circuit Breaker logic in your Swift applications.</p>
 
 <ul>
 <li>A: Parameter types used in the arguments for the command closure.</li>
 <li>B: Parameter type used as the second argument for the fallback closure.</li>
 </ul>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>The example below shows how to create a <code>CircuitBreaker</code> instance for each context
+function (e.g. endpoint) you wish to circuit break. You need to give the CircuitBreaker instance a name,
+create a context function for the endpoint you intend to circuit break (<code>myContextFunction</code> in the example
+below) and define a fallback function (<code>myFallback</code> in the example below) to call if there are timeouts
+or user defined failures occur.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+</code></pre>
+
+<p>For a more complete example see the
+<a href="https://github.com/IBM-Swift/CircuitBreaker">CircuitBreaker README</a>.</p>
 
           </div>
         </section>
 
         <section class="section">
           <div class="section-content">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Closure%20Aliases"></a>
+                <a name="//apple_ref/swift/Section/Closure Aliases" class="dashAnchor"></a>
+                <a href="#/Closure%20Aliases">
+                  <h3 class="section-name">Closure Aliases</h3>
+                </a>
+              </div>
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreakerAAC18AnyContextFunctiona"></a>
+                    <a name="//apple_ref/swift/Alias/AnyContextFunction" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC18AnyContextFunctiona">AnyContextFunction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The context function that runs using the given arguments of generic type A.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">AnyContextFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">(</span><span class="kt"><a href="../Classes/Invocation.html">Invocation</a></span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:14CircuitBreakerAAC11AnyFallbacka"></a>
+                    <a name="//apple_ref/swift/Alias/AnyFallback" class="dashAnchor"></a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC11AnyFallbacka">AnyFallback</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The fallback function that runs when the invocation fails.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">B</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">(</span><span class="kt"><a href="../Structs/BreakerError.html">BreakerError</a></span><span class="p">,</span> <span class="kt">B</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
             <div class="task-group">
               <div class="task-name-container">
                 <a name="/Public%20Fields"></a>
@@ -139,9 +216,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC4nameSSv"></a>
+                    <a name="/s:14CircuitBreakerAAC4nameSSvp"></a>
                     <a name="//apple_ref/swift/Property/name" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC4nameSSv">name</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC4nameSSvp">name</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -149,14 +226,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Name of Circuit Breaker Instance</p>
+                        <p>Name of the CircuitBreaker instance.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span></code></pre>
 
                         </div>
                       </div>
@@ -166,9 +243,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC5groupSSSgv"></a>
+                    <a name="/s:14CircuitBreakerAAC5groupSSSgvp"></a>
                     <a name="//apple_ref/swift/Property/group" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC5groupSSSgv">group</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC5groupSSSgvp">group</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -176,14 +253,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Undocumented</p>
+                        <p>Name of the CircuitBreaker group.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">A</span><span class="p">,</span> <span class="kt">B</span><span class="o">&gt;</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">group</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
 
                         </div>
                       </div>
@@ -193,9 +270,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC7timeoutSiv"></a>
+                    <a name="/s:14CircuitBreakerAAC7timeoutSivp"></a>
                     <a name="//apple_ref/swift/Property/timeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC7timeoutSiv">timeout</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC7timeoutSivp">timeout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -203,14 +280,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Execution timeout for command contect (Default: 1000 ms)</p>
+                        <p>Execution timeout for the command context, that is, the time in milliseconds that your function must
+complete within before the invocation is considered a failure. Default value is 1000 milliseconds.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -220,9 +298,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC12resetTimeoutSiv"></a>
+                    <a name="/s:14CircuitBreakerAAC12resetTimeoutSivp"></a>
                     <a name="//apple_ref/swift/Property/resetTimeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC12resetTimeoutSiv">resetTimeout</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC12resetTimeoutSivp">resetTimeout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -230,14 +308,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Timeout to reset circuit (Default: 6000 ms)</p>
+                        <p>Timeout to reset the circuit, that is, the time in milliseconds to wait before resetting the circuit
+to half open state. Default value is 6000 milliseconds.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -247,9 +326,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC11maxFailuresSiv"></a>
+                    <a name="/s:14CircuitBreakerAAC11maxFailuresSivp"></a>
                     <a name="//apple_ref/swift/Property/maxFailures" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC11maxFailuresSiv">maxFailures</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC11maxFailuresSivp">maxFailures</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -257,14 +336,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Maximum number of failures allowed before opening circuit (Default: 5)</p>
+                        <p>Number of failures allowed within <code><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC13rollingWindowSivp">rollingWindow</a></code> before setting the circuit state to open.
+Default value is 5.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -274,9 +354,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC13rollingWindowSiv"></a>
+                    <a name="/s:14CircuitBreakerAAC13rollingWindowSivp"></a>
                     <a name="//apple_ref/swift/Property/rollingWindow" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC13rollingWindowSiv">rollingWindow</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC13rollingWindowSivp">rollingWindow</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -284,14 +364,17 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>(Default: 10000 ms)</p>
+                        <p>Time window in milliseconds within which the maximum number of failures must occur to trip the circuit.
+For instance, say <code><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC11maxFailuresSivp">maxFailures</a></code> is 5 and <code>rollingWindow</code> is 10000 milliseconds. In such a case, for the
+circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures
+are not consecutive. Default value is 10000 milliseconds.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>
@@ -301,9 +384,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC12breakerStatsAA0D0Cv"></a>
+                    <a name="/s:14CircuitBreakerAAC12breakerStatsAA0D0Cvp"></a>
                     <a name="//apple_ref/swift/Property/breakerStats" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC12breakerStatsAA0D0Cv">breakerStats</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC12breakerStatsAA0D0Cvp">breakerStats</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -311,14 +394,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Instance of Circuit Breaker Stats</p>
+                        <p>Instance of Circuit Breaker statistics.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">breakerStats</span> <span class="o">=</span> <span class="kt"><a href="../Classes/Stats.html">Stats</a></span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">breakerStats</span> <span class="o">=</span> <span class="kt"><a href="../Classes/Stats.html">Stats</a></span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -328,9 +411,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC12breakerStateAA0D0Ov"></a>
+                    <a name="/s:14CircuitBreakerAAC12breakerStateAA0D0Ovp"></a>
                     <a name="//apple_ref/swift/Property/breakerState" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC12breakerStateAA0D0Ov">breakerState</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC12breakerStateAA0D0Ovp">breakerState</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -338,14 +421,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The Breaker&rsquo;s Current State</p>
+                        <p>The Circuit Breaker&rsquo;s current state.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">breakerState</span><span class="p">:</span> <span class="kt"><a href="../Enums/State.html">State</a></span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">breakerState</span><span class="p">:</span> <span class="kt"><a href="../Enums/State.html">State</a></span></code></pre>
 
                         </div>
                       </div>
@@ -376,22 +459,22 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Initializes CircuitBreaker instance with asyncronous context command (Advanced usage)</p>
+                        <p>Initializes a CircuitBreaker instance with an asyncronous context command.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-              <span class="nv">group</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
-              <span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-              <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span>
-              <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-              <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
-              <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-              <span class="nv">command</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyContextFunction</span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span><span class="p">,</span>
-              <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">AnyFallback</span><span class="o">&lt;</span><span class="kt">B</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+            <span class="nv">group</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+            <span class="nv">timeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="nv">resetTimeout</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">60000</span><span class="p">,</span>
+            <span class="nv">maxFailures</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="nv">rollingWindow</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+            <span class="nv">bulkhead</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="nv">command</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt"><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC18AnyContextFunctiona">AnyContextFunction</a></span><span class="o">&lt;</span><span class="kt">A</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="nv">fallback</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt"><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC11AnyFallbacka">AnyFallback</a></span><span class="o">&lt;</span><span class="kt">B</span><span class="o">&gt;</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -407,7 +490,7 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>name of the circuit instance</p>
+                                  <p>Name of the CircuitBreaker instance.</p>
                                 </div>
                               </td>
                             </tr>
@@ -419,7 +502,7 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>optional group description</p>
+                                  <p>Name of the CircuitBreaker group (optional).</p>
                                 </div>
                               </td>
                             </tr>
@@ -431,7 +514,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>Execution timeout for command contect (Default: 1000 ms)</p>
+                                  <p>Execution timeout for command context. That is, the time in milliseconds that your function must
+complete within before the invocation is considered a failure. Default is set to 1000 milliseconds.</p>
                                 </div>
                               </td>
                             </tr>
@@ -443,7 +527,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>Timeout to reset circuit (Default: 6000 ms)</p>
+                                  <p>Time in milliseconds to wait before resetting the circuit to half open state. Default is
+set to 60000 milliseconds.</p>
                                 </div>
                               </td>
                             </tr>
@@ -455,7 +540,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>Maximum number of failures allowed before opening circuit (Default: 5)</p>
+                                  <p>Maximum number of failures allowed within <code><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC13rollingWindowSivp">rollingWindow</a></code> before opening the circuit.
+Default is set to 5.</p>
                                 </div>
                               </td>
                             </tr>
@@ -467,7 +553,10 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>(Default: 10000 ms)</p>
+                                  <p>Time window in milliseconds within which the maximum number of failures must occur to
+trip the circuit. For instance, say <code><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC11maxFailuresSivp">maxFailures</a></code> is 5 and <code><a href="../Classes/CircuitBreaker.html#/s:14CircuitBreakerAAC13rollingWindowSivp">rollingWindow</a></code> is 10000 milliseconds. In such
+a case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if
+these failures are not consecutive. Default is set to 10000 milliseconds.</p>
                                 </div>
                               </td>
                             </tr>
@@ -479,8 +568,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>Number of the limit of concurrent requests running at one time.
-Default is set to 0, which is equivalent to not using the bulkheading feature.(Default: 0)</p>
+                                  <p>Number representing the limit of concurrent requests running at one time. Default is 0,
+which is equivalent to not using the bulk heading feature.</p>
                                 </div>
                               </td>
                             </tr>
@@ -506,7 +595,7 @@ Default is set to 0, which is equivalent to not using the bulkheading feature.(D
                               <td>
                                 <div>
                                   <p>Function user specifies to signal timeout or fastFail completion.
-Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Void</p>
+Required format: <code>(BreakerError, (fallbackArg1, fallbackArg2,...)) -&gt; Void</code></p>
                                 </div>
                               </td>
                             </tr>
@@ -540,14 +629,20 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Runs the circuit using the provided arguments</p>
+                        <p>Runs the circuit using the provided arguments.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>The example below shows how to create and then run a circuit.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="p">(</span><span class="nv">a</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="nv">b</span><span class="p">:</span> <span class="mi">20</span><span class="p">),</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="kt">A</span><span class="p">,</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="kt">B</span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="kt">A</span><span class="p">,</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="kt">B</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -563,7 +658,7 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                               </td>
                               <td>
                                 <div>
-                                  <p>Arguments of type <code>A</code> for the circuit command</p>
+                                  <p>Arguments of type <code>A</code> for the circuit command.</p>
                                 </div>
                               </td>
                             </tr>
@@ -575,7 +670,7 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                               </td>
                               <td>
                                 <div>
-                                  <p>Arguments of type <code>B</code> for the circuit fallback</p>
+                                  <p>Arguments of type <code>B</code> for the circuit fallback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -598,14 +693,21 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to print current stats</p>
+                        <p>Method to print current statistics.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>The example below shows how to log a snapshot of the statistics for a given CircuitBreaker instance.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="p">(</span><span class="nv">a</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="nv">b</span><span class="p">:</span> <span class="mi">20</span><span class="p">),</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">logSnapshot</span><span class="p">()</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">logSnapshot</span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">logSnapshot</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -625,14 +727,14 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to force the circuit open</p>
+                        <p>Method to force the circuit open.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceOpen</span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceOpen</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -652,14 +754,14 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to force the circuit closed</p>
+                        <p>Method to force the circuit closed.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceClosed</span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceClosed</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -679,14 +781,14 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to force the circuit halfopen</p>
+                        <p>Method to force the circuit half open.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceHalfOpen</span><span class="p">()</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">forceHalfOpen</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -710,14 +812,25 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method to create link a StatsMonitor Instance</p>
+                        <p>Method to create a link to a StatsMonitor instance.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>Given a monitor class called <code>exampleMonitor</code> which implements <code><a href="../Protocols/StatsMonitor.html">StatsMonitor</a></code> you can link this
+monitor to CircuitBreaker as shown below. During the initialization of the CircuitBreaker instances
+(circuit1 and circuit2) the linked monitor is notified of their instantiation thus allowing it to begin
+tracking the statistics for both instances.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">monitor1</span> <span class="o">=</span> <span class="nf">exampleMonitor</span><span class="p">()</span>
+<span class="kt">CircuitBreaker</span><span class="o">&lt;</span><span class="kt">Any</span><span class="p">,</span> <span class="kt">Any</span><span class="o">&gt;.</span><span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="n">monitor1</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">circuit1</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">circuit2</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit2"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myContextFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="kt"><a href="../Protocols/StatsMonitor.html">StatsMonitor</a></span><span class="p">)</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">addMonitor</span><span class="p">(</span><span class="nv">monitor</span><span class="p">:</span> <span class="kt"><a href="../Protocols/StatsMonitor.html">StatsMonitor</a></span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -727,9 +840,9 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:14CircuitBreakerAAC8snapshotAA8SnapshotVv"></a>
+                    <a name="/s:14CircuitBreakerAAC8snapshotAA8SnapshotVvp"></a>
                     <a name="//apple_ref/swift/Property/snapshot" class="dashAnchor"></a>
-                    <a class="token" href="#/s:14CircuitBreakerAAC8snapshotAA8SnapshotVv">snapshot</a>
+                    <a class="token" href="#/s:14CircuitBreakerAAC8snapshotAA8SnapshotVvp">snapshot</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -737,14 +850,22 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Property to compute snapshot</p>
+                        <p>Property to compute a snapshot.</p>
+<h3 id='usage-example' class='heading'>Usage Example:</h3>
+
+<p>The example below shows how to compute a Hystrix compliant snapshot of the statistics for a given
+CircuitBreaker instance.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">breaker</span> <span class="o">=</span> <span class="kt">CircuitBreaker</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Circuit1"</span><span class="p">,</span> <span class="nv">command</span><span class="p">:</span> <span class="n">myFunction</span><span class="p">,</span> <span class="nv">fallback</span><span class="p">:</span> <span class="n">myFallback</span><span class="p">)</span>
+<span class="n">breaker</span><span class="o">.</span><span class="nf">run</span><span class="p">(</span><span class="nv">commandArgs</span><span class="p">:</span> <span class="p">(</span><span class="nv">a</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="nv">b</span><span class="p">:</span> <span class="mi">20</span><span class="p">),</span> <span class="nv">fallbackArgs</span><span class="p">:</span> <span class="s">"Something went wrong."</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">snapshot</span> <span class="o">=</span> <span class="n">breaker</span><span class="o">.</span><span class="n">snapshot</span>
+</code></pre>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">snapshot</span><span class="p">:</span> <span class="kt"><a href="../Structs/Snapshot.html">Snapshot</a></span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">snapshot</span><span class="p">:</span> <span class="kt"><a href="../Structs/Snapshot.html">Snapshot</a></span></code></pre>
 
                         </div>
                       </div>
@@ -759,8 +880,8 @@ Required format: (BreakerError, (fallbackArg1, fallbackArg2,&hellip;)) -&gt; Voi
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-01-08)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2018 <a class="link" href="" target="_blank" rel="external">IBM</a>. All rights reserved. (Last updated: 2018-09-12)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
