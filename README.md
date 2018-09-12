@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-    <a href="https://www.kitura.io/packages.html#all">
-    <img src="https://img.shields.io/badge/apidoc-kitura.io-1FBCE4.svg?style=flat" alt="APIDoc">
+    <a href="https://ibm-swift.github.io/CircuitBreaker/index.html">
+    <img src="https://img.shields.io/badge/apidoc-CircuitBreaker-1FBCE4.svg?style=flat" alt="APIDoc">
     </a>
     <a href="https://travis-ci.org/IBM-Swift/CircuitBreaker">
     <img src="https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master" alt="Build Status - Master">
@@ -114,7 +114,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 }
 ```
 
-- Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break. The CircuitBreaker instance must specify a name for the circuit breaker, the endpoint to circuit break and the fallback function. Optional configurations include: group, timeout, resetTimeout, maxFailures, rollingWindow and bulkhead, for further details about these configuration options see the API documentation.
+- Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break. The CircuitBreaker instance must specify a name for the circuit breaker, the endpoint to circuit break and the fallback function. Optional configurations include: group, timeout, resetTimeout, maxFailures, rollingWindow and bulkhead, for further details about these configuration options see the [API reference](https://ibm-swift.github.io/CircuitBreaker/index.html).
 
 ```swift
 let breaker = CircuitBreaker(name: "Circuit1", command: myContextFunction, fallback: myFallback)
@@ -220,6 +220,12 @@ let snapshot = breaker.snapshot
 
 #### Observing statistics
 The CircuitBreaker library provides an interface for observing new CircuitBreaker instances in order to register and track statistics changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's statistics. The CircuitBreaker instance exposes a Hystrix compliant statistics snapshot to the monitor which can then be processed accordingly.  See the API documentation for more information.
+
+## API Documentation
+For more information visit our [API reference](https://ibm-swift.github.io/CircuitBreaker/index.html).
+
+## Community
+We love to talk server-side Swift, and Kitura. Join our [Slack](http://swift-at-ibm-slack.mybluemix.net/) to meet the team!
 
 ## License
 This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/IBM-Swift/CircuitBreaker/blob/master/LICENSE).
