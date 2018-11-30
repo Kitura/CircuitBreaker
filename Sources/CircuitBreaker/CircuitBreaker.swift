@@ -18,41 +18,63 @@ import Foundation
 import Dispatch
 import LoggerAPI
 
-/// CircuitBreaker class
+/// CircuitBreaker enables you to use Circuit Breaker logic in your Swift applications.
 ///
 /// - A: Parameter types used in the arguments for the command closure.
 /// - B: Parameter type used as the second argument for the fallback closure.
+///
+/// ### Usage Example: ###
+/// The example below shows how to create a `CircuitBreaker` instance for each context
+/// function (e.g. endpoint) you wish to circuit break. You need to give the CircuitBreaker instance a name,
+/// create a context function for the endpoint you intend to circuit break (`myContextFunction` in the example
+/// below) and define a fallback function (`myFallback` in the example below) to call if there are timeouts
+/// or user defined failures occur.
+/// ```swift
+/// let breaker = CircuitBreaker(name: "Circuit1", command: myContextFunction, fallback: myFallback)
+/// ```
+///
+/// For a more complete example see the
+/// [CircuitBreaker README](https://github.com/IBM-Swift/CircuitBreaker).
 public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases
 
+  /// The context function that runs using the given arguments of generic type A.
   public typealias AnyContextFunction<A> = (Invocation<A, B>) -> Void
+
+  /// The fallback function that runs when the invocation fails.
   public typealias AnyFallback<B> = (BreakerError, B) -> Void
 
   // MARK: Public Fields
 
-  /// Name of Circuit Breaker Instance
+  /// Name of the CircuitBreaker instance.
   public private(set) var name: String
 
-  // Name of Circuit Breaker Group
+  /// Name of the CircuitBreaker group.
   public private(set) var group: String?
 
-  /// Execution timeout for command contect (Default: 1000 ms)
+  /// Execution timeout for the command context, that is, the time in milliseconds that your function must
+  /// complete within before the invocation is considered a failure. Default value is 1000 milliseconds.
   public let timeout: Int
 
-  /// Timeout to reset circuit (Default: 6000 ms)
+  /// Timeout to reset the circuit, that is, the time in milliseconds to wait before resetting the circuit
+  /// to half open state. Default value is 6000 milliseconds.
   public let resetTimeout: Int
 
-  /// Maximum number of failures allowed before opening circuit (Default: 5)
+  /// Number of failures allowed within `rollingWindow` before setting the circuit state to open.
+  /// Default value is 5.
   public let maxFailures: Int
 
-  /// (Default: 10000 ms)
+  /// Time window in milliseconds within which the maximum number of failures must occur to trip the circuit.
+  /// For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such a case, for the
+  /// circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if these failures
+  /// are not consecutive. Default value is 10000 milliseconds.
   public let rollingWindow: Int
 
-  /// Instance of Circuit Breaker Stats
+  /// Instance of Circuit Breaker statistics.
   public let breakerStats = Stats()
 
-  /// The Breaker's Current State
+  /// The Circuit Breaker's current state.
   public private(set) var breakerState: State {
     get {
       return state
@@ -78,21 +100,27 @@ public class CircuitBreaker<A, B> {
 
   // MARK: Initializers
 
-  /// Initializes CircuitBreaker instance with asyncronous context command (Advanced usage)
+  /// Initializes a CircuitBreaker instance with an asyncronous context command.
   ///
   /// - Parameters:
-  ///   - name: name of the circuit instance
-  ///   - group: optional group description
-  ///   - timeout: Execution timeout for command contect (Default: 1000 ms)
-  ///   - resetTimeout: Timeout to reset circuit (Default: 6000 ms)
-  ///   - maxFailures: Maximum number of failures allowed before opening circuit (Default: 5)
-  ///   - rollingWindow: (Default: 10000 ms)
-  ///   - bulkhead: Number of the limit of concurrent requests running at one time.
-  ///     Default is set to 0, which is equivalent to not using the bulkheading feature.(Default: 0)
+  ///   - name: Name of the CircuitBreaker instance.
+  ///   - group: Name of the CircuitBreaker group (optional).
+  ///   - timeout: Execution timeout for command context. That is, the time in milliseconds that your function must
+  ///     complete within before the invocation is considered a failure. Default is set to 1000 milliseconds.
+  ///   - resetTimeout: Time in milliseconds to wait before resetting the circuit to half open state. Default is
+  ///     set to 60000 milliseconds.
+  ///   - maxFailures: Maximum number of failures allowed within `rollingWindow` before opening the circuit.
+  ///     Default is set to 5.
+  ///   - rollingWindow: Time window in milliseconds within which the maximum number of failures must occur to
+  ///     trip the circuit. For instance, say `maxFailures` is 5 and `rollingWindow` is 10000 milliseconds. In such
+  ///     a case, for the circuit to trip, 5 invocation failures must occur in a time window of 10 seconds, even if
+  ///     these failures are not consecutive. Default is set to 10000 milliseconds.
+  ///   - bulkhead: Number representing the limit of concurrent requests running at one time. Default is 0,
+  ///     which is equivalent to not using the bulk heading feature.
   ///   - command: Contextual function to circuit break, which allows user defined failures
   ///     (the context provides an indirect reference to the corresponding circuit breaker instance).
   ///   - fallback: Function user specifies to signal timeout or fastFail completion.
-  ///     Required format: (BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void
+  ///     Required format: ```(BreakerError, (fallbackArg1, fallbackArg2,...)) -> Void```
   ///
   public init(name: String,
               group: String? = nil,
@@ -121,10 +149,16 @@ public class CircuitBreaker<A, B> {
 
   // MARK: Class Methods
 
-  /// Runs the circuit using the provided arguments
+  /// Runs the circuit using the provided arguments.
+  /// ### Usage Example: ###
+  /// The example below shows how to create and then run a circuit.
+  /// ```swift
+  /// let breaker = CircuitBreaker(name: "Circuit1", command: myFunction, fallback: myFallback)
+  /// breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
+  /// ```
   /// - Parameters:
-  ///   - commandArgs: Arguments of type `A` for the circuit command
-  ///   - fallbackArgs: Arguments of type `B` for the circuit fallback
+  ///   - commandArgs: Arguments of type `A` for the circuit command.
+  ///   - fallbackArgs: Arguments of type `B` for the circuit fallback.
   ///
   public func run(commandArgs: A, fallbackArgs: B) {
     breakerStats.trackRequest()
@@ -157,36 +191,43 @@ public class CircuitBreaker<A, B> {
     }
   }
 
-  /// Method to print current stats
+  /// Method to print current statistics.
+  /// ### Usage Example: ###
+  /// The example below shows how to log a snapshot of the statistics for a given CircuitBreaker instance.
+  /// ```swift
+  /// let breaker = CircuitBreaker(name: "Circuit1", command: myFunction, fallback: myFallback)
+  /// breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
+  /// breaker.logSnapshot()
+  /// ```
   public func logSnapshot() {
     breakerStats.snapshot()
   }
 
-  /// Method to notifcy circuit of a completion with a failure
+  /// Method to notify circuit of a completion with a failure.
   internal func notifyFailure(error: BreakerError, fallbackArgs: B) {
     handleFailure(error: error, fallbackArgs: fallbackArgs)
   }
 
-  /// Method to notifcy circuit of a successful completion
+  /// Method to notify circuit of a successful completion.
   internal func notifySuccess() {
     handleSuccess()
   }
 
-  /// Method to force the circuit open
+  /// Method to force the circuit open.
   public func forceOpen() {
     semaphoreCircuit.wait()
     open()
     semaphoreCircuit.signal()
   }
 
-  /// Method to force the circuit closed
+  /// Method to force the circuit closed.
   public func forceClosed() {
     semaphoreCircuit.wait()
     close()
     semaphoreCircuit.signal()
   }
 
-  /// Method to force the circuit halfopen
+  /// Method to force the circuit half open.
   public func forceHalfOpen() {
     breakerState = .halfopen
   }
@@ -214,7 +255,7 @@ public class CircuitBreaker<A, B> {
     }
   }
 
-  /// The current number of failures
+  /// The current number of failures.
   internal var numberOfFailures: Int {
     return failures.count
   }
@@ -316,12 +357,31 @@ public class CircuitBreaker<A, B> {
 
 extension CircuitBreaker: StatsProvider {
 
-  /// Method to create link a StatsMonitor Instance
+  /// Method to create a link to a StatsMonitor instance.
+  /// ### Usage Example: ###
+  /// Given a monitor class called `exampleMonitor` which implements `StatsMonitor` you can link this
+  /// monitor to CircuitBreaker as shown below. During the initialization of the CircuitBreaker instances
+  /// (circuit1 and circuit2) the linked monitor is notified of their instantiation thus allowing it to begin
+  /// tracking the statistics for both instances.
+  /// ```swift
+  /// let monitor1 = exampleMonitor()
+  /// CircuitBreaker<Any, Any>.addMonitor(monitor: monitor1)
+  /// let circuit1 = CircuitBreaker(name: "Circuit1", command: myContextFunction, fallback: myFallback)
+  /// let circuit2 = CircuitBreaker(name: "Circuit2", command: myContextFunction, fallback: myFallback)
+  /// ```
   public static func addMonitor(monitor: StatsMonitor) {
     MonitorCollection.sharedInstance.values.append(monitor)
   }
 
-  /// Property to compute snapshot
+  /// Property to compute a snapshot.
+  /// ### Usage Example: ###
+  /// The example below shows how to compute a Hystrix compliant snapshot of the statistics for a given
+  /// CircuitBreaker instance.
+  /// ```swift
+  /// let breaker = CircuitBreaker(name: "Circuit1", command: myFunction, fallback: myFallback)
+  /// breaker.run(commandArgs: (a: 10, b: 20), fallbackArgs: "Something went wrong.")
+  /// let snapshot = breaker.snapshot
+  /// ```
   public var snapshot: Snapshot {
     return Snapshot(name: name, group: group, stats: self.breakerStats, state: breakerState)
   }

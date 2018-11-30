@@ -16,65 +16,66 @@
 
 import Foundation
 
-/** An Error representing a failure within the CircuitBreaker call
+/**
+ An Error representing a failure within the CircuitBreaker call.
 
-    ** BreakerError is intendend to be extended to describe command context errors **
+ **BreakerError is intended to be extended to describe command context errors.**
 
-    ### Usage Example: ###
-    ````
-    extension BreakerError {
-      public static let URLEncodingError = BreakerError(reason: "URL Could Not Be Found")
-      public static let responseError = BreakerError(reason: "Invalid Response Error")
-    }
+ ### Usage Example: ###
+ ```swift
+ extension BreakerError {
+   public static let URLEncodingError = BreakerError(reason: "URL Could Not Be Found")
+   public static let responseError = BreakerError(reason: "Invalid Response Error")
+ }
 
-    func myContextFunction(invocation: Invocation<(String), Void, String>) {
-      guard let url = URL(string: "http://mysever.net/path/\(invocation.commandArgs)") else {
-        invocation.notifyFailure(error: BreakerError.URLEncodingError)
-      }
+ func myContextFunction(invocation: Invocation<(String), Void, String>) {
+   guard let url = URL(string: "http://mysever.net/path/\(invocation.commandArgs)") else {
+     invocation.notifyFailure(error: BreakerError.URLEncodingError)
+   }
 
-      URLSession.shared.dataTask(with: URLRequest(url: url)) { result, res, err in
-        guard let result = result else {
-          invocation.notifyFailure(error: BreakerError.responseError)
-          return
-        }
+   URLSession.shared.dataTask(with: URLRequest(url: url)) { result, res, err in
+     guard let result = result else {
+       invocation.notifyFailure(error: BreakerError.responseError)
+       return
+     }
 
-        invocation.notifySuccess()
-      }.resume()
-    }
-  ````
+     invocation.notifySuccess()
+   }.resume()
+ }
+ ```
 */
 public struct BreakerError: Error {
 
-  /// Unique key for a breaker error
+  /// Unique key for a breaker error.
   public let key: String
 
-  /// String descibing the error
+  /// String describing the breaker error.
   public let reason: String?
 
-  /// Breaker Error Initializer
+  /// Initializes a BreakerError instance for a given key and reason.
   ///
   /// - Parameters
-  ///   - key: Optional string key for the error
-  ///   - reason: Optional string describing the error
+  ///   - key: Unique key string for the error (optional).
+  ///   - reason: String describing the error (optional).
   public init(key: String? = nil, reason: String? = nil) {
       self.key = key ?? UUID().uuidString
       self.reason = reason
   }
 
-  /// Convenience Breaker Error Initializer
+  /// Initializes a BreakerError instance for a given reason.
   ///
   /// - Parameters
-  ///   - reason: Optional string describing the error
+  ///   - reason: String describing the error (optional).
   public init(reason: String? = nil) {
     self.init(key: nil, reason: reason)
   }
 
-  /// MARK - Build-in Errors
+  // MARK: Built-in Errors
 
-  /// Command Timeout Error
-  public static let timeout = BreakerError(key: "Timeout", reason: "A timeout occurred")
+  /// Command timeout error.
+  public static let timeout = BreakerError(key: "Timeout", reason: "A timeout occurred.")
 
-  /// Circuit is open - error denoting failing fast state
+  /// Circuit is open - error denoting failing fast state.
   public static let fastFail = BreakerError(key: "Fast Fail", reason: "An error occurred in an open state. Failing fast.")
 }
 
