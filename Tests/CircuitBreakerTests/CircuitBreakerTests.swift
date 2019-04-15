@@ -664,6 +664,9 @@ class CircuitBreakerTests: XCTestCase {
     // Create one more failure
     breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout) // timeout
 
+    // Wait for breaker timeout
+    time(milliseconds: timeout + 50)
+    
     XCTAssertEqual(breaker.breakerState, State.open)
     XCTAssertEqual(breaker.breakerStats.successfulResponses, 2)
     XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
@@ -674,7 +677,7 @@ class CircuitBreakerTests: XCTestCase {
     XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
 
     // Wait for reset timeout
-    time(milliseconds: resetTimeout)
+    time(milliseconds: resetTimeout + timeout)
 
     XCTAssertEqual(breaker.breakerState, State.halfopen)
 
@@ -687,7 +690,7 @@ class CircuitBreakerTests: XCTestCase {
   // Validate state cycle of the circuit (small rolling window)
   func testSmallRollingWindow() {
     // Breaker should not enter open state after maxFailures is reached because the max number of failures did not occur within the time window specified by rollingWindow.
-    let timeout = 50
+    let timeout = 100
     let resetTimeout = 10000
     let maxFailures = 5
     let rollingWindow = timeout
@@ -705,7 +708,7 @@ class CircuitBreakerTests: XCTestCase {
 
     // Create max failures
     for _ in 1...(maxFailures) {
-      breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout)
+      breaker.run(commandArgs: (timeout + 100), fallbackArgs: BreakerError.timeout)
       XCTAssertEqual(breaker.breakerState, State.closed)
     }
 
