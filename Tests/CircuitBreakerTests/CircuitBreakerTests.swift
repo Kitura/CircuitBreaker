@@ -558,12 +558,16 @@ class CircuitBreakerTests: XCTestCase {
   func testBulkheadFullQueue() {
     let expectation1 = expectation(description: "Wait for a predefined amount of time and then return.")
 
-    func timeBulkhead(invocation: Invocation<(Int), BreakerError>) {
+    func timeBulkhead(invocation: Invocation<(Bool, Int), BreakerError>) {
       let args = invocation.commandArgs
-      time(milliseconds: args)
+      sleep(UInt32(args.1 / 1000))
+      if args.0 {
+        time(milliseconds: args.1)
+        expectation1.fulfill()
+      }
     }
 
-    let timeout = 100
+    let timeout = 200
     let maxFailures = 4
 
     // Validate test case configuration
@@ -571,12 +575,10 @@ class CircuitBreakerTests: XCTestCase {
 
     let breaker = CircuitBreaker(name: "Test", timeout: timeout, maxFailures: maxFailures, bulkhead: 2, command: timeBulkhead, fallback: fallbackFunction)
 
-    for _ in 1..<maxFailures {
-      breaker.run(commandArgs: (timeout * 2), fallbackArgs: (BreakerError.timeout))
+    for index in 1..<maxFailures {
+      let fulfill = (index < (maxFailures - 1)) ? false : true
+      breaker.run(commandArgs: (fulfill: fulfill, milliseconds: (timeout * 5)), fallbackArgs: (BreakerError.timeout))
     }
-    // Allow breakers time to timeout
-    time(milliseconds: timeout * 10)
-    expectation1.fulfill()
 
     waitForExpectations(timeout: 20, handler: { _ in
       XCTAssertEqual(breaker.breakerState, State.closed)
