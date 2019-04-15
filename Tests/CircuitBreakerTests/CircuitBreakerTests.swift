@@ -550,10 +550,10 @@ class CircuitBreakerTests: XCTestCase {
 
     func timeBulkhead(invocation: Invocation<(Int), BreakerError>) {
       let args = invocation.commandArgs
-      sleep(UInt32(args / 1000))
+      time(milliseconds: args)
     }
 
-    let timeout = 200
+    let timeout = 100
     let maxFailures = 4
 
     // Validate test case configuration
@@ -562,10 +562,10 @@ class CircuitBreakerTests: XCTestCase {
     let breaker = CircuitBreaker(name: "Test", timeout: timeout, maxFailures: maxFailures, bulkhead: 2, command: timeBulkhead, fallback: fallbackFunction)
 
     for _ in 1..<maxFailures {
-      breaker.run(commandArgs: (timeout * 5), fallbackArgs: (BreakerError.timeout))
+      breaker.run(commandArgs: (timeout * 2), fallbackArgs: (BreakerError.timeout))
     }
     // Allow breakers time to timeout
-    sleep(2)
+    time(milliseconds: timeout * 10)
     expectation1.fulfill()
 
     waitForExpectations(timeout: 20, handler: { _ in
@@ -592,8 +592,8 @@ class CircuitBreakerTests: XCTestCase {
   func testStateCycle() {
 
     // Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.
-    let timeout = 50
-    let resetTimeout = 500
+    let timeout = 100
+    let resetTimeout = 1000
     let maxFailures = 2
 
     let breaker = CircuitBreaker(name: "Test", timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, command: timeCtxFunction, fallback: fallbackFunction)
@@ -604,7 +604,7 @@ class CircuitBreakerTests: XCTestCase {
     XCTAssertEqual(breaker.breakerState, State.closed)
 
     for _ in 1...maxFailures {
-      breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout) // Timeout, Timeout
+      breaker.run(commandArgs: (timeout + 100), fallbackArgs: BreakerError.timeout) // Timeout, Timeout
     }
     
     // Wait for breaker timeout
