@@ -125,6 +125,10 @@ class CircuitBreakerTests: XCTestCase {
   func time(milliseconds: Int) {
     #if os(Linux)
     usleep(UInt32(milliseconds * 1000))
+    #elseif swift(>=4.2)
+    RunLoop.current.run(mode: RunLoop.Mode.default, before: Date(timeIntervalSinceNow: 0.001))
+    let time: Double = Double(milliseconds) / 1000
+    RunLoop.current.run(mode: RunLoop.Mode.default, before: Date(timeIntervalSinceNow: time))
     #else
     RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.001))
     let time: Double = Double(milliseconds) / 1000
@@ -330,8 +334,8 @@ class CircuitBreakerTests: XCTestCase {
     let expectation1 = expectation(description: "Breaker will be closed after successful bulkhead request in halfopen state.")
 
     func testHalfOpen(invocation: Invocation<Void, Void>) {
-      expectation1.fulfill()
       invocation.notifySuccess()
+      expectation1.fulfill()
     }
 
     let breaker = CircuitBreaker(name: "Test", bulkhead: 3, command: testHalfOpen, fallback: dummyFallback)
