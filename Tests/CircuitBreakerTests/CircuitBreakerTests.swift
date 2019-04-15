@@ -334,8 +334,8 @@ class CircuitBreakerTests: XCTestCase {
     let expectation1 = expectation(description: "Breaker will be closed after successful bulkhead request in halfopen state.")
 
     func testHalfOpen(invocation: Invocation<Void, Void>) {
-      expectation1.fulfill()
       invocation.notifySuccess()
+      expectation1.fulfill()
     }
 
     let breaker = CircuitBreaker(name: "Test", bulkhead: 3, command: testHalfOpen, fallback: dummyFallback)
