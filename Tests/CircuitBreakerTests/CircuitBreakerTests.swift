@@ -123,7 +123,17 @@ class CircuitBreakerTests: XCTestCase {
   }
 
   func time(milliseconds: Int) {
+    #if os(Linux)
     usleep(UInt32(milliseconds * 1000))
+    #elseif swift(>=4.2)
+    RunLoop.current.run(mode: RunLoop.Mode.default, before: Date(timeIntervalSinceNow: 0.001))
+    let time: Double = Double(milliseconds) / 1000
+    RunLoop.current.run(mode: RunLoop.Mode.default, before: Date(timeIntervalSinceNow: time))
+    #else
+    RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.001))
+    let time: Double = Double(milliseconds) / 1000
+    RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: time))
+    #endif
   }
 
   func timeCtxFunction(invocation: Invocation<(Int), BreakerError>) {
