@@ -59,7 +59,7 @@ class CircuitBreakerTests: XCTestCase {
       ("testBulkheadCtxFunction", testBulkheadCtxFunction),
       ("testBulkheadFullQueue", testBulkheadFullQueue),
       ("testFallback", testFallback),
-      //("testStateCycle", testStateCycle),
+      ("testStateCycle", testStateCycle),
       ("testRollingWindow", testRollingWindow),
       ("testSmallRollingWindow", testSmallRollingWindow)
     ]
