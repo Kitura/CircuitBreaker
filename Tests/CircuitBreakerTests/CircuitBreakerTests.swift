@@ -369,7 +369,7 @@ class CircuitBreakerTests: XCTestCase {
     // Command will timeout, breaker will still be closed.
     let breaker = CircuitBreaker(name: "Test", timeout: 50, command: timeCtxFunction, fallback: fallbackFunction)
     breaker.run(commandArgs: 100, fallbackArgs: BreakerError.timeout)
-    time(milliseconds: 100)
+    time(milliseconds: 200)
     XCTAssertEqual(breaker.breakerState, State.closed)
     XCTAssertEqual(self.timedOut, true)
   }
@@ -551,8 +551,10 @@ class CircuitBreakerTests: XCTestCase {
 
     func timeBulkhead(invocation: Invocation<(Int), BreakerError>) {
       let args = invocation.commandArgs
-      time(milliseconds: args)
-      dispatchGroup.leave()
+      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(args), execute: {
+        invocation.notifySuccess()
+        dispatchGroup.leave()
+      })
     }
 
     let timeout = 200
@@ -564,7 +566,9 @@ class CircuitBreakerTests: XCTestCase {
     let breaker = CircuitBreaker(name: "Test", timeout: timeout, maxFailures: maxFailures, bulkhead: 2, command: timeBulkhead, fallback: fallbackFunction)
 
     for _ in 1..<maxFailures {
-      dispatchGroup.enter()
+        dispatchGroup.enter()
+    }
+    for _ in 1..<maxFailures {
       breaker.run(commandArgs: (timeout * 2), fallbackArgs: (BreakerError.timeout))
     }
     
@@ -595,17 +599,18 @@ class CircuitBreakerTests: XCTestCase {
   // Validate state cycle of the circuit with halfopen
   func testStateCycle() {
 
-    // Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.
+    let expectation1 = expectation(description: "Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.")
     let timeout = 100
     let resetTimeout = 1000
     let maxFailures = 2
     let dispatchGroup = DispatchGroup()
     
     func timeStateCycle(invocation: Invocation<(Int), BreakerError>) {
-        let args = invocation.commandArgs
-        time(milliseconds: args)
+      let args = invocation.commandArgs
+      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(args), execute: {
         invocation.notifySuccess()
         dispatchGroup.leave()
+      })
     }
     
     let breaker = CircuitBreaker(name: "Test", timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, command: timeStateCycle, fallback: fallbackFunction)
@@ -626,7 +631,7 @@ class CircuitBreakerTests: XCTestCase {
     
       XCTAssertEqual(breaker.breakerState, State.open)
 
-      dispatchGroup.enter()
+      // Breaker closure should not be called since it is failing fast
       breaker.run(commandArgs: 0, fallbackArgs: BreakerError.fastFail) // Fast fail
       XCTAssertEqual(breaker.breakerState, State.open)
 
@@ -636,71 +641,97 @@ class CircuitBreakerTests: XCTestCase {
       XCTAssertEqual(breaker.breakerState, State.halfopen)
       dispatchGroup.enter()
       breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
-
-      XCTAssertEqual(breaker.breakerState, State.closed)
+      dispatchGroup.notify(queue: .main) {
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        expectation1.fulfill()
+      }
     }
+    waitForExpectations(timeout: 20)
   }
 
   // Validate state cycle of the circuit (rolling window)
   func testRollingWindow() {
 
-    // Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.
-    let timeout = 50
-    let resetTimeout = 500
+    let expectation1 = expectation(description: "Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.")
+    let timeout = 100
+    let resetTimeout = 1000
     let maxFailures = 3
-    let rollingWindow = (timeout * maxFailures) + 500
+    let rollingWindow = (timeout * maxFailures) + 1000
+    let dispatchGroup = DispatchGroup()
 
-    let breaker = CircuitBreaker(name: "Test", timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, command: timeCtxFunction, fallback: fallbackFunction)
+    func timeRollingWindow(invocation: Invocation<(Int), BreakerError>) {
+      let args = invocation.commandArgs
+      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(args), execute: {
+        invocation.notifySuccess()
+        dispatchGroup.leave()
+      })
+    }
+    
+    let breaker = CircuitBreaker(name: "Test", timeout: timeout, resetTimeout: resetTimeout, maxFailures: maxFailures, rollingWindow: rollingWindow, command: timeRollingWindow, fallback: fallbackFunction)
 
     // Breaker should start in closed state
     XCTAssertEqual(breaker.breakerState, State.closed)
+    dispatchGroup.enter()
     breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
 
-    // Validate state of circuit
-    XCTAssertEqual(breaker.breakerState, State.closed)
-    XCTAssertEqual(breaker.breakerStats.successfulResponses, 1)
-    XCTAssertEqual(breaker.breakerStats.failedResponses, 0)
-    XCTAssertEqual(breaker.breakerStats.totalRequests, 1)
-    XCTAssertEqual(breaker.breakerStats.rejectedRequests, 0)
-
-    // Create maxFailures-1 consecutive failures
-    for _ in 1...(maxFailures-1) {
-      breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout)
-      XCTAssertEqual(breaker.breakerState, State.closed)
-    }
-
-    XCTAssertEqual(breaker.breakerState, State.closed)
-
-    // Create a successful invocation
-    breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
-
-
-    XCTAssertEqual(breaker.breakerState, State.closed)
-
-    // Create one more failure
-    breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout) // timeout
-
-    // Wait for breaker timeout
-    time(milliseconds: timeout + 50)
+    dispatchGroup.notify(queue: .main) {
+        // Validate state of circuit
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        XCTAssertEqual(breaker.breakerStats.successfulResponses, 1)
+        XCTAssertEqual(breaker.breakerStats.failedResponses, 0)
+        XCTAssertEqual(breaker.breakerStats.totalRequests, 1)
+        XCTAssertEqual(breaker.breakerStats.rejectedRequests, 0)
     
-    XCTAssertEqual(breaker.breakerState, State.open)
-    XCTAssertEqual(breaker.breakerStats.successfulResponses, 2)
-    XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
-    XCTAssertEqual(breaker.breakerStats.totalRequests, (maxFailures + 2))
 
-    breaker.run(commandArgs: 0, fallbackArgs: BreakerError.fastFail) // Fast fail
-    XCTAssertEqual(breaker.breakerState, State.open)
-    XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
+      // Create maxFailures-1 consecutive failures
+      for _ in 1...(maxFailures-1) {
+          dispatchGroup.enter()
+      }
+      for _ in 1...(maxFailures-1) {
+        breaker.run(commandArgs: (timeout + 50), fallbackArgs: BreakerError.timeout)
+      }
 
-    // Wait for reset timeout
-    time(milliseconds: resetTimeout + timeout)
+      // All timeRollingWindow closures have completed
+      dispatchGroup.notify(queue: .main) {
+          
+        XCTAssertEqual(breaker.breakerState, State.closed)
+          
+        // Create a successful invocation
+        dispatchGroup.enter()
+        breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+        
+        
+        XCTAssertEqual(breaker.breakerState, State.closed)
+        
+        // Create one more failure
+        dispatchGroup.enter()
+        breaker.run(commandArgs: (timeout + 100), fallbackArgs: BreakerError.timeout) // timeout
+        dispatchGroup.notify(queue: .main) {
+          XCTAssertEqual(breaker.breakerState, State.open)
+          XCTAssertEqual(breaker.breakerStats.successfulResponses, 2)
+          XCTAssertEqual(breaker.breakerStats.failedResponses, maxFailures)
+          XCTAssertEqual(breaker.breakerStats.totalRequests, (maxFailures + 2))
 
-    XCTAssertEqual(breaker.breakerState, State.halfopen)
+          // Breaker closure should not be called since it is failing fast
+          breaker.run(commandArgs: 0, fallbackArgs: BreakerError.fastFail) // Fast fail
+          XCTAssertEqual(breaker.breakerState, State.open)
+          XCTAssertEqual(breaker.breakerStats.rejectedRequests, 1)
 
-    breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+          // Wait for reset timeout
+          self.time(milliseconds: resetTimeout + timeout)
 
-    XCTAssertEqual(breaker.breakerState, State.closed)
+          XCTAssertEqual(breaker.breakerState, State.halfopen)
 
+          dispatchGroup.enter()
+          breaker.run(commandArgs: 0, fallbackArgs: BreakerError.timeout) // Success
+          dispatchGroup.notify(queue: .main) {
+            XCTAssertEqual(breaker.breakerState, State.closed)
+            expectation1.fulfill()
+          }
+        }
+      }
+    }
+    waitForExpectations(timeout: 20)
   }
 
   // Validate state cycle of the circuit (small rolling window)
