@@ -27,6 +27,8 @@ class StatsTests: XCTestCase {
     return [
       ("testDefaultConstructor", testDefaultConstructor),
       ("testTotalLatency", testTotalLatency),
+      ("testLatencyExecutePercentiles", testLatencyExecutePercentiles),
+      ("testLatencyTotalPercentiles", testLatencyTotalPercentiles),
       ("testTrackTimeouts", testTrackTimeouts),
       ("testTrackSuccessfulResponse", testTrackSuccessfulResponse),
       ("testTrackFailedResponse", testTrackFailedResponse),
