@@ -60,7 +60,7 @@ class CircuitBreakerTests: XCTestCase {
       ("testBulkheadFullQueue", testBulkheadFullQueue),
       ("testStateCycle", testStateCycle),
       ("testFallback", testFallback),
-      ("testRollingWindow", testRollingWindow),
+      //("testRollingWindow", testRollingWindow),
       ("testSmallRollingWindow", testSmallRollingWindow)
     ]
   }
@@ -74,7 +74,6 @@ class CircuitBreakerTests: XCTestCase {
   var testCalled: Bool = false
 
   override func setUp() {
-    print("Entered setUp")
     super.setUp()
     //HeliumLogger.use(LoggerMessageType.debug)
     semaphore.wait()
@@ -83,7 +82,6 @@ class CircuitBreakerTests: XCTestCase {
     testCalled = false
     invocationErrored = false
     semaphore.signal()
-    print("Completed setUp")
   }
 
   func dispatchTime(afterMs: Int) -> DispatchTime {
