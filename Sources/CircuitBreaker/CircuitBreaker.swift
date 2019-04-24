@@ -171,8 +171,7 @@ public class CircuitBreaker<A, B> {
   public func run(commandArgs: A, fallbackArgs: B) {
     breakerStats.trackRequest()
 
-    let state = breakerState
-    switch state {
+    switch breakerState {
     case .open:
       fastFail(fallbackArgs: fallbackArgs)
 
