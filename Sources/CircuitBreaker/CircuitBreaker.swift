@@ -95,7 +95,6 @@ public class CircuitBreaker<A, B> {
   /// Dispatch
   private var resetTimer: DispatchSourceTimer?
   private let semaphoreCircuit = DispatchSemaphore(value: 1)
-
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
   // MARK: Initializers
@@ -163,7 +162,10 @@ public class CircuitBreaker<A, B> {
   public func run(commandArgs: A, fallbackArgs: B) {
     breakerStats.trackRequest()
 
-    switch breakerState {
+    semaphoreCircuit.wait()
+    let state = breakerState
+    semaphoreCircuit.signal()
+    switch state {
     case .open:
       fastFail(fallbackArgs: fallbackArgs)
 
@@ -229,7 +231,9 @@ public class CircuitBreaker<A, B> {
 
   /// Method to force the circuit half open.
   public func forceHalfOpen() {
+    semaphoreCircuit.wait()
     breakerState = .halfopen
+    semaphoreCircuit.signal()
   }
 
   /// Wrapper for calling and handling CircuitBreaker command
