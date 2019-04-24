@@ -58,8 +58,8 @@ class CircuitBreakerTests: XCTestCase {
       ("testBulkhead", testBulkhead),
       ("testBulkheadCtxFunction", testBulkheadCtxFunction),
       ("testBulkheadFullQueue", testBulkheadFullQueue),
-      ("testFallback", testFallback),
       ("testStateCycle", testStateCycle),
+      ("testFallback", testFallback),
       ("testRollingWindow", testRollingWindow),
       ("testSmallRollingWindow", testSmallRollingWindow)
     ]
@@ -74,6 +74,7 @@ class CircuitBreakerTests: XCTestCase {
   var testCalled: Bool = false
 
   override func setUp() {
+    print("Entered setUp")
     super.setUp()
     //HeliumLogger.use(LoggerMessageType.debug)
     semaphore.wait()
@@ -82,6 +83,7 @@ class CircuitBreakerTests: XCTestCase {
     testCalled = false
     invocationErrored = false
     semaphore.signal()
+    print("Completed setUp")
   }
 
   func dispatchTime(afterMs: Int) -> DispatchTime {
@@ -137,8 +139,8 @@ class CircuitBreakerTests: XCTestCase {
   }
   
   func timeDispatchGroupFunction(invocation: Invocation<Int, BreakerError>) {
-    print("timeDispatchGroupFunction Called")
     let args = invocation.commandArgs
+    print("timeDispatchGroupFunction Called: \(args)")
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(args), execute: {
       print("timeDispatchGroupFunction async called")
       invocation.notifySuccess()
@@ -655,7 +657,7 @@ class CircuitBreakerTests: XCTestCase {
 
   // Validate state cycle of the circuit (rolling window)
   func testRollingWindow() {
-
+    print("Entered testRollingWindow")
     let expectation1 = expectation(description: "Breaker enters open state after maxFailures is reached. Then after resetTimeout, it should enter half open state.")
     let timeout = 100
     let resetTimeout = 1000
