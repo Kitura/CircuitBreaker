@@ -8,6 +8,7 @@ Pod::Spec.new do |s|
   s.author     = "IBM"
   s.module_name  = 'CircuitBreaker'
   s.ios.deployment_target = "10.0"
+  s.osx.deployment_target = "10.11"
   s.source   = { :git => "https://github.com/IBM-Swift/CircuitBreaker.git", :tag => s.version }
   s.source_files = "Sources/CircuitBreaker/*.swift"
   s.dependency 'LoggerAPI', '~> 1.7'
