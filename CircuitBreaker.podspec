@@ -1,7 +1,7 @@
 
 Pod::Spec.new do |s|
   s.name        = "CircuitBreaker"
-  s.version     = "5.0.200"
+  s.version     = "5.1.0"
   s.summary     = "A Swift Circuit Breaker library"
   s.homepage    = "https://github.com/Kitura/CircuitBreaker"
   s.license     = { :type => "Apache License, Version 2.0" }

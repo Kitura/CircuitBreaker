@@ -1,4 +1,4 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 /**
@@ -28,7 +28,7 @@ let package = Package(
       )
     ],
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/LoggerAPI.git", .upToNextMajor(from: "1.9.200"))
+        .package(url: "https://github.com/Kitura/LoggerAPI.git", .upToNextMajor(from: "1.9.200"))
     ],
     targets: [
       .target(
