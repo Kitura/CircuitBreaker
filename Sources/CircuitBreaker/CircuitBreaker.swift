@@ -34,7 +34,7 @@ import LoggerAPI
 /// ```
 ///
 /// For a more complete example see the
-/// [CircuitBreaker README](https://github.com/IBM-Swift/CircuitBreaker).
+/// [CircuitBreaker README](https://github.com/Kitura/CircuitBreaker).
 public class CircuitBreaker<A, B> {
 
   // MARK: Closure Aliases

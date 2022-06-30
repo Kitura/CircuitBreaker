@@ -1,15 +1,15 @@
 <p align="center">
     <a href="http://kitura.io/">
-        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+        <img src="https://raw.githubusercontent.com/Kitura/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
     </a>
 </p>
 
 <p align="center">
-    <a href="https://ibm-swift.github.io/CircuitBreaker/index.html">
+    <a href="https://kitura.github.io/CircuitBreaker/index.html">
     <img src="https://img.shields.io/badge/apidoc-CircuitBreaker-1FBCE4.svg?style=flat" alt="APIDoc">
     </a>
-    <a href="https://travis-ci.org/IBM-Swift/CircuitBreaker">
-    <img src="https://travis-ci.org/IBM-Swift/CircuitBreaker.svg?branch=master" alt="Build Status - Master">
+    <a href="https://travis-ci.org/Kitura/CircuitBreaker">
+    <img src="https://travis-ci.org/Kitura/CircuitBreaker.svg?branch=master" alt="Build Status - Master">
     </a>
     <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
     <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
@@ -25,14 +25,14 @@ The Circuit Breaker design pattern is used to increase application stability, im
 ![Circuit Breaker Diagram](resources/circuitBreakerDiagram.png)
 
 ## Swift version
-The latest version of CircuitBreaker works with the `4.1.2` and newer version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
+The latest version of CircuitBreaker works with the `5.1` and newer version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#releases).
 
 ## Getting Started
 
-Add `CircuitBreaker` to the dependencies within your application's `Package.swift` file. Substitute `"x.x.x"` with the latest `CircuitBreaker` [release](https://github.com/IBM-Swift/CircuitBreaker/releases).
+Add `CircuitBreaker` to the dependencies within your application's `Package.swift` file. Substitute `"x.x.x"` with the latest `CircuitBreaker` [release](https://github.com/Kitura/CircuitBreaker/releases).
 
 ```swift
-.package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", from: "x.x.x")
+.package(url: "https://github.com/Kitura/CircuitBreaker.git", from: "x.x.x")
 ```
 Add `CircuitBreaker` to your target's dependencies:
 
@@ -114,7 +114,7 @@ func myContextFunction(invocation: Invocation<(String), String>) {
 }
 ```
 
-- Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break. The CircuitBreaker instance must specify a name for the circuit breaker, the endpoint to circuit break and the fallback function. Optional configurations include: group, timeout, resetTimeout, maxFailures, rollingWindow and bulkhead, for further details about these configuration options see the [API reference](https://ibm-swift.github.io/CircuitBreaker/index.html).
+- Create a CircuitBreaker instance for each context function (e.g. endpoint) you wish to circuit break. The CircuitBreaker instance must specify a name for the circuit breaker, the endpoint to circuit break and the fallback function. Optional configurations include: group, timeout, resetTimeout, maxFailures, rollingWindow and bulkhead, for further details about these configuration options see the [API reference](https://kitura.github.io/CircuitBreaker/index.html).
 
 ```swift
 let breaker = CircuitBreaker(name: "Circuit1", command: myContextFunction, fallback: myFallback)
@@ -222,10 +222,10 @@ let snapshot = breaker.snapshot
 The CircuitBreaker library provides an interface for observing new CircuitBreaker instances in order to register and track statistics changes. In the initialization of a CircuitBreaker instance, the linked monitors are notified of its instantiation allowing them to begin tracking the instance's statistics. The CircuitBreaker instance exposes a Hystrix compliant statistics snapshot to the monitor which can then be processed accordingly.  See the API documentation for more information.
 
 ## API Documentation
-For more information visit our [API reference](https://ibm-swift.github.io/CircuitBreaker/index.html).
+For more information visit our [API reference](https://kitura.github.io/CircuitBreaker/index.html).
 
 ## Community
 We love to talk server-side Swift, and Kitura. Join our [Slack](http://swift-at-ibm-slack.mybluemix.net/) to meet the team!
 
 ## License
-This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/IBM-Swift/CircuitBreaker/blob/master/LICENSE).
+This Swift package is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/Kitura/CircuitBreaker/blob/master/LICENSE).
