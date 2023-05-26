@@ -77,13 +77,19 @@ public class CircuitBreaker<A, B> {
   /// The Circuit Breaker's current state.
   public private(set) var breakerState: State {
     get {
-      return state
+      breakerStateSemaphore.wait()
+      let tempState = state
+      breakerStateSemaphore.signal()
+      return tempState
     }
     set {
+      breakerStateSemaphore.wait()
       state = newValue
+      breakerStateSemaphore.signal()
     }
   }
 
+  // This the backing store for the state and must be accessed via breakerState
   private(set) var state = State.closed
   private let failures: FailureQueue
   //fallback function is invoked ONLY when failing fast OR when timing out OR when application
@@ -93,9 +99,11 @@ public class CircuitBreaker<A, B> {
   private let bulkhead: Bulkhead?
 
   /// Dispatch
+  // resetTimer should be started via startResetTimer
   private var resetTimer: DispatchSourceTimer?
   private let semaphoreCircuit = DispatchSemaphore(value: 1)
-
+  private let timerSemaphore = DispatchSemaphore(value: 1)
+  private let breakerStateSemaphore = DispatchSemaphore(value: 1)
   private let queue = DispatchQueue(label: "Circuit Breaker Queue", attributes: .concurrent)
 
   // MARK: Initializers
@@ -215,16 +223,12 @@ public class CircuitBreaker<A, B> {
 
   /// Method to force the circuit open.
   public func forceOpen() {
-    semaphoreCircuit.wait()
     open()
-    semaphoreCircuit.signal()
   }
 
   /// Method to force the circuit closed.
   public func forceClosed() {
-    semaphoreCircuit.wait()
     close()
-    semaphoreCircuit.signal()
   }
 
   /// Method to force the circuit half open.
@@ -340,6 +344,7 @@ public class CircuitBreaker<A, B> {
 
   /// Reset timer setup
   private func startResetTimer(delay: DispatchTimeInterval) {
+    timerSemaphore.wait()
     // Cancel previous timer if any
     resetTimer?.cancel()
 
@@ -352,6 +357,7 @@ public class CircuitBreaker<A, B> {
     resetTimer?.schedule(deadline: .now() + delay)
 
     resetTimer?.resume()
+    timerSemaphore.signal()
   }
 }
 
