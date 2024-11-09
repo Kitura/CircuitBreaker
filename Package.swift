@@ -28,7 +28,7 @@ let package = Package(
       )
     ],
     dependencies: [
-        .package(url: "https://github.com/Kitura/LoggerAPI.git", .upToNextMajor(from: "1.9.200"))
+        .package(url: "https://github.com/Kitura/LoggerAPI.git", from: "2.0.0")
     ],
     targets: [
       .target(
